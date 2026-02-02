@@ -6,9 +6,23 @@
   <div class="hero-top">
     <div class="hero-brand">
       <div class="hero-mark">LI</div>
+
       <div class="hero-title">
         <div class="hero-kicker">Portal</div>
-        <div class="hero-h1">Comunicados</div>
+
+        <div class="hero-title-row">
+          <div class="hero-h1">Comunicados</div>
+
+          {{-- ✅ Botón solo para admin --}}
+          @role('admin')
+            <a href="{{ route('admin.slides.index') }}" class="hero-admin-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" class="hero-admin-ico" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M4 3a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h5v1H6a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-1h5a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H4zm12 2v8H4V5h12z"/>
+              </svg>
+              Editar sliders
+            </a>
+          @endrole
+        </div>
       </div>
     </div>
 
@@ -93,7 +107,39 @@
   }
 
   .hero-title .hero-kicker{ font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+
+  .hero-title-row{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
   .hero-title .hero-h1{ font-size: 30px; line-height: 1.1; color: var(--text); font-weight: 650; }
+
+  /* ✅ Botón admin (solo en Home) */
+  .hero-admin-btn{
+    display:inline-flex;
+    align-items:center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: rgba(17,24,39,.85);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background .15s ease, transform .15s ease, box-shadow .15s ease;
+    box-shadow: 0 10px 18px rgba(0,0,0,.08);
+  }
+  .hero-admin-btn:hover{
+    background: rgba(17,24,39,.04);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 24px rgba(0,0,0,.10);
+  }
+  .hero-admin-ico{ width: 16px; height: 16px; }
 
   .hero-tools{ display:flex; align-items:center; gap: 12px; }
 
