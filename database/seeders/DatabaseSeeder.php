@@ -10,6 +10,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolesAndAdminSeeder::class,
+            // QuickLinksSeeder::class, // si lo usas, lo puedes dejar
         ]);
     }
 }

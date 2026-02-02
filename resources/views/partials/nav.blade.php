@@ -117,9 +117,10 @@ $menu = [
   [
     'label' => 'Herramientas de Venta',
     'children' => [
-      ['label' => 'Tabuladores', 'url' => '#'],
-      ['label' => 'Envíos', 'children' => [
+      ['label' => 'Tabuladores', 'children' => [
+        ['label' => 'Envíos', 'url' => '#'],
         ['label' => 'Armados', 'url' => '#'],
+
       ]],
       ['label' => 'Documentos', 'children' => [
         ['label' => 'Semblanza 2025', 'url' => '#'],
@@ -134,8 +135,9 @@ $menu = [
   [
     'label' => 'Documentación',
     'children' => [
-      ['label' => 'Documentación fiscal y legal', 'children' => [
-        ['label' => 'Editables para área fiscal y contabilidad', 'url' => '#'],
+      ['label' => 'Documentación Fiscal', 'children' => [
+      ]],
+            ['label' => 'Documentación Legal', 'children' => [
       ]],
     ],
   ],

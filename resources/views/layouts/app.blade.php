@@ -11,5 +11,6 @@
   <main class="max-w-7xl mx-auto px-4 py-6">
     @yield('content')
   </main>
+  @include('partials.right-quick-menu')
 </body>
 </html>
