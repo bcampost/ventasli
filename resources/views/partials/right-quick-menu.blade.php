@@ -6,8 +6,10 @@
     ->orderBy('id')
     ->get();
 
-  $isAdmin = auth()->check() && auth()->user()->hasRole('Admin');
+  // Rol admin en minúsculas
+  $isAdmin = auth()->check() && auth()->user()->hasRole('admin');
 
+  // Fallback SVGs (por si aún usas el campo icon)
   $icon = function(string $name) {
     return match($name) {
       'home' => '<svg viewBox="0 0 24 24" fill="none"><path d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5H15v-6h-6v6H5.5A1.5 1.5 0 0 1 4 20v-9.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
@@ -27,6 +29,11 @@
     if (str_starts_with($u, 'http://') || str_starts_with($u, 'https://')) return $u;
     if ($u === '') return '#';
     return str_starts_with($u, '/') ? url($u) : url('/'.$u);
+  };
+
+  $isExternal = function(string $url) {
+    $u = trim($url);
+    return str_starts_with($u, 'http://') || str_starts_with($u, 'https://');
   };
 @endphp
 
@@ -54,15 +61,15 @@
 
   .rq-item{
     position: relative;
-    width: 46px;
-    height: 46px;
+    width: 58px;
+    height: 58px;
     display:grid;
     place-items:center;
     text-decoration:none;
     outline:none;
     border-radius: 999px;
-    background: transparent;        /* sin botón */
-    border: none;                    /* sin borde */
+    background: transparent;
+    border: none;
     transition: transform .18s ease, filter .18s ease;
     transform-style: preserve-3d;
   }
@@ -72,25 +79,24 @@
     filter: drop-shadow(0 18px 30px rgba(0,0,0,.12));
   }
 
-  /* "Liquid glass" SOLO en el icono */
+  /* "Liquid glass" SOLO en el icono (contenedor) */
   .rq-icon{
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 999px;
     display:grid;
     place-items:center;
 
-    /* glass */
     background: rgba(255,255,255,.22);
     border: 1px solid rgba(255,255,255,.38);
     box-shadow:
       0 10px 26px rgba(0,0,0,.12),
       inset 0 1px 0 rgba(255,255,255,.55),
       inset 0 -10px 24px rgba(255,255,255,.10);
+
     backdrop-filter: blur(10px) saturate(140%);
     -webkit-backdrop-filter: blur(10px) saturate(140%);
 
-    /* profundidad */
     transform: translateZ(0);
     position: relative;
     overflow: hidden;
@@ -137,30 +143,40 @@
     opacity: .35;
   }
 
+  /* SVG fallback */
   .rq-icon svg{
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
     color: rgba(15,23,42,.92);
     filter: drop-shadow(0 1px 0 rgba(255,255,255,.55));
+  }
+
+  /* ICONO SUBIDO (imagen) */
+  .rq-img{
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    display:block;
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,.45));
   }
 
   /* tooltip a la izquierda (nombre) */
   .rq-label{
     position:absolute;
-    right: 54px;
+    right: 68px;
     top: 50%;
     transform: translateY(-50%) translateX(10px);
     opacity: 0;
     pointer-events: none;
     white-space: nowrap;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 900;
     letter-spacing: .2px;
     color: #0f172a;
     background: rgba(255,255,255,.92);
     border: 1px solid rgba(2,6,23,.08);
-    border-radius: 12px;
-    padding: 8px 10px;
+    border-radius: 14px;
+    padding: 9px 12px;
     box-shadow: 0 18px 45px rgba(0,0,0,.14);
     transition: opacity .18s ease, transform .18s ease;
   }
@@ -171,7 +187,7 @@
 
   /* separador discreto para admin */
   .rq-sep{
-    width: 26px;
+    width: 34px;
     height: 1px;
     background: rgba(2,6,23,.12);
     border-radius: 999px;
@@ -182,8 +198,24 @@
 <div class="rq-wrap">
   <nav class="rq" aria-label="Accesos rápidos">
     @foreach($quickLinks as $l)
-      <a class="rq-item" href="{{ $hrefFor($l->url) }}" title="{{ $l->name }}">
-        <span class="rq-icon">{!! $icon($l->icon) !!}</span>
+      @php
+        $href = $hrefFor($l->url);
+        $ext  = $isExternal($l->url);
+      @endphp
+
+      <a class="rq-item"
+         href="{{ $href }}"
+         title="{{ $l->name }}"
+         @if($ext) target="_blank" rel="noopener" @endif
+      >
+        <span class="rq-icon">
+          @if(!empty($l->icon_path))
+            <img class="rq-img" src="{{ asset('storage/'.$l->icon_path) }}" alt="{{ $l->name }}">
+          @else
+            {!! $icon($l->icon ?? 'dot') !!}
+          @endif
+        </span>
+
         <span class="rq-label">{{ $l->name }}</span>
       </a>
     @endforeach
@@ -191,7 +223,9 @@
     @if($isAdmin)
       <div class="rq-sep"></div>
       <a class="rq-item" href="{{ route('admin.quick-links.index') }}" title="Editar panel">
-        <span class="rq-icon">{!! $icon('settings') !!}</span>
+        <span class="rq-icon">
+          {!! $icon('settings') !!}
+        </span>
         <span class="rq-label">Editar panel</span>
       </a>
     @endif
