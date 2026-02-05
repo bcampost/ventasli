@@ -7,15 +7,19 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('quick_links', function (Blueprint $table) {
-            $table->string('icon_path', 255)->nullable()->after('icon');
-        });
+        if (!Schema::hasColumn('quick_links', 'icon_path')) {
+            Schema::table('quick_links', function (Blueprint $table) {
+                $table->string('icon_path')->nullable()->after('icon');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('quick_links', function (Blueprint $table) {
-            $table->dropColumn('icon_path');
-        });
+        if (Schema::hasColumn('quick_links', 'icon_path')) {
+            Schema::table('quick_links', function (Blueprint $table) {
+                $table->dropColumn('icon_path');
+            });
+        }
     }
 };
