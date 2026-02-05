@@ -67,6 +67,9 @@
   </div>
 </div>
 
+{{-- ✅ NUEVO: Dashboard simulado debajo del slider --}}
+@include('partials.rankings-dashboard')
+
 <style>
   :root{
     --text: #111827;
