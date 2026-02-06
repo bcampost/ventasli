@@ -79,10 +79,9 @@
   $totalAsesores = count($ranking);
 
   // ===========================
-  // ✅ CONTROLES (GET) VENDEDOR + FECHAS
+  // ✅ CONTROLES (GET)
   // ===========================
   $vendors = array_values(array_map(fn($r) => $r['name'], $ranking));
-
   $yearsAllowed = [2025, 2026];
   $monthsAllowed = [
     ['k'=>'01','l'=>'Ene'],['k'=>'02','l'=>'Feb'],['k'=>'03','l'=>'Mar'],['k'=>'04','l'=>'Abr'],
@@ -138,7 +137,7 @@
   }
 
   // ===========================
-  // ✅ RANGO DINÁMICO POR “ÁREA”
+  // ✅ RANGO DINÁMICO POR ÁREA
   // ===========================
   $rangesNumeric = [
     'Fuera de expectativas' => ['min'=>0,        'max'=>200000],
@@ -181,7 +180,7 @@
   }
 
   // ===========================
-  // ✅ SVG GRANDE (full width + más alto)
+  // ✅ SVG BASE
   // ===========================
   $minV = min($series);
   $maxV = max($series);
@@ -189,12 +188,12 @@
   $minY = $bandMin;
   $maxY = $bandMax;
 
-  $w = 1180;        // ✅ más ancho base
-  $h = 420;         // ✅ más alto base (ANTES 280)
-  $pl = 70;         // ✅ más espacio para labels Y
+  $w = 1180;
+  $h = 420;
+  $pl = 70;
   $pr = 24;
   $pt = 18;
-  $pb = 80;         // ✅ más espacio para labels X
+  $pb = 80;
 
   $plotW = $w - $pl - $pr;
   $plotH = $h - $pt - $pb;
@@ -235,7 +234,6 @@
   }
 
   $rangeLabel = $selectedStatus . ' · ' . $fmtMoney($bandMin) . ' – ' . $fmtMoney($bandMax);
-
 @endphp
 
 <style>
@@ -347,7 +345,6 @@
     font-weight: 650;
   }
 
-  /* ✅ Columna derecha widgets */
   .rk-right-col{
     height: 100%;
     min-height: 0;
@@ -356,7 +353,6 @@
     gap: 18px;
   }
 
-  /* ✅ CHART EN IZQUIERDA (GRANDE) */
   .rk-chart-card{ margin-top: 18px; }
   .rk-controls{
     padding: 10px 12px;
@@ -515,7 +511,6 @@
         {{-- LEFT: Ranking + Chart debajo --}}
         <div>
 
-          {{-- Ranking card --}}
           <div class="rk-card">
             <div class="rk-card-head">
               <div class="title">Ranking de Asesores</div>
@@ -527,7 +522,7 @@
                 <thead>
                   <tr>
                     <th class="rk-num">#</th>
-                    <thokt>Vendedor</thokt>
+                    <th>Vendedor</th>
                     <th>Sucursal</th>
                     <th style="text-align:right;">Promedio Mensual</th>
                     <th>Desempeño</th>
@@ -561,121 +556,124 @@
             </div>
           </div>
 
-          {{-- Chart card (debajo del ranking) --}}
-          <div class="rk-card rk-chart-card">
-            <div class="rk-card-head">
-              <div class="title">Comparativo mes a mes</div>
-              <div class="sub">Ventas por vendedor</div>
-            </div>
-
-            <div class="rk-controls">
-              <form method="GET" action="{{ url()->current() }}" id="rkChartForm">
-                <div class="rk-controls-row">
-                  <div class="rk-pill">
-                    <div class="label">
-                      <span>Vendedor</span>
-                      <span class="dot">·</span>
-                    </div>
-                    <select class="rk-select" name="vendor" data-autosubmit>
-                      @foreach($vendors as $v)
-                        <option value="{{ $v }}" {{ $v === $qVendor ? 'selected' : '' }}>{{ $v }}</option>
-                      @endforeach
-                    </select>
-                  </div>
-
-                  <div class="rk-pill">
-                    <div class="label">
-                      <span>Filtrado de fechas</span>
-                      <span class="dot">·</span>
-                    </div>
-
-                    <div class="rk-range-pickers">
-                      <div class="rk-mini" title="Desde">
-                        <span class="cap">Desde</span>
-                        <select name="from_year" data-autosubmit>
-                          @foreach($yearsAllowed as $y)
-                            <option value="{{ $y }}" {{ $y===$qFromY ? 'selected' : '' }}>{{ $y }}</option>
-                          @endforeach
-                        </select>
-                        <select name="from_month" data-autosubmit>
-                          @foreach($monthsAllowed as $m)
-                            <option value="{{ $m['k'] }}" {{ $m['k']===$qFromM ? 'selected' : '' }}>{{ $m['l'] }}</option>
-                          @endforeach
-                        </select>
-                      </div>
-
-                      <div class="rk-mini" title="Hasta">
-                        <span class="cap">Hasta</span>
-                        <select name="to_year" data-autosubmit>
-                          @foreach($yearsAllowed as $y)
-                            <option value="{{ $y }}" {{ $y===$qToY ? 'selected' : '' }}>{{ $y }}</option>
-                          @endforeach
-                        </select>
-                        <select name="to_month" data-autosubmit>
-                          @foreach($monthsAllowed as $m)
-                            <option value="{{ $m['k'] }}" {{ $m['k']===$qToM ? 'selected' : '' }}>{{ $m['l'] }}</option>
-                          @endforeach
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            <div class="rk-chart-wrap">
-              <div class="rk-chart-meta">
-                <div>
-                  <div class="h">{{ $qVendor }}</div>
-                  <div class="sub">Mes con mes (MXN)</div>
-                </div>
-                <div class="rk-badge">
-                  <span>{{ $selectedRow['icon'] ?? '•' }}</span>
-                  <span>{{ $rangeLabel }}</span>
-                </div>
+          {{-- ✅ SOLO ESTA SECCIÓN SE REEMPLAZA EN CARGA PARCIAL --}}
+          <div id="rkChartSection">
+            <div class="rk-card rk-chart-card">
+              <div class="rk-card-head">
+                <div class="title">Comparativo mes a mes</div>
+                <div class="sub">Ventas por vendedor</div>
               </div>
 
-              <svg class="rk-svg" viewBox="0 0 {{ $w }} {{ $h }}" role="img" aria-label="Gráfica de ventas mes a mes">
-                <defs>
-                  <linearGradient id="rkAreaBg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stop-color="rgba(15,23,42,.06)"/>
-                    <stop offset="1" stop-color="rgba(15,23,42,.015)"/>
-                  </linearGradient>
-                </defs>
-                <rect x="{{ $pl }}" y="{{ $pt }}" width="{{ $plotW }}" height="{{ $plotH }}" fill="url(#rkAreaBg)" rx="12"/>
+              <div class="rk-controls">
+                <form method="GET" action="{{ url()->current() }}" id="rkChartForm">
+                  <div class="rk-controls-row">
+                    <div class="rk-pill">
+                      <div class="label">
+                        <span>Vendedor</span>
+                        <span class="dot">·</span>
+                      </div>
+                      <select class="rk-select" name="vendor" data-autosubmit>
+                        @foreach($vendors as $v)
+                          <option value="{{ $v }}" {{ $v === $qVendor ? 'selected' : '' }}>{{ $v }}</option>
+                        @endforeach
+                      </select>
+                    </div>
 
-                @foreach($ticks as $t)
-                  <line x1="{{ $pl }}" y1="{{ $t['y'] }}" x2="{{ $w-$pr }}" y2="{{ $t['y'] }}" stroke="rgba(15,23,42,.08)" stroke-width="1"/>
-                  <text x="{{ $pl-12 }}" y="{{ $t['y']+4 }}" text-anchor="end" font-size="12" fill="rgba(15,23,42,.78)" font-weight="900">
-                    {{ $fmtMoney($t['v']) }}
-                  </text>
-                @endforeach
+                    <div class="rk-pill">
+                      <div class="label">
+                        <span>Filtrado de fechas</span>
+                        <span class="dot">·</span>
+                      </div>
 
-                <line x1="{{ $pl }}" y1="{{ $pt+$plotH }}" x2="{{ $w-$pr }}" y2="{{ $pt+$plotH }}" stroke="rgba(15,23,42,.18)" stroke-width="1"/>
+                      <div class="rk-range-pickers">
+                        <div class="rk-mini" title="Desde">
+                          <span class="cap">Desde</span>
+                          <select name="from_year" data-autosubmit>
+                            @foreach($yearsAllowed as $y)
+                              <option value="{{ $y }}" {{ $y===$qFromY ? 'selected' : '' }}>{{ $y }}</option>
+                            @endforeach
+                          </select>
+                          <select name="from_month" data-autosubmit>
+                            @foreach($monthsAllowed as $m)
+                              <option value="{{ $m['k'] }}" {{ $m['k']===$qFromM ? 'selected' : '' }}>{{ $m['l'] }}</option>
+                            @endforeach
+                          </select>
+                        </div>
 
-                @foreach($xLabels as $i => $lab)
-                  @php $x = $pl + $dx*$i; @endphp
-                  <text x="{{ $x }}" y="{{ $pt+$plotH+44 }}" text-anchor="middle" font-size="12" fill="rgba(15,23,42,.82)" font-weight="900">
-                    {{ $lab }}
-                  </text>
-                @endforeach
+                        <div class="rk-mini" title="Hasta">
+                          <span class="cap">Hasta</span>
+                          <select name="to_year" data-autosubmit>
+                            @foreach($yearsAllowed as $y)
+                              <option value="{{ $y }}" {{ $y===$qToY ? 'selected' : '' }}>{{ $y }}</option>
+                            @endforeach
+                          </select>
+                          <select name="to_month" data-autosubmit>
+                            @foreach($monthsAllowed as $m)
+                              <option value="{{ $m['k'] }}" {{ $m['k']===$qToM ? 'selected' : '' }}>{{ $m['l'] }}</option>
+                            @endforeach
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
 
-                <path d="{{ trim($d) }}" fill="none" stroke="rgba(15,23,42,.92)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <div class="rk-chart-wrap">
+                <div class="rk-chart-meta">
+                  <div>
+                    <div class="h">{{ $qVendor }}</div>
+                    <div class="sub">Mes con mes (MXN)</div>
+                  </div>
+                  <div class="rk-badge">
+                    <span>{{ $selectedRow['icon'] ?? '•' }}</span>
+                    <span>{{ $rangeLabel }}</span>
+                  </div>
+                </div>
 
-                @foreach($points as $p)
-                  <circle cx="{{ $p['x'] }}" cy="{{ $p['y'] }}" r="5.2" fill="#fff" stroke="rgba(15,23,42,.92)" stroke-width="2"/>
-                @endforeach
-              </svg>
-            </div>
+                <svg class="rk-svg" viewBox="0 0 {{ $w }} {{ $h }}" role="img" aria-label="Gráfica de ventas mes a mes">
+                  <defs>
+                    <linearGradient id="rkAreaBg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0" stop-color="rgba(15,23,42,.06)"/>
+                      <stop offset="1" stop-color="rgba(15,23,42,.015)"/>
+                    </linearGradient>
+                  </defs>
 
-            <div class="rk-range">
-              <span>
-                Rango de fechas:
-                <strong>{{ $qFromY }}-{{ $qFromM }}</strong>
-                a
-                <strong>{{ $qToY }}-{{ $qToM }}</strong>
-              </span>
-              <span class="money">Máximo: {{ $fmtMoney($maxV) }}</span>
+                  <rect x="{{ $pl }}" y="{{ $pt }}" width="{{ $plotW }}" height="{{ $plotH }}" fill="url(#rkAreaBg)" rx="12"/>
+
+                  @foreach($ticks as $t)
+                    <line x1="{{ $pl }}" y1="{{ $t['y'] }}" x2="{{ $w-$pr }}" y2="{{ $t['y'] }}" stroke="rgba(15,23,42,.08)" stroke-width="1"/>
+                    <text x="{{ $pl-12 }}" y="{{ $t['y']+4 }}" text-anchor="end" font-size="12" fill="rgba(15,23,42,.78)" font-weight="900">
+                      {{ $fmtMoney($t['v']) }}
+                    </text>
+                  @endforeach
+
+                  <line x1="{{ $pl }}" y1="{{ $pt+$plotH }}" x2="{{ $w-$pr }}" y2="{{ $pt+$plotH }}" stroke="rgba(15,23,42,.18)" stroke-width="1"/>
+
+                  @foreach($xLabels as $i => $lab)
+                    @php $x = $pl + $dx*$i; @endphp
+                    <text x="{{ $x }}" y="{{ $pt+$plotH+44 }}" text-anchor="middle" font-size="12" fill="rgba(15,23,42,.82)" font-weight="900">
+                      {{ $lab }}
+                    </text>
+                  @endforeach
+
+                  <path d="{{ trim($d) }}" fill="none" stroke="rgba(15,23,42,.92)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+
+                  @foreach($points as $p)
+                    <circle cx="{{ $p['x'] }}" cy="{{ $p['y'] }}" r="5.2" fill="#fff" stroke="rgba(15,23,42,.92)" stroke-width="2"/>
+                  @endforeach
+                </svg>
+              </div>
+
+              <div class="rk-range">
+                <span>
+                  Rango de fechas:
+                  <strong>{{ $qFromY }}-{{ $qFromM }}</strong>
+                  a
+                  <strong>{{ $qToY }}-{{ $qToM }}</strong>
+                </span>
+                <span class="money">Máximo: {{ $fmtMoney($maxV) }}</span>
+              </div>
             </div>
           </div>
 
@@ -797,10 +795,104 @@
 
 <script>
   (function(){
-    var form = document.getElementById('rkChartForm');
-    if(!form) return;
-    form.querySelectorAll('[data-autosubmit]').forEach(function(el){
-      el.addEventListener('change', function(){ form.submit(); });
-    });
+    var sectionId = 'rkChartSection';
+
+    function bindChartHandlers(){
+      var form = document.getElementById('rkChartForm');
+      if(!form) return;
+
+      function buildUrlFromForm(){
+        var url = new URL(window.location.href);
+        var fd = new FormData(form);
+
+        // Limpia params previos del chart
+        ['vendor','from_year','from_month','to_year','to_month'].forEach(function(k){
+          url.searchParams.delete(k);
+        });
+
+        fd.forEach(function(v, k){
+          if(v !== null && v !== undefined && String(v).length){
+            url.searchParams.set(k, v);
+          }
+        });
+
+        return url.toString();
+      }
+
+      async function refreshChartPartial(push){
+        var currentY = window.scrollY || window.pageYOffset || 0;
+        var url = buildUrlFromForm();
+
+        var currSection = document.getElementById(sectionId);
+        if(currSection) currSection.style.opacity = '0.55';
+
+        try{
+          var res = await fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+          });
+
+          var html = await res.text();
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(html, 'text/html');
+
+          var nextSection = doc.getElementById(sectionId);
+          var currentSection = document.getElementById(sectionId);
+
+          if(nextSection && currentSection){
+            currentSection.replaceWith(nextSection);
+          }
+
+          // Actualiza URL sin brincar al inicio
+          if(push){
+            history.pushState({rk:true}, '', url);
+          }else{
+            history.replaceState({rk:true}, '', url);
+          }
+
+          // Mantiene scroll
+          window.scrollTo(0, currentY);
+
+          // ✅ IMPORTANTÍSIMO: re-bindea eventos porque el DOM cambió
+          bindChartHandlers();
+
+        }catch(e){
+          // Fallback: recarga completa preservando scroll
+          sessionStorage.setItem('rkScrollY', String(currentY));
+          window.location.href = url;
+          return;
+        }finally{
+          var s = document.getElementById(sectionId);
+          if(s) s.style.opacity = '';
+        }
+      }
+
+      // Quita listeners previos (por si se rebind)
+      form.querySelectorAll('[data-autosubmit]').forEach(function(el){
+        el.onchange = null;
+      });
+
+      // Cambios -> recarga parcial
+      form.querySelectorAll('[data-autosubmit]').forEach(function(el){
+        el.addEventListener('change', function(){
+          refreshChartPartial(true);
+        });
+      });
+
+      // Popstate -> recarga parcial
+      window.onpopstate = function(){
+        refreshChartPartial(false);
+      };
+    }
+
+    // Restauración si venimos del fallback
+    var saved = sessionStorage.getItem('rkScrollY');
+    if(saved){
+      sessionStorage.removeItem('rkScrollY');
+      window.scrollTo(0, parseInt(saved, 10) || 0);
+    }
+
+    // Primer bind
+    bindChartHandlers();
   })();
 </script>
