@@ -1,8 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use App\Models\MenuCardImage;
+use App\Models\MenuProduct;
 
 class MenuController extends Controller
 {
@@ -20,55 +22,158 @@ class MenuController extends Controller
         return implode('/', $parts);
     }
 
-    public function section(Request $request, string $sectionSlug)
+    public function show(Request $request, string $sectionSlug, ?string $path = null)
     {
-        // Si aún no quieres usar config/menu.php, aquí puedes seguir usando el array en el blade.
-        // Pero para que el controller funcione, necesitamos el menú aquí:
         $menu = config('menu', []);
+        abort_if(empty($menu), 404);
 
-        // Si config('menu') no existe todavía, caería en [] y daría 404.
-        // Si prefieres, luego lo cambiamos a un helper o a DB.
         $section = collect($menu)->first(function ($item) use ($sectionSlug) {
             return $this->slugify($item['label']) === $sectionSlug;
         });
-
         abort_if(!$section, 404);
 
-        $open = (string) $request->query('open', '');
-        $open = $open ? $this->slugify($open) : '';
+        $segments = [];
+        $current = $section;
 
-        // Imágenes (si ya implementaste MenuCardImage). Si aún no, igual funciona aunque esté vacío
+        if (!empty($path)) {
+            $segments = array_values(array_filter(explode('/', $path)));
+
+            foreach ($segments as $seg) {
+                $child = $this->findChildBySlug($current, $seg);
+                abort_if(!$child, 404);
+                $current = $child;
+            }
+        }
+
+        // Breadcrumbs
+        $breadcrumbs = [];
+        $breadcrumbs[] = [
+            'label' => $section['label'],
+            'url'   => route('menu.section', $sectionSlug),
+        ];
+
+        $runningPath = '';
+        foreach ($segments as $seg) {
+            $runningPath = $runningPath ? ($runningPath . '/' . $seg) : $seg;
+
+            $node = $section;
+            foreach (explode('/', $runningPath) as $p) {
+                $node = $this->findChildBySlug($node, $p);
+            }
+
+            $breadcrumbs[] = [
+                'label' => $node['label'] ?? $seg,
+                'url'   => route('menu.section', [$sectionSlug, $runningPath]),
+            ];
+        }
+
+        $children = (isset($current['children']) && is_array($current['children']))
+            ? $current['children']
+            : [];
+
+        // Imágenes cards por key
         $keys = [];
         $keys[] = $this->buildKey([$section['label']]);
 
-        foreach (($section['children'] ?? []) as $child) {
-            $keys[] = $this->buildKey([$section['label'], $child['label']]);
-
-            foreach (($child['children'] ?? []) as $leaf) {
-                $keys[] = $this->buildKey([$section['label'], $child['label'], $leaf['label']]);
-            }
+        foreach ($children as $child) {
+            $keyParts = array_merge([$section['label']], $this->segmentsLabelsFromPath($section, $segments), [$child['label']]);
+            $keys[] = $this->buildKey($keyParts);
         }
 
         $images = class_exists(MenuCardImage::class)
             ? MenuCardImage::whereIn('key', $keys)->get()->keyBy('key')
             : collect();
 
-        $openedChild = null;
-        if ($open) {
-            foreach (($section['children'] ?? []) as $child) {
-                if ($this->slugify($child['label']) === $open) {
-                    $openedChild = $child;
-                    break;
-                }
+        $cards = [];
+        foreach ($children as $child) {
+            $hasChildren = isset($child['children']) && is_array($child['children']) && count($child['children']) > 0;
+
+            $childSlug = $this->slugify($child['label']);
+            $childPath = trim(implode('/', array_filter(array_merge($segments, [$childSlug]))), '/');
+
+            $href = '#';
+            if ($hasChildren) {
+                $href = route('menu.section', [$sectionSlug, $childPath]);
+            } else {
+                $href = $child['url'] ?? '#';
+            }
+
+            $keyParts = array_merge([$section['label']], $this->segmentsLabelsFromPath($section, $segments), [$child['label']]);
+            $imgKey = $this->buildKey($keyParts);
+
+            $imgRow = $images->get($imgKey);
+            $imgPath = null;
+            if ($imgRow && !empty($imgRow->path)) {
+                $imgPath = asset('storage/' . ltrim($imgRow->path, '/'));
+            }
+
+            $cards[] = [
+                'title'       => $child['label'],
+                'description' => $imgRow->description ?? ($hasChildren ? "Explora opciones dentro de “{$child['label']}”." : "Accede al recurso de “{$child['label']}”."),
+                'image'       => $imgPath,
+                'href'        => $href,
+                'hasChildren' => $hasChildren,
+                'key'         => $imgKey,
+                'customTitle' => $imgRow->title ?? null,
+            ];
+        }
+
+        // ✅ MENU KEY ACTUAL (donde estoy parado) para productos
+        $currentKeyParts = array_merge([$section['label']], $this->segmentsLabelsFromPath($section, $segments));
+        $currentMenuKey = $this->buildKey($currentKeyParts);
+
+        // ✅ Productos de esta pantalla
+        $products = class_exists(MenuProduct::class)
+            ? MenuProduct::where('menu_key', $currentMenuKey)->orderBy('sort')->orderBy('id', 'desc')->get()
+            : collect();
+
+        return view('menu.show', [
+            'section'      => $section,
+            'current'      => $current,
+            'sectionSlug'  => $sectionSlug,
+            'path'         => $path,
+            'breadcrumbs'  => $breadcrumbs,
+            'cards'        => $cards,
+            'images'       => $images,
+            'currentMenuKey' => $currentMenuKey,
+            'products'     => $products,
+        ]);
+    }
+
+    public function section(Request $request, string $sectionSlug)
+    {
+        return $this->show($request, $sectionSlug, null);
+    }
+
+    private function findChildBySlug(array $parent, string $slug): ?array
+    {
+        if (!isset($parent['children']) || !is_array($parent['children'])) {
+            return null;
+        }
+
+        foreach ($parent['children'] as $child) {
+            if ($this->slugify($child['label']) === $this->slugify($slug)) {
+                return $child;
             }
         }
 
-        return view('menu.section', [
-            'section' => $section,
-            'sectionSlug' => $sectionSlug,
-            'open' => $open,
-            'openedChild' => $openedChild,
-            'images' => $images,
-        ]);
+        return null;
+    }
+
+    private function segmentsLabelsFromPath(array $section, array $segments): array
+    {
+        if (empty($segments)) return [];
+
+        $labels = [];
+        $node = $section;
+
+        foreach ($segments as $seg) {
+            $child = $this->findChildBySlug($node, $seg);
+            if (!$child) break;
+            $labels[] = $child['label'];
+            $node = $child;
+        }
+
+        return $labels;
     }
 }
