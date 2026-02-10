@@ -1,12 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MenuController;
+
 use App\Http\Controllers\Admin\SlideController;
 use App\Http\Controllers\Admin\QuickLinkController;
 use App\Http\Controllers\Admin\MenuCardImageController;
-use App\Http\Controllers\Admin\MenuProductController;
+use App\Http\Controllers\Admin\MenuNodeController;
 
 /**
  * Root: si está logueado -> dashboard (redirige a home)
@@ -28,12 +30,12 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('home');
     })->name('dashboard');
 
-    // Tu HOME real
+    // HOME real
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     /**
      * MENU (CLICK -> pantalla de cards)
-     * OJO: SOLO UNA RUTA, con path opcional.
+     * SOLO UNA RUTA con path opcional
      */
     Route::get('/menu/{sectionSlug}/{path?}', [MenuController::class, 'show'])
         ->where('path', '.*')
@@ -44,35 +46,56 @@ Route::middleware(['auth'])->group(function () {
      */
     Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {
 
-        // Sync de keys (si lo usas)
+        /**
+         * MENU SUPERIOR (DB) - Editor
+         * Nombre de ruta: admin.menu.index
+         */
+        Route::get('/menu', [MenuNodeController::class, 'index'])->name('menu.index');
+
+        // Cargar hijos (accordion / AJAX)
+        Route::get('/menu/children/{menu_node}', [MenuNodeController::class, 'children'])->name('menu.children');
+
+        // Crear (root o sub-opción)
+        Route::post('/menu', [MenuNodeController::class, 'store'])->name('menu.store');
+
+        // Actualizar
+        Route::put('/menu/{menu_node}', [MenuNodeController::class, 'update'])->name('menu.update');
+
+        // Eliminar (recursivo)
+        Route::delete('/menu/{menu_node}', [MenuNodeController::class, 'destroy'])->name('menu.destroy');
+
+        /**
+         * Menu cards (imagenes/metadata)
+         */
+        Route::get('/menu-cards', [MenuCardImageController::class, 'index'])->name('menu-cards.index');
         Route::post('/menu-cards/sync', [MenuCardImageController::class, 'sync'])->name('menu-cards.sync');
 
-        // Slides (CRUD)
+        // ✅ FIX: permitir keys con "/" (listas-de-precios/mobiliario)
+        Route::get('/menu-cards/{key}/edit', [MenuCardImageController::class, 'edit'])
+            ->where('key', '.*')
+            ->name('menu-cards.edit');
+
+        Route::put('/menu-cards/{key}', [MenuCardImageController::class, 'update'])
+            ->where('key', '.*')
+            ->name('menu-cards.update');
+
+        Route::delete('/menu-cards/{key}', [MenuCardImageController::class, 'destroy'])
+            ->where('key', '.*')
+            ->name('menu-cards.destroy');
+
+        /**
+         * Slides (CRUD)
+         */
         Route::resource('slides', SlideController::class)->except(['show']);
 
-        // Quick Links (CRUD)
+        /**
+         * Quick Links (CRUD)
+         */
         Route::get('/quick-links', [QuickLinkController::class, 'index'])->name('quick-links.index');
         Route::post('/quick-links', [QuickLinkController::class, 'store'])->name('quick-links.store');
         Route::get('/quick-links/{quickLink}/edit', [QuickLinkController::class, 'edit'])->name('quick-links.edit');
         Route::put('/quick-links/{quickLink}', [QuickLinkController::class, 'update'])->name('quick-links.update');
         Route::delete('/quick-links/{quickLink}', [QuickLinkController::class, 'destroy'])->name('quick-links.destroy');
-
-        // Cards del menú: imagen / título / descripción
-        Route::get('/menu-cards', [MenuCardImageController::class, 'index'])->name('menu-cards.index');
-        Route::get('/menu-cards/{key}/edit', [MenuCardImageController::class, 'edit'])->name('menu-cards.edit');
-        Route::put('/menu-cards/{key}', [MenuCardImageController::class, 'update'])->name('menu-cards.update');
-        Route::delete('/menu-cards/{key}', [MenuCardImageController::class, 'destroy'])->name('menu-cards.destroy');
-
-        /**
-         * ✅ Productos por sección de menú (CRUD)
-         * Se administran por "menu_key" (query string key=...)
-         */
-        Route::get('/menu-products', [MenuProductController::class, 'index'])->name('menu-products.index');
-        Route::get('/menu-products/create', [MenuProductController::class, 'create'])->name('menu-products.create');
-        Route::post('/menu-products', [MenuProductController::class, 'store'])->name('menu-products.store');
-        Route::get('/menu-products/{menuProduct}/edit', [MenuProductController::class, 'edit'])->name('menu-products.edit');
-        Route::put('/menu-products/{menuProduct}', [MenuProductController::class, 'update'])->name('menu-products.update');
-        Route::delete('/menu-products/{menuProduct}', [MenuProductController::class, 'destroy'])->name('menu-products.destroy');
     });
 });
 

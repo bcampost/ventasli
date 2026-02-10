@@ -10,8 +10,10 @@ class MenuCardImage extends Model
 
     protected $fillable = [
         'key',
-        'path',
         'title',
         'description',
+        'path',
     ];
+
+    public $timestamps = true;
 }

@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
-use App\Models\QuickLink;
+use App\Support\MenuTree;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,15 +15,14 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Links del menú lateral derecho en todas las vistas donde se incluya el partial
-        View::composer('partials.right-quick-menu', function ($view) {
-            $links = QuickLink::query()
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->orderBy('id')
-                ->get();
-
-            $view->with('quickLinks', $links);
+        // Disponible en todas las vistas como $menuTop
+        View::composer('*', function ($view) {
+            try {
+                $view->with('menuTop', MenuTree::build());
+            } catch (\Throwable $e) {
+                // Si aún no hay tabla/migraciones en un entorno, no revienta
+                $view->with('menuTop', []);
+            }
         });
     }
 }

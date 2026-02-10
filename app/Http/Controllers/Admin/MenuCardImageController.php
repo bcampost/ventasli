@@ -51,10 +51,7 @@ class MenuCardImageController extends Controller
             $walk($section, []);
         }
 
-        // unique + reindex
-        $keys = array_values(array_unique($keys));
-
-        return $keys;
+        return array_values(array_unique($keys));
     }
 
     public function index(Request $request)
@@ -74,7 +71,7 @@ class MenuCardImageController extends Controller
     }
 
     /**
-     * ✅ NUEVO: Generar/Sync registros desde config/menu.php
+     * Generar/Sync registros desde config/menu.php
      */
     public function sync()
     {
@@ -120,6 +117,9 @@ class MenuCardImageController extends Controller
         ]);
     }
 
+    /**
+     * ✅ IMPORTANTE: firma correcta (Request, key)
+     */
     public function update(Request $request, string $key)
     {
         $request->validate([
@@ -140,6 +140,7 @@ class MenuCardImageController extends Controller
             ]);
         }
 
+        // Remove image
         if ($request->input('remove_image') === '1') {
             if (!empty($item->path)) {
                 Storage::disk('public')->delete($item->path);
@@ -147,6 +148,7 @@ class MenuCardImageController extends Controller
             $item->path = null;
         }
 
+        // Upload new image
         if ($request->hasFile('image')) {
             if (!empty($item->path)) {
                 Storage::disk('public')->delete($item->path);
@@ -156,12 +158,13 @@ class MenuCardImageController extends Controller
             $item->path = $path;
         }
 
-        $item->title = $request->input('title');
-        $item->description = $request->input('description');
+        $item->title = $request->filled('title') ? (string)$request->input('title') : null;
+        $item->description = $request->filled('description') ? (string)$request->input('description') : null;
         $item->save();
 
+        // ✅ redirect correcto con parámetro nombrado
         return redirect()
-            ->route('admin.menu-cards.edit', $key)
+            ->route('admin.menu-cards.edit', ['key' => $key])
             ->with('status', 'Guardado');
     }
 
