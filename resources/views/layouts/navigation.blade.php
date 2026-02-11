@@ -24,6 +24,7 @@
     --nav-muted: rgba(15,23,42,.62);
     --nav-shadow: 0 14px 40px rgba(2,6,23,.08);
     --nav-r: 18px;
+    --nav-primary: #2563eb;
   }
 
   .v-nav{
@@ -63,27 +64,22 @@
     flex-wrap: wrap;
   }
 
-  .v-item{
-    position: relative;
-  }
+  .v-item{ position: relative; }
 
-  /* Root: NO navegar, solo hover */
-  .v-root-btn{
+  .v-link{
     display:inline-flex;
     align-items:center;
     gap:8px;
     padding: 10px 12px;
     border-radius: 999px;
-    font-weight: 900;
+    font-weight: 800;
     font-size: 14px;
     color: var(--nav-ink);
-    background: transparent;
+    text-decoration:none;
     border: 1px solid transparent;
-    cursor: default;
-    user-select:none;
     transition: background .15s ease, border-color .15s ease, transform .15s ease;
   }
-  .v-root-btn:hover{
+  .v-link:hover{
     background: rgba(248,250,252,.85);
     border-color: rgba(15,23,42,.12);
     transform: translateY(-1px);
@@ -95,10 +91,21 @@
     margin-left: 2px;
   }
 
+  /* ✅ puente invisible para que no se "rompa" el hover */
+  .v-item::after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:100%;
+    height: 14px;
+  }
+
   .v-dd{
     position:absolute;
     left:0;
-    top: calc(100% + 10px);
+    top: 100%;
+    margin-top: 10px;
     min-width: 240px;
     background: #fff;
     border: 1px solid rgba(15,23,42,.12);
@@ -106,21 +113,11 @@
     box-shadow: var(--nav-shadow);
     padding: 8px;
     display:none;
+    z-index: 80;
   }
 
-  /* PUENTE invisible para que no se cierre por el gap */
-  .v-dd::before{
-    content:"";
-    position:absolute;
-    left:0;
-    top:-10px;
-    width:100%;
-    height:10px;
-  }
-
-  /* ✅ Mantener abierto mientras hover esté en item O dropdown */
   .v-item:hover .v-dd,
-  .v-dd:hover{
+  .v-item:focus-within .v-dd{
     display:block;
   }
 
@@ -131,14 +128,13 @@
     gap:10px;
     padding: 10px 10px;
     border-radius: 12px;
-    font-weight: 850;
+    font-weight: 800;
     font-size: 14px;
     text-decoration:none;
     color: var(--nav-ink);
   }
-  .v-dd a:hover{
-    background: rgba(248,250,252,.9);
-  }
+  .v-dd a:hover{ background: rgba(248,250,252,.9); }
+
   .v-dd small{
     color: var(--nav-muted);
     font-weight: 700;
@@ -151,9 +147,8 @@
   }
 
   /* User dropdown */
-  .v-user{
-    position:relative;
-  }
+  .v-user{ position:relative; }
+
   .v-user-btn{
     display:inline-flex;
     align-items:center;
@@ -180,14 +175,7 @@
     padding: 8px;
     display:none;
   }
-  .v-user-dd::before{
-    content:"";
-    position:absolute;
-    right:0;
-    top:-10px;
-    width:100%;
-    height:10px;
-  }
+
   .v-user.open .v-user-dd{ display:block; }
 
   .v-user-dd a, .v-user-dd button{
@@ -222,19 +210,23 @@
       <span>ventasli</span>
     </a>
 
-    {{-- Menú superior dinámico (solo hover) --}}
     <div class="v-menu">
       @foreach($navRoots as $root)
         @php
           $rootSlug = \Illuminate\Support\Str::slug($root->label, '-');
           $hasKids = $root->children && $root->children->count() > 0;
+
+          // ✅ Root NO clickeable si tiene hijos (solo dropdown)
+          $rootHref = $hasKids
+            ? 'javascript:void(0)'
+            : ($root->url ?: route('menu.section', $rootSlug));
         @endphp
 
         <div class="v-item">
-          <div class="v-root-btn">
+          <a class="v-link" href="{{ $rootHref }}" @if($hasKids) onclick="event.preventDefault();" @endif>
             {{ $root->label }}
             @if($hasKids)<span class="v-caret">▾</span>@endif
-          </div>
+          </a>
 
           @if($hasKids)
             <div class="v-dd">
@@ -244,7 +236,7 @@
                 @endphp
                 <a href="{{ $childHref }}">
                   <span>{{ $child->label }}</span>
-                  <small>Abrir</small>
+                  <small>Ver</small>
                 </a>
               @endforeach
             </div>
@@ -253,7 +245,6 @@
       @endforeach
     </div>
 
-    {{-- User dropdown --}}
     <div class="v-right">
       <div class="v-user" id="vUser">
         <button class="v-user-btn" type="button" onclick="toggleUserDd()">
@@ -262,11 +253,6 @@
         </button>
 
         <div class="v-user-dd" id="vUserDd">
-          @role('admin')
-            <a href="{{ route('admin.menu.index') }}">Administrar menú <small>Admin</small></a>
-            <a href="{{ route('admin.menu-cards.index') }}">Editar cards <small>Admin</small></a>
-          @endrole
-
           <a href="{{ route('home') }}">Dashboard <small>Inicio</small></a>
 
           <form method="POST" action="{{ route('logout') }}">

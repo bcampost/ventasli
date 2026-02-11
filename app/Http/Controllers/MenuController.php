@@ -11,20 +11,17 @@ class MenuController extends Controller
 {
     public function show(Request $request, string $sectionSlug, ?string $path = null)
     {
-        $sectionSlug = trim($sectionSlug, '/');
-        $path = $path ? trim($path, '/') : null;
-
-        // Root (sección)
         $section = $this->resolveSectionRoot($sectionSlug);
 
-        // Resolver nodo actual por la cadena de slugs
-        [$currentNode, $chain] = $this->resolveCurrentNode($section, $path);
-        $currentNodeId = $currentNode?->id;
+        // ✅ Ruta completa tipo: "listas-de-precios/mobiliario"
+        $fullPath = trim($sectionSlug . '/' . trim((string)$path, '/'), '/');
 
-        // Key del nivel actual (para productos)
-        $currentMenuKey = $this->buildMenuKey($sectionSlug, $path);
+        // Resolver el nodo actual por el path (usando children por label)
+        [$currentNode, $currentChain] = $this->resolveCurrentNode($section, $path);
 
-        // Hijos (submenús)
+        $currentNodeId = $currentNode?->id; // para “Agregar submenú”
+
+        // Hijos del nodo actual (subopciones)
         $children = collect();
         if ($currentNodeId) {
             $children = MenuNode::query()
@@ -35,17 +32,22 @@ class MenuController extends Controller
                 ->get();
         }
 
-        // Cards para hijos
+        // Cards (submenús)
         $cards = $children->map(function ($n) use ($sectionSlug, $path) {
             $nodeSlug = Str::slug($n->label, '-');
-            $childPath = trim(($path ? $path.'/' : '').$nodeSlug, '/');
+            $newPath = trim(($path ? trim($path, '/') . '/' : '') . $nodeSlug, '/');
+
+            $href = route('menu.section', [
+                'sectionSlug' => $sectionSlug,
+                'path' => $newPath
+            ]);
 
             return [
                 'id' => $n->id,
                 'title' => $n->label,
-                'key' => $this->buildMenuKey($sectionSlug, $childPath),
-                'href' => route('menu.section', ['sectionSlug' => $sectionSlug, 'path' => $childPath]),
-                'hasChildren' => MenuNode::query()->active()->where('parent_id', $n->id)->exists(),
+                'key' => $this->buildMenuKey($sectionSlug, $newPath),
+                'href' => $href,
+                'hasChildren' => MenuNode::where('parent_id', $n->id)->where('is_active', 1)->exists(),
                 'description' => '',
                 'customTitle' => null,
             ];
@@ -53,16 +55,17 @@ class MenuController extends Controller
 
         // Productos del nivel actual
         $products = MenuProduct::query()
-            ->where('menu_key', $currentMenuKey)
+            ->where('menu_key', $this->buildMenuKey($sectionSlug, $path))
             ->orderBy('sort')
             ->orderByDesc('id')
             ->get();
 
-        // Targets para agregar producto
+        // Targets para “Agregar producto”
+        $productTargets = [];
         if ($children->count()) {
             $productTargets = $children->map(function ($n) use ($sectionSlug, $path) {
                 $nodeSlug = Str::slug($n->label, '-');
-                $childPath = trim(($path ? $path.'/' : '').$nodeSlug, '/');
+                $childPath = trim(($path ? trim($path, '/') . '/' : '') . $nodeSlug, '/');
 
                 return [
                     'label' => $n->label,
@@ -71,13 +74,13 @@ class MenuController extends Controller
             })->values()->all();
         } else {
             $productTargets = [[
-                'label' => $currentNode?->label ?? $section['label'] ?? 'Nivel actual',
-                'menu_key' => $currentMenuKey,
+                'label' => ($currentNode?->label ?? $section['label'] ?? 'Nivel actual'),
+                'menu_key' => $this->buildMenuKey($sectionSlug, $path),
             ]];
         }
 
-        // Si ya estás usando menu_card_images, aquí deberías pasar tu colección real.
-        // Para no romper tu vista, lo dejamos como colección vacía.
+        // Si ya traes imágenes desde menu_card_images, aquí debes cargarlo como lo tenías.
+        // De momento lo dejamos como coleccion vacía para no romper.
         $images = collect();
 
         return view('menu.show', [
@@ -87,15 +90,16 @@ class MenuController extends Controller
             ],
             'cards' => $cards,
             'images' => $images,
-
             'currentNodeId' => $currentNodeId,
-            'currentMenuKey' => $currentMenuKey,
+
+            // ✅ FIX: se manda a la vista
+            'fullPath' => $fullPath,
 
             // productos
             'products' => $products,
             'productTargets' => $productTargets,
 
-            // redirect helper
+            // redirect útil
             'redirectTo' => url()->current(),
         ]);
     }
@@ -125,8 +129,6 @@ class MenuController extends Controller
         if (!$rootId) return [null, []];
 
         $current = MenuNode::find($rootId);
-        if (!$current) return [null, []];
-
         $chain = [$current];
 
         $parts = array_values(array_filter(explode('/', trim((string)$path, '/'))));

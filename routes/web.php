@@ -35,7 +35,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     /**
-     * MENU (pantalla de cards/productos)
+     * MENU (CLICK -> pantalla de cards)
      * SOLO UNA RUTA con path opcional
      */
     Route::get('/menu/{sectionSlug}/{path?}', [MenuController::class, 'show'])
@@ -49,6 +49,7 @@ Route::middleware(['auth'])->group(function () {
 
         /**
          * MENU SUPERIOR (DB) - Editor
+         * Nombre de ruta: admin.menu.index
          */
         Route::get('/menu', [MenuNodeController::class, 'index'])->name('menu.index');
 
@@ -65,11 +66,12 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/menu/{menu_node}', [MenuNodeController::class, 'destroy'])->name('menu.destroy');
 
         /**
-         * Menu cards (imagenes/metadata)
+         * Menu cards (imagenes/metadata) para SUBMENUS (menu_key)
          */
         Route::get('/menu-cards', [MenuCardImageController::class, 'index'])->name('menu-cards.index');
         Route::post('/menu-cards/sync', [MenuCardImageController::class, 'sync'])->name('menu-cards.sync');
 
+        // ✅ CLAVE: permitir / dentro de {key}
         Route::get('/menu-cards/{key}/edit', [MenuCardImageController::class, 'edit'])
             ->where('key', '.*')
             ->name('menu-cards.edit');
@@ -83,14 +85,12 @@ Route::middleware(['auth'])->group(function () {
             ->name('menu-cards.destroy');
 
         /**
-         * MENU PRODUCTS (CRUD)
-         * Se usa desde los modales en menu.show
+         * ✅ MENU PRODUCTS (CRUD mínimo para modales)
          */
         Route::get('/menu-products', [MenuProductController::class, 'index'])->name('menu-products.index');
         Route::post('/menu-products', [MenuProductController::class, 'store'])->name('menu-products.store');
-        Route::get('/menu-products/{menuProduct}/edit', [MenuProductController::class, 'edit'])->name('menu-products.edit');
-        Route::put('/menu-products/{menuProduct}', [MenuProductController::class, 'update'])->name('menu-products.update');
-        Route::delete('/menu-products/{menuProduct}', [MenuProductController::class, 'destroy'])->name('menu-products.destroy');
+        Route::put('/menu-products/{menu_product}', [MenuProductController::class, 'update'])->name('menu-products.update');
+        Route::delete('/menu-products/{menu_product}', [MenuProductController::class, 'destroy'])->name('menu-products.destroy');
 
         /**
          * Slides (CRUD)
