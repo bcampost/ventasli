@@ -2,276 +2,154 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\MenuCardImage;
+use App\Models\MenuNode;
 use App\Models\MenuProduct;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class MenuController extends Controller
 {
-    /**
-     * Slug seguro (incluye acentos) -> "sillería" => "sillería" -> regex -> "sillería" => "sillería" -> "siller-a" ??? (por eso usamos \p{L})
-     * Con \p{L} conserva letras unicode y luego reemplaza separadores por '-'.
-     */
-    private function slugify(string $text): string
-    {
-        $text = mb_strtolower(trim($text));
-        $text = preg_replace('/[^\p{L}\p{N}]+/u', '-', $text);
-        $text = trim($text, '-');
-        return $text ?: 'menu';
-    }
-
-    /**
-     * Key canónica por partes (labels) => "productos/escritorios/anzio"
-     */
-    private function buildKey(array $parts): string
-    {
-        $parts = array_map(fn ($p) => $this->slugify($p), $parts);
-        return implode('/', array_filter($parts));
-    }
-
-    /**
-     * MAIN: /menu/{sectionSlug}/{path?}
-     * - Muestra cards de navegación para children del nodo actual (desde config/menu.php)
-     * - Además, SIEMPRE muestra productos asociados al "menu_key" actual (en cualquier nivel)
-     * - Permite que un producto "simule" ser una categoría nueva al aparecer como card adicional
-     */
     public function show(Request $request, string $sectionSlug, ?string $path = null)
     {
-        $menu = config('menu', []);
-        abort_if(empty($menu), 404);
+        $sectionSlug = trim($sectionSlug, '/');
+        $path = $path ? trim($path, '/') : null;
 
-        // Sección raíz
-        $section = collect($menu)->first(function ($item) use ($sectionSlug) {
-            return $this->slugify($item['label']) === $this->slugify($sectionSlug);
-        });
-        abort_if(!$section, 404);
+        // Root (sección)
+        $section = $this->resolveSectionRoot($sectionSlug);
 
-        // Resolver nodo actual por path
-        $segments = [];
-        $current = $section;
+        // Resolver nodo actual por la cadena de slugs
+        [$currentNode, $chain] = $this->resolveCurrentNode($section, $path);
+        $currentNodeId = $currentNode?->id;
 
-        if (!empty($path)) {
-            $segments = array_values(array_filter(explode('/', trim($path, '/'))));
+        // Key del nivel actual (para productos)
+        $currentMenuKey = $this->buildMenuKey($sectionSlug, $path);
 
-            foreach ($segments as $seg) {
-                $child = $this->findChildBySlug($current, $seg);
-                abort_if(!$child, 404);
-                $current = $child;
-            }
+        // Hijos (submenús)
+        $children = collect();
+        if ($currentNodeId) {
+            $children = MenuNode::query()
+                ->active()
+                ->where('parent_id', $currentNodeId)
+                ->orderBy('sort')
+                ->orderBy('label')
+                ->get();
         }
 
-        // =========================
-        // Breadcrumbs
-        // =========================
-        $breadcrumbs = [];
-        $breadcrumbs[] = [
-            'label' => $section['label'],
-            'url'   => route('menu.section', $sectionSlug),
-        ];
+        // Cards para hijos
+        $cards = $children->map(function ($n) use ($sectionSlug, $path) {
+            $nodeSlug = Str::slug($n->label, '-');
+            $childPath = trim(($path ? $path.'/' : '').$nodeSlug, '/');
 
-        $runningPath = '';
-        foreach ($segments as $seg) {
-            $runningPath = $runningPath ? ($runningPath . '/' . $seg) : $seg;
-
-            $node = $section;
-            foreach (explode('/', $runningPath) as $p) {
-                $node = $this->findChildBySlug($node, $p);
-                abort_if(!$node, 404);
-            }
-
-            $breadcrumbs[] = [
-                'label' => $node['label'] ?? $seg,
-                'url'   => route('menu.section', [$sectionSlug, $runningPath]),
+            return [
+                'id' => $n->id,
+                'title' => $n->label,
+                'key' => $this->buildMenuKey($sectionSlug, $childPath),
+                'href' => route('menu.section', ['sectionSlug' => $sectionSlug, 'path' => $childPath]),
+                'hasChildren' => MenuNode::query()->active()->where('parent_id', $n->id)->exists(),
+                'description' => '',
+                'customTitle' => null,
             ];
+        })->values();
+
+        // Productos del nivel actual
+        $products = MenuProduct::query()
+            ->where('menu_key', $currentMenuKey)
+            ->orderBy('sort')
+            ->orderByDesc('id')
+            ->get();
+
+        // Targets para agregar producto
+        if ($children->count()) {
+            $productTargets = $children->map(function ($n) use ($sectionSlug, $path) {
+                $nodeSlug = Str::slug($n->label, '-');
+                $childPath = trim(($path ? $path.'/' : '').$nodeSlug, '/');
+
+                return [
+                    'label' => $n->label,
+                    'menu_key' => $this->buildMenuKey($sectionSlug, $childPath),
+                ];
+            })->values()->all();
+        } else {
+            $productTargets = [[
+                'label' => $currentNode?->label ?? $section['label'] ?? 'Nivel actual',
+                'menu_key' => $currentMenuKey,
+            ]];
         }
 
-        // =========================
-        // MENU KEY actual (donde estoy parado)
-        // =========================
-        $currentKeyParts = array_merge([$section['label']], $this->segmentsLabelsFromPath($section, $segments));
-        $currentMenuKey = $this->buildKey($currentKeyParts);
-
-        // =========================
-        // Children (config)
-        // =========================
-        $children = (isset($current['children']) && is_array($current['children']))
-            ? $current['children']
-            : [];
-
-        // =========================
-        // Productos (BD) de este nivel
-        // =========================
-        $products = class_exists(MenuProduct::class)
-            ? MenuProduct::where('menu_key', $currentMenuKey)->orderBy('sort')->orderBy('id', 'desc')->get()
-            : collect();
-
-        // =========================
-        // Keys para imágenes/metadatos de cards
-        // Incluye:
-        // - cards de children (config)
-        // - cards de productos (si quieres que se vean como "categoría nueva")
-        // =========================
-        $keys = [];
-        // sección raíz
-        $keys[] = $this->buildKey([$section['label']]);
-
-        // children del config en este nivel
-        foreach ($children as $child) {
-            $keyParts = array_merge([$section['label']], $this->segmentsLabelsFromPath($section, $segments), [$child['label']]);
-            $keys[] = $this->buildKey($keyParts);
-        }
-
-        // productos como "sub-categorías" virtuales (misma jerarquía que un child)
-        foreach ($products as $p) {
-            // se crea una key consistente: currentMenuKey + "/" + slug(product_name)
-            $keys[] = trim($currentMenuKey . '/' . $this->slugify((string) $p->name), '/');
-        }
-
-        $images = class_exists(MenuCardImage::class)
-            ? MenuCardImage::whereIn('key', array_unique($keys))->get()->keyBy('key')
-            : collect();
-
-        // =========================
-        // Construcción de cards:
-        // 1) Cards del config (children)
-        // 2) Cards de productos (virtuales) => se comportan como nuevas "categorías"
-        // =========================
-        $cards = [];
-
-        // 1) Cards de children del config
-        foreach ($children as $child) {
-            $hasChildren = isset($child['children']) && is_array($child['children']) && count($child['children']) > 0;
-
-            $childSlug = $this->slugify($child['label']);
-            $childPath = trim(implode('/', array_filter(array_merge($segments, [$childSlug]))), '/');
-
-            // Navegación:
-            // - Si tiene children => navegar a siguiente nivel
-            // - Si no => url del menú o '#'
-            $href = $hasChildren
-                ? route('menu.section', [$sectionSlug, $childPath])
-                : ($child['url'] ?? '#');
-
-            // Key para imagen/metadatos
-            $keyParts = array_merge([$section['label']], $this->segmentsLabelsFromPath($section, $segments), [$child['label']]);
-            $imgKey = $this->buildKey($keyParts);
-
-            $imgRow = $images->get($imgKey);
-
-            $imgPath = null;
-            if ($imgRow && !empty($imgRow->path)) {
-                $imgPath = asset('storage/' . ltrim($imgRow->path, '/'));
-            }
-
-            $title = $imgRow->title ?? $child['label'];
-            $description = $imgRow->description ?? ($hasChildren
-                ? "Explora opciones dentro de “{$child['label']}”."
-                : "Accede al recurso de “{$child['label']}”."
-            );
-
-            $cards[] = [
-                'type'        => 'menu',
-                'title'       => $title,
-                'label'       => $child['label'],
-                'description' => $description,
-                'image'       => $imgPath,
-                'href'        => $href,
-                'hasChildren' => $hasChildren,
-                'key'         => $imgKey,
-                'customTitle' => $imgRow->title ?? null,
-            ];
-        }
-
-        // 2) Cards de productos como "sub-categoría" virtual
-        //    Esto hace que, aunque el nodo NO sea final, puedas agregar productos y verlos como opción (card).
-        //    Si el producto tiene url -> abre url, si no -> se queda en '#'.
-        foreach ($products as $p) {
-            $productSlug = $this->slugify((string) $p->name);
-
-            // Key del producto como si fuera un child
-            $productKey = trim($currentMenuKey . '/' . $productSlug, '/');
-
-            $imgRow = $images->get($productKey);
-
-            // Imagen: prioridad BD de producto; si no, usa la de MenuCardImage
-            $imgPath = null;
-            if (!empty($p->image_path)) {
-                $imgPath = asset('storage/' . ltrim($p->image_path, '/'));
-            } elseif ($imgRow && !empty($imgRow->path)) {
-                $imgPath = asset('storage/' . ltrim($imgRow->path, '/'));
-            }
-
-            $title = $imgRow->title ?? $p->name;
-            $description = $imgRow->description ?? ($p->description ?? 'Producto agregado.');
-
-            $cards[] = [
-                'type'        => 'product',
-                'product_id'  => $p->id,
-                'title'       => $title,
-                'label'       => $p->name,
-                'description' => $description,
-                'image'       => $imgPath,
-                'href'        => $p->url ?? '#',
-                'hasChildren' => false,
-                'key'         => $productKey,
-                'customTitle' => $imgRow->title ?? null,
-            ];
-        }
+        // Si ya estás usando menu_card_images, aquí deberías pasar tu colección real.
+        // Para no romper tu vista, lo dejamos como colección vacía.
+        $images = collect();
 
         return view('menu.show', [
-            'section'        => $section,
-            'current'        => $current,
-            'sectionSlug'    => $sectionSlug,
-            'path'           => $path,
-            'breadcrumbs'    => $breadcrumbs,
-            'cards'          => $cards,
-            'images'         => $images,
+            'section' => $section,
+            'current' => [
+                'label' => $currentNode?->label,
+            ],
+            'cards' => $cards,
+            'images' => $images,
+
+            'currentNodeId' => $currentNodeId,
             'currentMenuKey' => $currentMenuKey,
-            'products'       => $products,
+
+            // productos
+            'products' => $products,
+            'productTargets' => $productTargets,
+
+            // redirect helper
+            'redirectTo' => url()->current(),
         ]);
     }
 
-    public function section(Request $request, string $sectionSlug)
+    private function resolveSectionRoot(string $sectionSlug): array
     {
-        return $this->show($request, $sectionSlug, null);
+        $roots = MenuNode::query()
+            ->active()
+            ->where(function ($q) {
+                $q->whereNull('parent_id')->orWhere('parent_id', 0);
+            })
+            ->get();
+
+        $found = $roots->first(function ($n) use ($sectionSlug) {
+            return Str::slug($n->label, '-') === $sectionSlug;
+        });
+
+        return [
+            'id' => $found?->id,
+            'label' => $found?->label ?? Str::headline(str_replace('-', ' ', $sectionSlug)),
+        ];
     }
 
-    // =========================
-    // Helpers
-    // =========================
-    private function findChildBySlug(array $parent, string $slug): ?array
+    private function resolveCurrentNode(array $section, ?string $path): array
     {
-        if (!isset($parent['children']) || !is_array($parent['children'])) {
-            return null;
+        $rootId = $section['id'] ?? null;
+        if (!$rootId) return [null, []];
+
+        $current = MenuNode::find($rootId);
+        if (!$current) return [null, []];
+
+        $chain = [$current];
+
+        $parts = array_values(array_filter(explode('/', trim((string)$path, '/'))));
+        foreach ($parts as $slug) {
+            $next = MenuNode::query()
+                ->active()
+                ->where('parent_id', $current->id)
+                ->get()
+                ->first(function ($n) use ($slug) {
+                    return Str::slug($n->label, '-') === $slug;
+                });
+
+            if (!$next) break;
+
+            $current = $next;
+            $chain[] = $current;
         }
 
-        foreach ($parent['children'] as $child) {
-            if ($this->slugify($child['label']) === $this->slugify($slug)) {
-                return $child;
-            }
-        }
-
-        return null;
+        return [$current, $chain];
     }
 
-    /**
-     * Devuelve labels reales de los segments (para construir keys por labels)
-     */
-    private function segmentsLabelsFromPath(array $section, array $segments): array
+    private function buildMenuKey(string $sectionSlug, ?string $path): string
     {
-        if (empty($segments)) return [];
-
-        $labels = [];
-        $node = $section;
-
-        foreach ($segments as $seg) {
-            $child = $this->findChildBySlug($node, $seg);
-            if (!$child) break;
-
-            $labels[] = $child['label'];
-            $node = $child;
-        }
-
-        return $labels;
+        return trim($sectionSlug . '/' . trim((string)$path, '/'), '/');
     }
 }

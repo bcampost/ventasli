@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 
 class MenuNode extends Model
 {
@@ -15,34 +14,37 @@ class MenuNode extends Model
         'url',
         'sort',
         'is_active',
+
+        // si existen en tu tabla, no estorban:
+        'slug',
+        'key',
+        'title',
+        'description',
+        'image_path',
+        'view_mode',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'sort'      => 'integer',
+        'sort' => 'integer',
         'parent_id' => 'integer',
     ];
-
-    // Para el menú superior (y cualquier consulta "solo activos")
-    public function scopeActive(Builder $q): Builder
-    {
-        return $q->where('is_active', 1);
-    }
 
     public function parent()
     {
         return $this->belongsTo(MenuNode::class, 'parent_id');
     }
 
-    // Hijos directos
     public function children()
     {
-        return $this->hasMany(MenuNode::class, 'parent_id')
-            ->orderBy('sort')
-            ->orderBy('label');
+        return $this->hasMany(MenuNode::class, 'parent_id');
     }
 
-    // Hijos recursivos (esto es CLAVE para que el editor sí muestre todo)
+    public function scopeActive($q)
+    {
+        return $q->where('is_active', 1);
+    }
+
     public function childrenRecursive()
     {
         return $this->children()->with('childrenRecursive');

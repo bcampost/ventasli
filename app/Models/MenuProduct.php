@@ -15,5 +15,11 @@ class MenuProduct extends Model
         'image_path',
         'url',
         'sort',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'sort' => 'integer',
     ];
 }

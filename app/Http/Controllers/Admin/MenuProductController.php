@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\MenuProduct;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 
 class MenuProductController extends Controller
@@ -16,7 +17,7 @@ class MenuProductController extends Controller
 
         $items = MenuProduct::where('menu_key', $menuKey)
             ->orderBy('sort')
-            ->orderBy('id', 'desc')
+            ->orderByDesc('id')
             ->get();
 
         return view('admin.menu-products.index', [
@@ -25,26 +26,25 @@ class MenuProductController extends Controller
         ]);
     }
 
-    public function create(Request $request)
-    {
-        $menuKey = (string) $request->query('key', '');
-        abort_if($menuKey === '', 404);
-
-        return view('admin.menu-products.create', [
-            'menuKey' => $menuKey,
-        ]);
-    }
-
     public function store(Request $request)
     {
-        $data = $request->validate([
+        $hasIsActive = Schema::hasColumn('menu_products', 'is_active');
+
+        $rules = [
             'menu_key' => ['required', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'url' => ['nullable', 'string', 'max:2048'],
             'sort' => ['nullable', 'integer', 'min:0', 'max:999999'],
             'image' => ['nullable', 'image', 'max:4096'],
-        ]);
+            'redirect_to' => ['nullable', 'string', 'max:2000'],
+        ];
+
+        if ($hasIsActive) {
+            $rules['is_active'] = ['nullable'];
+        }
+
+        $data = $request->validate($rules);
 
         $item = new MenuProduct();
         $item->menu_key = $data['menu_key'];
@@ -53,6 +53,10 @@ class MenuProductController extends Controller
         $item->url = $data['url'] ?? null;
         $item->sort = (int) ($data['sort'] ?? 0);
 
+        if ($hasIsActive) {
+            $item->is_active = $request->has('is_active') ? 1 : 0;
+        }
+
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('menu_products', 'public');
             $item->image_path = $path;
@@ -60,9 +64,10 @@ class MenuProductController extends Controller
 
         $item->save();
 
-        return redirect()
-            ->route('admin.menu-products.index', ['key' => $item->menu_key])
-            ->with('status', 'Producto creado');
+        $to = $data['redirect_to'] ?? null;
+        if ($to) return redirect($to)->with('ok', 'Producto agregado.');
+
+        return redirect()->back()->with('ok', 'Producto agregado.');
     }
 
     public function edit(MenuProduct $menuProduct)
@@ -75,19 +80,32 @@ class MenuProductController extends Controller
 
     public function update(Request $request, MenuProduct $menuProduct)
     {
-        $data = $request->validate([
+        $hasIsActive = Schema::hasColumn('menu_products', 'is_active');
+
+        $rules = [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'url' => ['nullable', 'string', 'max:2048'],
             'sort' => ['nullable', 'integer', 'min:0', 'max:999999'],
             'image' => ['nullable', 'image', 'max:4096'],
             'remove_image' => ['nullable', 'in:1'],
-        ]);
+            'redirect_to' => ['nullable', 'string', 'max:2000'],
+        ];
+
+        if ($hasIsActive) {
+            $rules['is_active'] = ['nullable'];
+        }
+
+        $data = $request->validate($rules);
 
         $menuProduct->title = $data['title'];
         $menuProduct->description = $data['description'] ?? null;
         $menuProduct->url = $data['url'] ?? null;
         $menuProduct->sort = (int) ($data['sort'] ?? 0);
+
+        if ($hasIsActive) {
+            $menuProduct->is_active = $request->has('is_active') ? 1 : 0;
+        }
 
         if ($request->input('remove_image') === '1') {
             if ($menuProduct->image_path) {
@@ -106,14 +124,15 @@ class MenuProductController extends Controller
 
         $menuProduct->save();
 
-        return redirect()
-            ->route('admin.menu-products.index', ['key' => $menuProduct->menu_key])
-            ->with('status', 'Producto actualizado');
+        $to = $data['redirect_to'] ?? null;
+        if ($to) return redirect($to)->with('ok', 'Producto actualizado.');
+
+        return redirect()->back()->with('ok', 'Producto actualizado.');
     }
 
-    public function destroy(MenuProduct $menuProduct)
+    public function destroy(Request $request, MenuProduct $menuProduct)
     {
-        $key = $menuProduct->menu_key;
+        $to = (string) $request->input('redirect_to', '');
 
         if ($menuProduct->image_path) {
             Storage::disk('public')->delete($menuProduct->image_path);
@@ -121,8 +140,7 @@ class MenuProductController extends Controller
 
         $menuProduct->delete();
 
-        return redirect()
-            ->route('admin.menu-products.index', ['key' => $key])
-            ->with('status', 'Producto eliminado');
+        if ($to !== '') return redirect($to)->with('ok', 'Producto eliminado.');
+        return redirect()->back()->with('ok', 'Producto eliminado.');
     }
 }
