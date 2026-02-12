@@ -1,8 +1,20 @@
+{{-- resources/views/menu/show.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
 @php
-  $safe = fn($v) => is_string($v) ? $v : '';
+  use Illuminate\Support\Str;
+
+  // ✅ fallback seguro para evitar "Undefined variable $fullPath"
+  $sectionSlug = $sectionSlug ?? (request()->route('sectionSlug') ?? '');
+  $pathParam   = $pathParam   ?? (request()->route('path') ?? '');
+  $fullPath    = $fullPath    ?? trim($sectionSlug.'/'.trim((string)$pathParam,'/'), '/');
+
+  $safeStr = function($v){
+    return is_string($v) ? $v : '';
+  };
+
+  $isAdmin = auth()->check() && auth()->user()->hasRole('admin');
 @endphp
 
 <style>
@@ -18,6 +30,7 @@
     --shadowM: 0 12px 30px rgba(15,23,42,.10);
 
     --primary:#2563eb;
+    --primary2:#1d4ed8;
     --danger:#e11d48;
 
     --rXL: 24px;
@@ -93,141 +106,122 @@
       radial-gradient(900px 260px at 15% 0%, rgba(37,99,235,.06), transparent 55%),
       #fff;
     overflow:hidden;
+    margin-top: 14px;
   }
   .panel-head{
     padding: 14px 16px;
     border-bottom: 1px solid rgba(15,23,42,.08);
     display:flex; align-items:center; justify-content:space-between;
     background: rgba(255,255,255,.75);
+    gap:12px;
   }
   .panel-head .h{
     font-weight: 950;
     letter-spacing: -.01em;
     color: var(--ink);
   }
-  .head-actions{
+  .panel-head .head-actions{
     display:flex;
     gap:10px;
     align-items:center;
+    flex-wrap:wrap;
   }
 
-  /* ✅ Cards Grid */
-  .card-grid{
+  /* ✅ Grid cards */
+  .grid-cards{
+    padding: 16px;
     display:grid;
-    grid-template-columns: repeat(1, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 14px;
-    padding: 14px;
-  }
-  @media (min-width: 768px){
-    .card-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-  }
-  @media (min-width: 1100px){
-    .card-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
   }
 
-  .mcard{
-    position: relative;
+  .card{
     border: 1px solid rgba(15,23,42,.10);
     border-radius: 18px;
     background: #fff;
     overflow:hidden;
+    box-shadow: 0 10px 24px rgba(2,6,23,.06);
     transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    box-shadow: 0 10px 22px rgba(2,6,23,.06);
+    cursor:pointer;
+    position:relative;
   }
-  .mcard:hover{
+  .card:hover{
     transform: translateY(-2px);
-    box-shadow: 0 18px 50px rgba(2,6,23,.12);
+    box-shadow: 0 16px 34px rgba(2,6,23,.10);
     border-color: rgba(15,23,42,.18);
   }
 
-  .mcard-media{
-    height: 140px;
+  .card-media{
+    height: 120px;
     background: rgba(15,23,42,.04);
     display:flex;
     align-items:center;
     justify-content:center;
     overflow:hidden;
   }
-  .mcard-media img{
+  .card-media img{
     width:100%;
     height:100%;
     object-fit: cover;
     display:block;
   }
-  .mcard-body{
-    padding: 14px 14px 12px;
+  .card-body{
+    padding: 12px 12px 14px;
   }
-  .mcard-title{
+  .card-title{
     font-weight: 950;
-    color: #0b1220;
+    color: var(--ink);
     letter-spacing: -.01em;
-    font-size: 1.02rem;
-    line-height: 1.2;
+    line-height: 1.1;
+    font-size: 1rem;
+    margin-bottom: 6px;
   }
-  .mcard-desc{
-    margin-top: 6px;
+  .card-desc{
     color: rgba(15,23,42,.62);
-    font-weight: 700;
-    font-size: .88rem;
-    line-height: 1.35;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow:hidden;
-    min-height: calc(1.35em * 2);
+    font-size: .9rem;
+    line-height: 1.25;
+    min-height: 2.3em;
   }
 
-  .mcard-actions{
-    padding: 0 14px 14px;
+  .card-actions{
+    position:absolute;
+    top:10px;
+    right:10px;
     display:flex;
-    gap:10px;
-    align-items:center;
-    justify-content: space-between;
-  }
-
-  .mcard-open{
-    display:inline-flex;
-    align-items:center;
     gap:8px;
-    font-weight: 900;
-    font-size: .86rem;
-    border-radius: 999px;
-    padding: .55rem .75rem;
-    border: 1px solid rgba(15,23,42,.12);
-    background: rgba(248,250,252,.75);
-    color: rgba(15,23,42,.88);
-    text-decoration:none;
+    z-index: 5;
   }
-  .mcard-open:hover{
-    background:#fff;
-    border-color: rgba(15,23,42,.20);
-  }
-
-  .mcard-admin{
-    display:flex;
-    align-items:center;
-    gap:8px;
-  }
-
   .icon-btn{
-    width: 40px; height: 40px;
-    border-radius: 14px;
-    display:flex; align-items:center; justify-content:center;
-    border: 1px solid rgba(15,23,42,.12);
-    background: #fff;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid rgba(15,23,42,.14);
+    background: rgba(255,255,255,.92);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 12px 24px rgba(2,6,23,.10);
     cursor:pointer;
-    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+    transition: transform .15s ease, border-color .15s ease, background .15s ease;
   }
   .icon-btn:hover{
     transform: translateY(-1px);
-    box-shadow: 0 12px 26px rgba(2,6,23,.10);
-    border-color: rgba(15,23,42,.20);
-    background: rgba(248,250,252,.85);
+    background:#fff;
+    border-color: rgba(15,23,42,.22);
   }
-  .icon-btn svg{
-    width: 18px;
-    height: 18px;
-    color: rgba(15,23,42,.78);
+  .icon-btn.danger{
+    border-color: rgba(225,29,72,.28);
+    background: rgba(225,29,72,.08);
+  }
+  .icon-btn.danger:hover{
+    border-color: rgba(225,29,72,.38);
+    background: rgba(225,29,72,.12);
+  }
+
+  .empty{
+    padding: 18px;
+    color: rgba(15,23,42,.65);
+    text-align:center;
   }
 
   /* Modals */
@@ -286,8 +280,8 @@
     outline:none;
     transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
   }
-  .select{ padding: .9rem 1rem; }
   .textarea{ padding:1rem; }
+  .select{ padding:.90rem 1rem; }
   .input:focus, .textarea:focus, .select:focus{
     border-color: rgba(37,99,235,.55);
     box-shadow: 0 0 0 6px rgba(37,99,235,.14);
@@ -313,6 +307,31 @@
   }
 
   .no-scroll{ overflow: hidden !important; }
+
+  /* small info line */
+  .hint{
+    font-size: .86rem;
+    color: rgba(15,23,42,.58);
+  }
+  .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+  /* ✅ Cuando un modal esté abierto, oculta botones flotantes de edición/eliminar del fondo */
+  body.modal-open .hide-when-modal{
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  /* ✅ FIX “a prueba de balas”: modal siempre arriba de todo */
+  #editModalBackdrop,
+  #createModalBackdrop,
+  #createProductBackdrop,
+  #editProductBackdrop{ z-index: 9998 !important; }
+
+  #editModal,
+  #createModal,
+  #createProductModal,
+  #editProductModal{ z-index: 9999 !important; }
 </style>
 
 <div class="wrap">
@@ -324,17 +343,18 @@
         Opciones principales. Selecciona una opción para entrar.
       </div>
     </div>
-
   </div>
 
-  {{-- PANEL SUBMENUS --}}
+  {{-- =======================
+       OPCIONES (SUBMENÚS)
+       ======================= --}}
   <div class="panel">
     <div class="panel-head">
       <div class="h">Opciones</div>
 
-      @role('admin')
+      @if($isAdmin)
         <div class="head-actions">
-          <button type="button" class="btn btn-primary" onclick="openCreateNode(@js($currentNodeId))">
+          <button type="button" class="btn btn-primary" onclick="openCreateNode(@js($currentNodeId ?? 0))">
             + Agregar submenú
           </button>
 
@@ -342,167 +362,160 @@
             + Agregar producto
           </button>
         </div>
-      @endrole
+      @endif
     </div>
 
-    @if(count($cards))
-      <div class="card-grid">
-        @foreach($cards as $card)
+    @if(!empty($cards) && count($cards))
+      <div class="grid-cards">
+        @foreach($cards as $i => $card)
           @php
+            $key = $card['key'] ?? '';
+            $href = $card['href'] ?? '#';
             $nodeId = $card['id'] ?? null;
 
-            $imgRow = $images->get($card['key']) ?? null;
+            $imgRow = isset($images) ? ($images->get($key) ?? null) : null;
             $customTitle = $imgRow->title ?? ($card['customTitle'] ?? null);
             $desc = $imgRow->description ?? ($card['description'] ?? '');
             $imgUrl = null;
             if ($imgRow && !empty($imgRow->path)) $imgUrl = asset('storage/' . ltrim($imgRow->path, '/'));
 
             $title = $customTitle ?: ($card['title'] ?? '—');
-            $href  = $card['href'] ?? '#';
           @endphp
 
-          <div class="mcard">
-            <div class="mcard-media"
-                 onclick="if(@js($href) !== '#') window.location.href = @js($href);"
-                 style="cursor:pointer;">
-              @if($imgUrl)
-                <img src="{{ $imgUrl }}" alt="{{ $title }}">
-              @else
-                <div class="text-sm font-extrabold text-slate-400">Sin imagen</div>
+          <div class="card" onclick="if(@js($href) !== '#') window.location.href = @js($href);">
+            <div class="card-actions hide-when-modal" onclick="event.stopPropagation();">
+              @if($isAdmin)
+                {{-- ✏️ lápiz para editar card (imagen/título/desc) --}}
+                <button type="button" class="icon-btn" title="Editar card"
+                  onclick="openEditCardModal(@js($key), @js($customTitle ?: ''), @js($desc ?: ''), @js($imgUrl ?: ''), @js($card['title'] ?? ''))">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 20h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z"
+                          stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+
+                @if($nodeId)
+                  {{-- 🗑️ eliminar nodo --}}
+                  <form method="POST" action="{{ route('admin.menu.destroy', ['menu_node' => $nodeId]) }}"
+                        onsubmit="return confirm('¿Eliminar esta opción del menú?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="icon-btn danger" title="Eliminar">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 7h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                        <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                        <path d="M6 7l1 14h10l1-14" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                        <path d="M9 7V4h6v3" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </form>
+                @endif
               @endif
             </div>
 
-            <div class="mcard-body"
-                 onclick="if(@js($href) !== '#') window.location.href = @js($href);"
-                 style="cursor:pointer;">
-              <div class="mcard-title" title="{{ $title }}">{{ $title }}</div>
-              <div class="mcard-desc">{{ $desc ?: '—' }}</div>
+            <div class="card-media">
+              @if($imgUrl)
+                <img src="{{ $imgUrl }}" alt="">
+              @else
+                <svg width="46" height="46" viewBox="0 0 24 24" fill="none" style="opacity:.55;">
+                  <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.6"/>
+                  <path d="M8 10h8M8 14h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+              @endif
             </div>
 
-            <div class="mcard-actions">
-              <a class="mcard-open" href="{{ $href }}">Abrir ↗</a>
-
-              @role('admin')
-                <div class="mcard-admin">
-                  {{-- lápiz (editar card: title/desc/image desde menu_card_images) --}}
-                  <button type="button"
-                          class="icon-btn"
-                          title="Editar card"
-                          onclick="openEditCardModal(@js($card['key']), @js($customTitle ?: ''), @js($desc ?: ''), @js($imgUrl ?: ''), @js($card['title'] ?? ''))">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-                      <path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                    </svg>
-                  </button>
-
-                  @if($nodeId)
-                    <form method="POST" action="{{ route('admin.menu.destroy', ['menu_node' => $nodeId]) }}"
-                          onsubmit="return confirm('¿Eliminar esta opción del menú?');">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-danger" style="padding:.62rem .85rem; border-radius:14px;">
-                        Eliminar
-                      </button>
-                    </form>
-                  @endif
-                </div>
-              @endrole
+            <div class="card-body">
+              <div class="card-title" title="{{ $title }}">{{ $title }}</div>
+              <div class="card-desc">{{ $desc ?: ' ' }}</div>
             </div>
           </div>
         @endforeach
       </div>
     @else
-      <div class="p-8 text-center text-slate-600">
-        No hay opciones en este nivel.
-      </div>
+      <div class="empty">No hay opciones en este nivel.</div>
     @endif
   </div>
 
-  {{-- PANEL PRODUCTOS --}}
-  <div class="panel" style="margin-top:16px;">
+  {{-- =======================
+       PRODUCTOS (DEL NIVEL)
+       ======================= --}}
+  <div class="panel">
     <div class="panel-head">
       <div class="h">Productos</div>
-      <div class="text-sm font-bold text-slate-500">
-        Se muestran los productos cuyo <code>menu_key</code> coincide con: <code>{{ $fullPath ?? '' }}</code>
+      <div class="hint">
+        Se muestran los productos cuyo <span class="mono">menu_key</span> coincide con:
+        <span class="mono">{{ $fullPath }}</span>
       </div>
     </div>
 
-    @if(($products ?? collect())->count())
-      <div class="card-grid">
+    @if(!empty($products) && $products->count())
+      <div class="grid-cards">
         @foreach($products as $p)
           @php
-            $pImg = !empty($p->image_path) ? asset('storage/'.ltrim($p->image_path,'/')) : null;
+            $pTitle = $p->title ?? '—';
+            $pDesc  = $p->description ?? '';
+            $pUrl   = $p->url ?? '';
           @endphp
 
-          <div class="mcard">
-            <div class="mcard-media">
-              @if($pImg)
-                <img src="{{ $pImg }}" alt="{{ $p->title }}">
-              @else
-                <div class="text-sm font-extrabold text-slate-400">Sin imagen</div>
-              @endif
-            </div>
+          <div class="card" onclick="if(@js($pUrl) && @js($pUrl) !== '') window.open(@js($pUrl), '_blank');">
+            <div class="card-actions hide-when-modal" onclick="event.stopPropagation();">
+              @if($isAdmin)
+                {{-- ✏️ editar producto (modal simple) --}}
+                <button type="button" class="icon-btn" title="Editar producto"
+                  onclick="openEditProduct(@js($p->id), @js($pTitle), @js($pDesc), @js($pUrl), @js((int)$p->sort), @js((int)($p->is_active ?? 1)))">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 20h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z"
+                          stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                  </svg>
+                </button>
 
-            <div class="mcard-body">
-              <div class="mcard-title">{{ $p->title }}</div>
-              <div class="mcard-desc">{{ $p->description ?: '—' }}</div>
-            </div>
-
-            <div class="mcard-actions">
-              @if($p->url)
-                <a class="mcard-open" href="{{ $p->url }}" target="_blank" rel="noopener">Abrir ↗</a>
-              @else
-                <span class="text-xs font-bold text-slate-400">Sin link</span>
-              @endif
-
-              @role('admin')
-                <div class="mcard-admin">
-                  {{-- lápiz (editar producto) --}}
-                  <button type="button"
-                          class="icon-btn"
-                          title="Editar producto"
-                          onclick="openEditProduct(
-                            @js($p->id),
-                            @js($p->menu_key),
-                            @js($p->title),
-                            @js($p->description ?? ''),
-                            @js($p->url ?? ''),
-                            @js((int)($p->sort ?? 0)),
-                            @js((int)($p->is_active ?? 1)),
-                            @js($pImg ?? '')
-                          )">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path d="M4 20h4l10.5-10.5a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16v4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-                      <path d="M13.5 6.5l4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                {{-- 🗑️ eliminar producto --}}
+                <form method="POST" action="{{ route('admin.menu-products.destroy', ['menu_product' => $p->id]) }}"
+                      onsubmit="return confirm('¿Eliminar este producto?');">
+                  @csrf
+                  @method('DELETE')
+                  <input type="hidden" name="redirect_to" value="{{ $redirectTo ?? url()->current() }}">
+                  <button type="submit" class="icon-btn danger" title="Eliminar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 7h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                      <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                      <path d="M6 7l1 14h10l1-14" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                      <path d="M9 7V4h6v3" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
                     </svg>
                   </button>
+                </form>
+              @endif
+            </div>
 
-                  <form method="POST" action="{{ route('admin.menu-products.destroy', ['menu_product' => $p->id]) }}"
-                        onsubmit="return confirm('¿Eliminar este producto?');">
-                    @csrf
-                    @method('DELETE')
-                    <input type="hidden" name="redirect_to" value="{{ $redirectTo }}">
-                    <button type="submit" class="btn btn-danger" style="padding:.62rem .85rem; border-radius:14px;">
-                      Eliminar
-                    </button>
-                  </form>
-                </div>
-              @endrole
+            <div class="card-media">
+              <svg width="46" height="46" viewBox="0 0 24 24" fill="none" style="opacity:.55;">
+                <path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M7 9h10M7 12h7M7 15h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </div>
+
+            <div class="card-body">
+              <div class="card-title" title="{{ $pTitle }}">{{ $pTitle }}</div>
+              <div class="card-desc">{{ $pDesc ?: ' ' }}</div>
             </div>
           </div>
         @endforeach
       </div>
     @else
-      <div class="p-8 text-center text-slate-600">
-        No hay productos en este nivel.
-      </div>
+      <div class="empty">No hay productos en este nivel.</div>
     @endif
   </div>
 
 </div>
 
-@role('admin')
-  {{-- MODAL EDITAR CARD (SUBMENUS) --}}
+{{-- =======================
+     MODALES (ADMIN)
+     ======================= --}}
+@if($isAdmin)
+
+  {{-- EDITAR CARD (menu_card_images) --}}
   <div id="editModalBackdrop" class="modal-backdrop fixed inset-0 hidden z-[80]" onclick="closeEditCardModal()"></div>
   <div id="editModal" class="fixed inset-0 hidden z-[90]">
     <div class="min-h-full flex items-center justify-center p-4">
@@ -565,7 +578,7 @@
     </div>
   </div>
 
-  {{-- MODAL CREAR SUBMENÚ --}}
+  {{-- CREAR SUBMENÚ --}}
   <div id="createModalBackdrop" class="modal-backdrop fixed inset-0 hidden z-[80]" onclick="closeCreateNode()"></div>
   <div id="createModal" class="fixed inset-0 hidden z-[90]">
     <div class="min-h-full flex items-center justify-center p-4">
@@ -583,6 +596,7 @@
         <form method="POST" action="{{ route('admin.menu.store') }}">
           @csrf
           <input type="hidden" name="parent_id" id="create_parent_id" value="">
+          <input type="hidden" name="redirect_to" value="{{ $redirectTo ?? url()->current() }}">
 
           <div class="modal-body">
             <div class="space-y-4">
@@ -620,32 +634,32 @@
     </div>
   </div>
 
-  {{-- MODAL CREAR PRODUCTO --}}
+  {{-- CREAR PRODUCTO --}}
   <div id="createProductBackdrop" class="modal-backdrop fixed inset-0 hidden z-[80]" onclick="closeCreateProduct()"></div>
   <div id="createProductModal" class="fixed inset-0 hidden z-[90]">
-    <div class="min-h-full flex items-center justify-center p-4">
+    <div class="min-h-full flex items-center justify-content-center p-4">
       <div class="modal-enter w-full max-w-xl modal-shell">
         <div class="modal-header">
           <div>
             <div class="modal-title">Agregar producto</div>
-            <div class="modal-sub">Crea un producto y asígnalo a una opción.</div>
+            <div class="modal-sub">Asigna el producto a una opción (menu_key).</div>
           </div>
           <button type="button" class="btn btn-ghost" style="padding:.65rem .9rem; border-radius:14px;" onclick="closeCreateProduct()">
             Cerrar ✕
           </button>
         </div>
 
-        <form method="POST" action="{{ route('admin.menu-products.store') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('admin.menu-products.store') }}">
           @csrf
-          <input type="hidden" name="redirect_to" value="{{ $redirectTo }}">
+          <input type="hidden" name="redirect_to" value="{{ $redirectTo ?? url()->current() }}">
 
           <div class="modal-body">
             <div class="space-y-4">
               <div>
                 <label class="field-label">Asignar a</label>
-                <select class="select" name="menu_key" id="create_product_menu_key" required>
+                <select name="menu_key" class="select" required>
                   @foreach(($productTargets ?? []) as $t)
-                    <option value="{{ $t['menu_key'] }}">{{ $t['label'] }} — ({{ $t['menu_key'] }})</option>
+                    <option value="{{ $t['menu_key'] }}">{{ $t['label'] }} — {{ $t['menu_key'] }}</option>
                   @endforeach
                 </select>
               </div>
@@ -657,11 +671,11 @@
 
               <div>
                 <label class="field-label">Descripción</label>
-                <textarea name="description" rows="4" class="textarea" placeholder="Descripción del producto"></textarea>
+                <textarea name="description" rows="4" class="textarea" placeholder="Descripción breve"></textarea>
               </div>
 
               <div>
-                <label class="field-label">Link (opcional)</label>
+                <label class="field-label">URL (opcional)</label>
                 <input name="url" type="text" class="input" placeholder="https://...">
               </div>
 
@@ -672,14 +686,9 @@
                 </div>
 
                 <div class="flex items-end gap-2 pb-1">
-                  <input id="create_product_active" name="is_active" type="checkbox" class="rounded" checked>
-                  <label for="create_product_active" class="field-label" style="margin:0;">Activo</label>
+                  <input id="prod_active" name="is_active" type="checkbox" class="rounded" checked>
+                  <label for="prod_active" class="field-label" style="margin:0;">Activo</label>
                 </div>
-              </div>
-
-              <div>
-                <label class="field-label">Imagen (opcional)</label>
-                <input name="image" type="file" accept="image/*" class="input" style="padding:.75rem 1rem;">
               </div>
             </div>
 
@@ -694,7 +703,7 @@
     </div>
   </div>
 
-  {{-- MODAL EDITAR PRODUCTO --}}
+  {{-- EDITAR PRODUCTO (modal simple) --}}
   <div id="editProductBackdrop" class="modal-backdrop fixed inset-0 hidden z-[80]" onclick="closeEditProduct()"></div>
   <div id="editProductModal" class="fixed inset-0 hidden z-[90]">
     <div class="min-h-full flex items-center justify-center p-4">
@@ -702,62 +711,51 @@
         <div class="modal-header">
           <div>
             <div class="modal-title">Editar producto</div>
-            <div id="editProductSmall" class="modal-sub">—</div>
+            <div class="modal-sub" id="editProductSmall">—</div>
           </div>
           <button type="button" class="btn btn-ghost" style="padding:.65rem .9rem; border-radius:14px;" onclick="closeEditProduct()">
             Cerrar ✕
           </button>
         </div>
 
-        <form id="editProductForm" method="POST" action="#" enctype="multipart/form-data">
+        <form id="editProductForm" method="POST" action="#">
           @csrf
           @method('PUT')
-          <input type="hidden" name="redirect_to" value="{{ $redirectTo }}">
+          <input type="hidden" name="redirect_to" value="{{ $redirectTo ?? url()->current() }}">
 
           <div class="modal-body">
             <div class="space-y-4">
               <div>
-                <label class="field-label">Asignado a (menu_key)</label>
-                <input id="edit_product_menu_key" type="text" class="input" disabled>
-              </div>
-
-              <div>
                 <label class="field-label">Título</label>
-                <input id="edit_product_title" name="title" type="text" required class="input">
+                <input id="ep_title" name="title" type="text" required class="input">
               </div>
 
               <div>
                 <label class="field-label">Descripción</label>
-                <textarea id="edit_product_description" name="description" rows="4" class="textarea"></textarea>
+                <textarea id="ep_description" name="description" rows="4" class="textarea"></textarea>
               </div>
 
               <div>
-                <label class="field-label">Link (opcional)</label>
-                <input id="edit_product_url" name="url" type="text" class="input">
+                <label class="field-label">URL (opcional)</label>
+                <input id="ep_url" name="url" type="text" class="input">
               </div>
 
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="field-label">Orden</label>
-                  <input id="edit_product_sort" name="sort" type="number" min="0" class="input">
+                  <input id="ep_sort" name="sort" type="number" min="0" value="0" class="input">
                 </div>
 
                 <div class="flex items-end gap-2 pb-1">
-                  <input id="edit_product_active" name="is_active" type="checkbox" class="rounded">
-                  <label for="edit_product_active" class="field-label" style="margin:0;">Activo</label>
+                  <input id="ep_active" name="is_active" type="checkbox" class="rounded">
+                  <label for="ep_active" class="field-label" style="margin:0;">Activo</label>
                 </div>
-              </div>
-
-              <div>
-                <label class="field-label">Imagen (opcional)</label>
-                <input id="edit_product_image" name="image" type="file" accept="image/*" class="input" style="padding:.75rem 1rem;">
-                <div id="edit_product_img_hint" class="text-xs font-bold text-slate-500 mt-2">—</div>
               </div>
             </div>
 
             <div class="mt-6 flex justify-end gap-2">
               <button type="button" class="btn btn-ghost" onclick="closeEditProduct()">Cancelar</button>
-              <button class="btn btn-primary">Guardar cambios</button>
+              <button class="btn btn-primary">Guardar</button>
             </div>
           </div>
         </form>
@@ -769,18 +767,26 @@
   <script>
     function lockBodyScroll(lock) {
       const b = document.body;
-      if (lock) b.classList.add('no-scroll');
-      else b.classList.remove('no-scroll');
+      if (lock) {
+        b.classList.add('no-scroll');
+        b.classList.add('modal-open'); // ✅ IMPORTANTÍSIMO
+      } else {
+        b.classList.remove('no-scroll');
+        b.classList.remove('modal-open'); // ✅ IMPORTANTÍSIMO
+      }
     }
 
-    // ====== Edit Card Modal (SUBMENUS) ======
+    // =========================
+    // EDIT CARD MODAL
+    // =========================
     function openEditCardModal(key, title, description, imgUrl, fallbackTitle) {
       const backdrop = document.getElementById('editModalBackdrop');
       const modal = document.getElementById('editModal');
       const form = document.getElementById('editCardForm');
 
-      const actionTpl = @js(route('admin.menu-cards.update', ['key' => '___KEY___']));
-      form.action = actionTpl.replace('___KEY___', encodeURIComponent(key));
+      // ✅ IMPORTANTE: hacemos template y reemplazamos con key SIN encode para permitir "/"
+      const actionTpl = @js(route('admin.menu-cards.update', ['token' => '__TOKEN__']));
+      form.action = actionTpl.replace('__TOKEN__', key);
 
       document.getElementById('editModalSmall').textContent = `Key: ${key}`;
       document.getElementById('edit_title').value = title || '';
@@ -837,13 +843,11 @@
       }
     });
 
-    // ====== Create Submenu Modal ======
+    // =========================
+    // CREATE SUBMENU
+    // =========================
     function openCreateNode(parentId) {
-      if (!parentId) {
-        alert('No se pudo determinar el nivel actual en BD (currentNodeId).');
-        return;
-      }
-      document.getElementById('create_parent_id').value = parentId;
+      document.getElementById('create_parent_id').value = parentId || 0;
 
       document.getElementById('createModalBackdrop').classList.remove('hidden');
       const modal = document.getElementById('createModal');
@@ -860,8 +864,10 @@
       lockBodyScroll(false);
     }
 
-    // ====== Create Product Modal ======
-    function openCreateProduct() {
+    // =========================
+    // CREATE PRODUCT
+    // =========================
+    function openCreateProduct(){
       document.getElementById('createProductBackdrop').classList.remove('hidden');
       const modal = document.getElementById('createProductModal');
       modal.classList.remove('hidden');
@@ -869,7 +875,7 @@
       lockBodyScroll(true);
     }
 
-    function closeCreateProduct() {
+    function closeCreateProduct(){
       document.getElementById('createProductBackdrop').classList.add('hidden');
       const modal = document.getElementById('createProductModal');
       modal.classList.remove('modal-open');
@@ -877,26 +883,23 @@
       lockBodyScroll(false);
     }
 
-    // ====== Edit Product Modal ======
-    function openEditProduct(id, menuKey, title, description, url, sort, isActive, imgUrl) {
+    // =========================
+    // EDIT PRODUCT
+    // =========================
+    function openEditProduct(id, title, desc, url, sort, active){
       const backdrop = document.getElementById('editProductBackdrop');
       const modal = document.getElementById('editProductModal');
       const form = document.getElementById('editProductForm');
 
-      const actionTpl = @js(route('admin.menu-products.update', ['menu_product' => '___ID___']));
-      form.action = actionTpl.replace('___ID___', encodeURIComponent(id));
+      const actionTpl = @js(route('admin.menu-products.update', ['menu_product' => '__ID__']));
+      form.action = actionTpl.replace('__ID__', String(id));
 
       document.getElementById('editProductSmall').textContent = `ID: ${id}`;
-      document.getElementById('edit_product_menu_key').value = menuKey || '';
-      document.getElementById('edit_product_title').value = title || '';
-      document.getElementById('edit_product_description').value = description || '';
-      document.getElementById('edit_product_url').value = url || '';
-      document.getElementById('edit_product_sort').value = sort || 0;
-      document.getElementById('edit_product_active').checked = (parseInt(isActive,10) === 1);
-
-      document.getElementById('edit_product_image').value = '';
-      document.getElementById('edit_product_img_hint').textContent =
-        imgUrl ? 'Imagen actual: OK (si subes otra, reemplaza).' : 'Sin imagen actual.';
+      document.getElementById('ep_title').value = title || '';
+      document.getElementById('ep_description').value = desc || '';
+      document.getElementById('ep_url').value = url || '';
+      document.getElementById('ep_sort').value = (sort ?? 0);
+      document.getElementById('ep_active').checked = (Number(active) === 1);
 
       backdrop.classList.remove('hidden');
       modal.classList.remove('hidden');
@@ -904,7 +907,7 @@
       lockBodyScroll(true);
     }
 
-    function closeEditProduct() {
+    function closeEditProduct(){
       document.getElementById('editProductBackdrop').classList.add('hidden');
       const modal = document.getElementById('editProductModal');
       modal.classList.remove('modal-open');
@@ -920,7 +923,11 @@
         closeEditProduct();
       }
     });
+
+    // Exponer global por si lo llamas desde layout
+    window.openCreateNode = openCreateNode;
+    window.closeCreateNode = closeCreateNode;
   </script>
-@endrole
+@endif
 
 @endsection

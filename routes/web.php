@@ -49,7 +49,6 @@ Route::middleware(['auth'])->group(function () {
 
         /**
          * MENU SUPERIOR (DB) - Editor
-         * Nombre de ruta: admin.menu.index
          */
         Route::get('/menu', [MenuNodeController::class, 'index'])->name('menu.index');
 
@@ -66,31 +65,32 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/menu/{menu_node}', [MenuNodeController::class, 'destroy'])->name('menu.destroy');
 
         /**
-         * Menu cards (imagenes/metadata) para SUBMENUS (menu_key)
-         */
-        Route::get('/menu-cards', [MenuCardImageController::class, 'index'])->name('menu-cards.index');
-        Route::post('/menu-cards/sync', [MenuCardImageController::class, 'sync'])->name('menu-cards.sync');
-
-        // ✅ CLAVE: permitir / dentro de {key}
-        Route::get('/menu-cards/{key}/edit', [MenuCardImageController::class, 'edit'])
-            ->where('key', '.*')
-            ->name('menu-cards.edit');
-
-        Route::put('/menu-cards/{key}', [MenuCardImageController::class, 'update'])
-            ->where('key', '.*')
-            ->name('menu-cards.update');
-
-        Route::delete('/menu-cards/{key}', [MenuCardImageController::class, 'destroy'])
-            ->where('key', '.*')
-            ->name('menu-cards.destroy');
-
-        /**
-         * ✅ MENU PRODUCTS (CRUD mínimo para modales)
+         * Menu products (CRUD)
          */
         Route::get('/menu-products', [MenuProductController::class, 'index'])->name('menu-products.index');
         Route::post('/menu-products', [MenuProductController::class, 'store'])->name('menu-products.store');
         Route::put('/menu-products/{menu_product}', [MenuProductController::class, 'update'])->name('menu-products.update');
         Route::delete('/menu-products/{menu_product}', [MenuProductController::class, 'destroy'])->name('menu-products.destroy');
+
+        /**
+         * Menu cards (imagenes/metadata)
+         * ✅ FIX: NO usamos {key} con "/" en la URL (Apache bloquea %2F)
+         * Usamos {token} base64url (sin /).
+         */
+        Route::get('/menu-cards', [MenuCardImageController::class, 'index'])->name('menu-cards.index');
+        Route::post('/menu-cards/sync', [MenuCardImageController::class, 'sync'])->name('menu-cards.sync');
+
+        Route::get('/menu-cards/{token}/edit', [MenuCardImageController::class, 'edit'])
+            ->where('token', '[A-Za-z0-9\-_]+')
+            ->name('menu-cards.edit');
+
+        Route::put('/menu-cards/{token}', [MenuCardImageController::class, 'update'])
+            ->where('token', '[A-Za-z0-9\-_]+')
+            ->name('menu-cards.update');
+
+        Route::delete('/menu-cards/{token}', [MenuCardImageController::class, 'destroy'])
+            ->where('token', '[A-Za-z0-9\-_]+')
+            ->name('menu-cards.destroy');
 
         /**
          * Slides (CRUD)
