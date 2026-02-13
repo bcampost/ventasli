@@ -193,14 +193,20 @@
   }
 
   /* ✅ “teatro” */
-  .hero3d-swiper{
-    overflow: visible;
-    padding: 24px 0 48px;
-    perspective: 1800px; /* más profundo */
-  }
+ .hero3d-swiper{
+  overflow: visible;
+  padding: 22px 0 48px;
+  perspective: 1800px;
+}
 
-  .hero3d-slide{ width: 900px; }
-  @media (max-width: 1100px){ .hero3d-slide{ width: 92vw; } }
+.hero3d-slide{
+  width: 920px;                /* ✅ escenario constante para el efecto */
+  display:flex;
+  justify-content:center;
+}
+@media (max-width: 1100px){
+  .hero3d-slide{ width: 92vw; }
+}
 
   /* Card base */
   .hero3d-card{
@@ -252,6 +258,8 @@
     opacity: 1;
     transform: scale(1.15);
   }
+
+  
 </style>
 
 <script>
