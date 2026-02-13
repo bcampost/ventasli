@@ -351,7 +351,7 @@
       </div>
 
       <div class="li-footer__social" aria-label="Redes sociales Línea Italia">
-        <div class="li-footer__socialTitle">Síguenos</div>
+        
 
         {{-- Facebook --}}
         <a class="li-footer__socialBtn" href="https://www.facebook.com/lineaitaliamx/?locale=es_LA"
