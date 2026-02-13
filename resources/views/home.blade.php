@@ -5,10 +5,9 @@
 <div class="hero-wrap">
   <div class="hero-top">
     <div class="hero-brand">
-      <div class="hero-mark">LI</div>
+      
 
       <div class="hero-title">
-        <div class="hero-kicker">Portal</div>
 
         <div class="hero-title-row">
           <div class="hero-h1">Comunicados</div>

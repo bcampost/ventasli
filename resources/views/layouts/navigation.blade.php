@@ -198,16 +198,35 @@
   .v-user-dd a:hover, .v-user-dd button:hover{
     background: rgba(248,250,252,.9);
   }
+  .topbrand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    text-decoration:none;
+    color: inherit;
+  }
+  .topbrand-logo{
+    height: 26px;     /* ajusta si lo quieres más grande */
+    width: auto;
+    display:block;
+    object-fit: contain;
+  }
+  .topbrand-text{
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
 </style>
 
 <nav class="v-nav">
   <div class="v-nav-wrap">
     <a class="v-brand" href="{{ route('home') }}">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-        <path d="M12 2l8 4v6c0 5-3 9-8 10C7 21 4 17 4 12V6l8-4z" stroke="currentColor" stroke-width="1.6"/>
-        <path d="M8 12l2.2 2.2L16 8.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span>ventasli</span>
+    <a href="{{ route('home') }}" class="topbrand">
+      <img src="{{ asset('images/linea-italia.png') }}" alt="Línea Italia" class="topbrand-logo">
+    </a>
+      <span>Ventas Linea Italia      
+        <a href="{{ route('home') }}" class="topbrand">
+      </span>
     </a>
 
     <div class="v-menu">
