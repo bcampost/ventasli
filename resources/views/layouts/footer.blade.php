@@ -9,7 +9,7 @@
   $locations = [
     [
       'id' => 'ags',
-      'name' => 'Línea Italia AGS',
+      'name' => '',
       'address' => 'Av. José María Chávez 643, Barrio del Encino, 20000 Aguascalientes, Ags.',
       'phone' => '+525578586841',
       'hours' => 'Lunes a Viernes de 8:00 a.m - 6:00 p.m',
@@ -17,7 +17,7 @@
     ],
     [
       'id' => 'cdmx',
-      'name' => 'Línea Italia CDMX',
+      'name' => '',
       'address' => 'Calz. Gral. Mariano Escobedo 218, Anáhuac I Secc, Miguel Hidalgo, 11310 Ciudad de México, CDMX',
       'phone' => '+525578586841',
       'hours' => 'Lunes a Viernes de 8:00 a.m - 6:00 p.m',
@@ -25,7 +25,7 @@
     ],
     [
       'id' => 'qro',
-      'name' => 'Línea Italia QRO',
+      'name' => '',
       'address' => 'San Luis Potosí - Santiago de Querétaro 135-edif. D02-N1, Local 19, Jurica, 76100 Santiago de Querétaro, Qro.',
       'phone' => '+525578586841',
       'hours' => 'Lunes a Viernes de 8:00 a.m - 6:00 p.m',
@@ -33,7 +33,7 @@
     ],
     [
       'id' => 'mty',
-      'name' => 'Línea Italia MTY',
+      'name' => '',
       'address' => 'Belisario Domínguez 2020, Obispado, 64060 Monterrey, N.L.',
       'phone' => '+525578586841',
       'hours' => 'Lunes a Viernes de 8:00 a.m - 6:00 p.m',

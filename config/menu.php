@@ -4,7 +4,7 @@ return [
   [
     'label' => 'Listas de precios',
     'children' => [
-      ['label' => 'Mobiliario', 'url' => '#'],
+      ['label' => 'Mobiliario', 'url' => 'https://ventas.lineaitalia.mx/dym/docs/VENTA%20DIRECTA-LISTA%20DE%20PRECIOS%202025_compressed-3.pdf'],
       ['label' => 'Sillería', 'url' => '#'],
       ['label' => 'Comercialización', 'url' => '#'],
     ],

@@ -1,3 +1,5 @@
+{{-- resources/views/partials/rankings-dashboard.blade.php --}}
+
 @php
   // ===========================
   // ✅ DATA SIMULADA
@@ -91,6 +93,10 @@
   $monthLabel = [];
   foreach($monthsAllowed as $m){ $monthLabel[$m['k']] = $m['l']; }
 
+  // ✅ MODO: vendor | total
+  $qMode = request()->query('mode', 'vendor');
+  if(!in_array($qMode, ['vendor','total'], true)) $qMode = 'vendor';
+
   $qVendor = request()->query('vendor', $vendors[0] ?? '');
   $qFromY  = (int)request()->query('from_year', 2025);
   $qFromM  = request()->query('from_month', '01');
@@ -137,7 +143,7 @@
   }
 
   // ===========================
-  // ✅ RANGO DINÁMICO POR ÁREA
+  // ✅ RANGO DINÁMICO POR ÁREA (solo vendor)
   // ===========================
   $rangesNumeric = [
     'Fuera de expectativas' => ['min'=>0,        'max'=>200000],
@@ -147,36 +153,87 @@
     'Redefiniendo expectativas' => ['min'=>1500000, 'max'=>2500000],
   ];
 
-  $selectedRow = null;
-  foreach($ranking as $r){
-    if($r['name'] === $qVendor){ $selectedRow = $r; break; }
-  }
-  $selectedStatus = $selectedRow['status'] ?? 'Cumpliendo expectativas';
-  if(!isset($rangesNumeric[$selectedStatus])){
-    $selectedStatus = 'Cumpliendo expectativas';
-  }
-
-  $band = $rangesNumeric[$selectedStatus];
-  $bandMin = (int)$band['min'];
-  $bandMax = (int)$band['max'];
-
-  $avg = $toIntMoney($selectedRow['promedio'] ?? '$0');
-  $center = max($bandMin, min($avg, $bandMax));
-  $span = max(1, (int)(($bandMax - $bandMin) * 0.55));
-  $lowTarget  = max($bandMin, $center - (int)($span/2));
-  $highTarget = min($bandMax, $center + (int)($span/2));
-
-  $seed = abs((int)crc32($qVendor));
-
+  // ========== SERIES (vendor o total) ==========
   $series = [];
-  foreach($monthKeys as $i => $ym){
-    $t = ($seed + ($ym['y']*100) + (int)$ym['m']*17 + $i*91);
-    $noise = ($t % 1000) / 1000;
-    $trend = sin(($i+1) * 0.55) * 0.18;
-    $val = $lowTarget + ($highTarget - $lowTarget) * $noise;
-    $val = $val * (1 + $trend);
-    $val = max($bandMin, min((int)$val, $bandMax));
-    $series[] = (int)$val;
+
+  if($qMode === 'vendor'){
+    $selectedRow = null;
+    foreach($ranking as $r){
+      if($r['name'] === $qVendor){ $selectedRow = $r; break; }
+    }
+    $selectedStatus = $selectedRow['status'] ?? 'Cumpliendo expectativas';
+    if(!isset($rangesNumeric[$selectedStatus])){
+      $selectedStatus = 'Cumpliendo expectativas';
+    }
+
+    $band = $rangesNumeric[$selectedStatus];
+    $bandMin = (int)$band['min'];
+    $bandMax = (int)$band['max'];
+
+    $avg = $toIntMoney($selectedRow['promedio'] ?? '$0');
+    $center = max($bandMin, min($avg, $bandMax));
+    $span = max(1, (int)(($bandMax - $bandMin) * 0.55));
+    $lowTarget  = max($bandMin, $center - (int)($span/2));
+    $highTarget = min($bandMax, $center + (int)($span/2));
+
+    $seed = abs((int)crc32($qVendor));
+
+    foreach($monthKeys as $i => $ym){
+      $t = ($seed + ($ym['y']*100) + (int)$ym['m']*17 + $i*91);
+      $noise = ($t % 1000) / 1000;
+      $trend = sin(($i+1) * 0.55) * 0.18;
+      $val = $lowTarget + ($highTarget - $lowTarget) * $noise;
+      $val = $val * (1 + $trend);
+      $val = max($bandMin, min((int)$val, $bandMax));
+      $series[] = (int)$val;
+    }
+
+    $minY = $bandMin;
+    $maxY = $bandMax;
+
+    $rangeLabel = $selectedStatus . ' · ' . $fmtMoney($bandMin) . ' – ' . $fmtMoney($bandMax);
+    $badgeIcon = $selectedRow['icon'] ?? '•';
+    $chartTitle = $qVendor;
+    $chartSub = 'Mes con mes (MXN)';
+
+  } else {
+    // ✅ TOTAL EMPRESA: simula un total/avg mes con mes
+    // Base = suma de promedios (aprox) + variación determinística por mes
+    $baseSum = 0;
+    foreach($ranking as $r){
+      $baseSum += $toIntMoney($r['promedio'] ?? '$0');
+    }
+
+    // Normalizamos a un "promedio empresa" mensual
+    // (puedes cambiar a suma total real si luego conectas BC)
+    $baseCompany = (int) round($baseSum / max(1, count($ranking)) * count($ranking)); // equivalente a suma de promedios
+
+    // Seed global
+    $seed = abs((int)crc32('VENTAS_TOTALES_EMPRESA'));
+
+    foreach($monthKeys as $i => $ym){
+      $t = ($seed + ($ym['y']*100) + (int)$ym['m']*29 + $i*137);
+      $noise = ($t % 1000) / 1000;         // 0..1
+      $season = sin(($i+1) * 0.45) * 0.10; // +-10%
+      $drift  = cos(($i+1) * 0.22) * 0.06; // +-6%
+
+      $val = $baseCompany * (0.88 + 0.24*$noise); // 88%..112%
+      $val = $val * (1 + $season + $drift);
+
+      $series[] = (int) max(0, $val);
+    }
+
+    // Para total, eje Y automático con padding
+    $minSeries = min($series);
+    $maxSeries = max($series);
+    $pad = max(1, (int)(($maxSeries - $minSeries) * 0.18));
+    $minY = max(0, $minSeries - $pad);
+    $maxY = $maxSeries + $pad;
+
+    $rangeLabel = 'Promedio/Total empresa (simulado)';
+    $badgeIcon = '🏢';
+    $chartTitle = 'Ventas Totales';
+    $chartSub = 'Mes con mes (MXN)';
   }
 
   // ===========================
@@ -184,9 +241,6 @@
   // ===========================
   $minV = min($series);
   $maxV = max($series);
-
-  $minY = $bandMin;
-  $maxY = $bandMax;
 
   $w = 1180;
   $h = 420;
@@ -232,8 +286,6 @@
   foreach($monthKeys as $ym){
     $xLabels[] = ($monthLabel[$ym['m']] ?? $ym['m']) . ' ' . substr((string)$ym['y'], -2);
   }
-
-  $rangeLabel = $selectedStatus . ' · ' . $fmtMoney($bandMin) . ' – ' . $fmtMoney($bandMax);
 @endphp
 
 <style>
@@ -294,6 +346,39 @@
   }
   .rk-card-head .title{ font-size: 18px; font-weight: 800; letter-spacing: -.01em; color: var(--rk-text); }
   .rk-card-head .sub{ margin-top: 2px; font-size: 13px; color: rgba(15,23,42,.78); }
+
+  .rk-headRow{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 12px;
+  }
+
+  /* ✅ Toggle modo */
+  .rk-viewToggle{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    justify-content:flex-end;
+    margin-top: 2px;
+  }
+  .rk-viewBtn{
+    border: 1px solid rgba(15,23,42,.14);
+    background: rgba(255,255,255,.75);
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-weight: 900;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 10px 18px rgba(15,23,42,.06);
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    white-space:nowrap;
+  }
+  .rk-viewBtn:hover{ transform: translateY(-1px); }
+  .rk-viewBtn.is-active{
+    border-color: rgba(37,99,235,.55);
+    box-shadow: 0 14px 22px rgba(37,99,235,.14);
+  }
 
   .rk-table{ width:100%; border-collapse:collapse; font-size:13px; color:var(--rk-text); }
   .rk-table thead th{
@@ -560,24 +645,58 @@
           <div id="rkChartSection">
             <div class="rk-card rk-chart-card">
               <div class="rk-card-head">
-                <div class="title">Comparativo mes a mes</div>
-                <div class="sub">Ventas por vendedor</div>
+                <div class="rk-headRow">
+                  <div>
+                    <div class="title">Comparativo mes a mes</div>
+                    <div class="sub">{{ $qMode==='total' ? 'Ventas Totales' : 'Ventas por vendedor' }}</div>
+                  </div>
+
+                  <div>
+                    <div class="rk-viewToggle" aria-label="Cambiar vista">
+                      <button type="button"
+                              class="rk-viewBtn {{ $qMode==='vendor' ? 'is-active' : '' }}"
+                              data-mode="vendor">
+                        Ventas por vendedor
+                      </button>
+
+                      <button type="button"
+                              class="rk-viewBtn {{ $qMode==='total' ? 'is-active' : '' }}"
+                              data-mode="total">
+                        Ventas Totales
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div class="rk-controls">
                 <form method="GET" action="{{ url()->current() }}" id="rkChartForm">
+                  {{-- ✅ clave: este hidden controla el modo en la URL --}}
+                  <input type="hidden" name="mode" id="rkMode" value="{{ $qMode }}">
+
                   <div class="rk-controls-row">
-                    <div class="rk-pill">
-                      <div class="label">
-                        <span>Vendedor</span>
-                        <span class="dot">·</span>
+                    {{-- ✅ SOLO si es vendor --}}
+                    @if($qMode === 'vendor')
+                      <div class="rk-pill">
+                        <div class="label">
+                          <span>Vendedor</span>
+                          <span class="dot">·</span>
+                        </div>
+                        <select class="rk-select" name="vendor" data-autosubmit>
+                          @foreach($vendors as $v)
+                            <option value="{{ $v }}" {{ $v === $qVendor ? 'selected' : '' }}>{{ $v }}</option>
+                          @endforeach
+                        </select>
                       </div>
-                      <select class="rk-select" name="vendor" data-autosubmit>
-                        @foreach($vendors as $v)
-                          <option value="{{ $v }}" {{ $v === $qVendor ? 'selected' : '' }}>{{ $v }}</option>
-                        @endforeach
-                      </select>
-                    </div>
+                    @else
+                      <div class="rk-pill" style="justify-content:flex-start;">
+                        <div class="label">
+                          <span>Empresa</span>
+                          <span class="dot">·</span>
+                          <span style="font-weight:950; opacity:.88;">Ventas Totales</span>
+                        </div>
+                      </div>
+                    @endif
 
                     <div class="rk-pill">
                       <div class="label">
@@ -622,11 +741,12 @@
               <div class="rk-chart-wrap">
                 <div class="rk-chart-meta">
                   <div>
-                    <div class="h">{{ $qVendor }}</div>
-                    <div class="sub">Mes con mes (MXN)</div>
+                    <div class="h">{{ $chartTitle }}</div>
+                    <div class="sub">{{ $chartSub }}</div>
                   </div>
+
                   <div class="rk-badge">
-                    <span>{{ $selectedRow['icon'] ?? '•' }}</span>
+                    <span>{{ $badgeIcon }}</span>
                     <span>{{ $rangeLabel }}</span>
                   </div>
                 </div>
@@ -806,7 +926,7 @@
         var fd = new FormData(form);
 
         // Limpia params previos del chart
-        ['vendor','from_year','from_month','to_year','to_month'].forEach(function(k){
+        ['mode','vendor','from_year','from_month','to_year','to_month'].forEach(function(k){
           url.searchParams.delete(k);
         });
 
@@ -815,6 +935,11 @@
             url.searchParams.set(k, v);
           }
         });
+
+        // Si mode=total, NO mandes vendor
+        if(url.searchParams.get('mode') === 'total'){
+          url.searchParams.delete('vendor');
+        }
 
         return url.toString();
       }
@@ -843,21 +968,18 @@
             currentSection.replaceWith(nextSection);
           }
 
-          // Actualiza URL sin brincar al inicio
           if(push){
             history.pushState({rk:true}, '', url);
           }else{
             history.replaceState({rk:true}, '', url);
           }
 
-          // Mantiene scroll
           window.scrollTo(0, currentY);
 
-          // ✅ IMPORTANTÍSIMO: re-bindea eventos porque el DOM cambió
+          // ✅ re-bindea eventos
           bindChartHandlers();
 
         }catch(e){
-          // Fallback: recarga completa preservando scroll
           sessionStorage.setItem('rkScrollY', String(currentY));
           window.location.href = url;
           return;
@@ -867,32 +989,54 @@
         }
       }
 
-      // Quita listeners previos (por si se rebind)
+      // ✅ autosubmit para selects
       form.querySelectorAll('[data-autosubmit]').forEach(function(el){
         el.onchange = null;
       });
 
-      // Cambios -> recarga parcial
       form.querySelectorAll('[data-autosubmit]').forEach(function(el){
         el.addEventListener('change', function(){
           refreshChartPartial(true);
         });
       });
 
-      // Popstate -> recarga parcial
+      // ✅ Toggle modo (vendor / total)
+      var modeInput = document.getElementById('rkMode');
+
+      document.querySelectorAll('[data-mode]').forEach(function(btn){
+        btn.onclick = null;
+        btn.addEventListener('click', function(){
+          if(!modeInput) return;
+
+          var nextMode = btn.getAttribute('data-mode') || 'vendor';
+          modeInput.value = nextMode;
+
+          // UI active
+          document.querySelectorAll('[data-mode]').forEach(function(b){
+            b.classList.toggle('is-active', b.getAttribute('data-mode') === nextMode);
+          });
+
+          // Si es total, limpia vendor visualmente y en la URL
+          if(nextMode === 'total'){
+            var vendorSel = form.querySelector('select[name="vendor"]');
+            if(vendorSel) vendorSel.value = '';
+          }
+
+          refreshChartPartial(true);
+        });
+      });
+
       window.onpopstate = function(){
         refreshChartPartial(false);
       };
     }
 
-    // Restauración si venimos del fallback
     var saved = sessionStorage.getItem('rkScrollY');
     if(saved){
       sessionStorage.removeItem('rkScrollY');
       window.scrollTo(0, parseInt(saved, 10) || 0);
     }
 
-    // Primer bind
     bindChartHandlers();
   })();
 </script>
