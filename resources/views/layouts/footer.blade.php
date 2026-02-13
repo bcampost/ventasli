@@ -1,478 +1,914 @@
 {{-- resources/views/layouts/footer.blade.php --}}
 @php
-  // ✅ Showrooms oficiales (Línea Italia)
-  $showrooms = [
+  $isAdmin = auth()->check() && auth()->user()->hasRole('admin');
+
+  // ==========
+  // DATA BASE (por ahora hardcode; luego lo conectamos a DB)
+  // ==========
+
+  $locations = [
     [
-      'name' => 'Showroom Aguascalientes',
+      'id' => 'ags',
+      'name' => 'Línea Italia AGS',
       'address' => 'Av. José María Chávez 643, Barrio del Encino, 20000 Aguascalientes, Ags.',
+      'phone' => '+525578586841',
+      'hours' => 'Lunes a Viernes de 8:00 a.m - 6:00 p.m',
       'maps' => 'https://maps.app.goo.gl/mmEWfPqdcihBkPc99',
-      'phone' => '+525578586841',
-      'hours' => 'Lunes a Viernes de 8:00 a.m - 6:00 p.m',
-      'tag' => 'Aguascalientes',
     ],
     [
-      'name' => 'Showroom CDMX',
+      'id' => 'cdmx',
+      'name' => 'Línea Italia CDMX',
       'address' => 'Calz. Gral. Mariano Escobedo 218, Anáhuac I Secc, Miguel Hidalgo, 11310 Ciudad de México, CDMX',
+      'phone' => '+525578586841',
+      'hours' => 'Lunes a Viernes de 8:00 a.m - 6:00 p.m',
       'maps' => 'https://maps.app.goo.gl/v1BJyoRZ5rL85r668',
-      'phone' => '+525578586841',
-      'hours' => 'Lunes a Viernes de 8:00 a.m - 6:00 p.m',
-      'tag' => 'CDMX',
     ],
     [
-      'name' => 'Showroom Querétaro',
+      'id' => 'qro',
+      'name' => 'Línea Italia QRO',
       'address' => 'San Luis Potosí - Santiago de Querétaro 135-edif. D02-N1, Local 19, Jurica, 76100 Santiago de Querétaro, Qro.',
-      'maps' => 'https://maps.app.goo.gl/75Ge3DanaTM8ciPWA',
       'phone' => '+525578586841',
       'hours' => 'Lunes a Viernes de 8:00 a.m - 6:00 p.m',
-      'tag' => 'Querétaro',
+      'maps' => 'https://maps.app.goo.gl/75Ge3DanaTM8ciPWA',
     ],
     [
-      'name' => 'Showroom Monterrey',
+      'id' => 'mty',
+      'name' => 'Línea Italia MTY',
       'address' => 'Belisario Domínguez 2020, Obispado, 64060 Monterrey, N.L.',
-      'maps' => 'https://maps.app.goo.gl/si5yWzUoBGKWTubGA',
       'phone' => '+525578586841',
       'hours' => 'Lunes a Viernes de 8:00 a.m - 6:00 p.m',
-      'tag' => 'Monterrey',
+      'maps' => 'https://maps.app.goo.gl/si5yWzUoBGKWTubGA',
     ],
   ];
 
-  // ✅ Redes sociales
+  $capacitaciones = [
+    ['id'=>'videos','label'=>'Videos','href'=>'' ],
+    ['id'=>'presentaciones','label'=>'Presentaciones','href'=>'' ],
+    ['id'=>'recetas','label'=>'Recetas','href'=>'' ],
+    ['id'=>'guiones','label'=>'Guiones','href'=>'' ],
+    ['id'=>'armados','label'=>'Armados','href'=>'' ],
+    ['id'=>'tutoriales','label'=>'Tutoriales','href'=>'' ],
+  ];
+
   $socials = [
-    [
-      'name' => 'Facebook',
-      'url'  => 'https://www.facebook.com/lineaitaliamx/?locale=es_LA',
-      'icon' => 'facebook',
-    ],
-    [
-      'name' => 'Instagram',
-      'url'  => 'https://www.instagram.com/lineaitalia/',
-      'icon' => 'instagram',
-    ],
-    [
-      'name' => 'X',
-      'url'  => 'https://x.com/lineaitalia',
-      'icon' => 'x',
-    ],
-    [
-      'name' => 'YouTube',
-      'url'  => 'https://www.youtube.com/@litaliaofficefurnit',
-      'icon' => 'youtube',
-    ],
+    ['id'=>'fb', 'label'=>'Facebook', 'href'=>'https://www.facebook.com/lineaitaliamx/?locale=es_LA'],
+    ['id'=>'ig', 'label'=>'Instagram', 'href'=>'https://www.instagram.com/lineaitalia/'],
+    ['id'=>'x',  'label'=>'X', 'href'=>'https://x.com/lineaitalia'],
+    ['id'=>'yt', 'label'=>'YouTube', 'href'=>'https://www.youtube.com/@litaliaofficefurnit'],
   ];
 @endphp
 
 <style>
   :root{
     --f-ink:#0b1220;
-    --f-muted:rgba(15,23,42,.62);
-    --f-line:rgba(15,23,42,.10);
-    --f-surface:rgba(255,255,255,.78);
-    --f-surface2:rgba(255,255,255,.92);
-    --f-shadow:0 18px 60px rgba(2,6,23,.12);
-    --f-shadow2:0 12px 30px rgba(2,6,23,.10);
+    --f-muted: rgba(15,23,42,.62);
+    --f-line: rgba(15,23,42,.10);
+    --f-surface: rgba(255,255,255,.86);
+    --f-surface2: rgba(255,255,255,.72);
+    --f-shadow: 0 18px 60px rgba(2,6,23,.12);
+    --f-shadow2: 0 10px 30px rgba(2,6,23,.10);
+    --f-r: 22px;
+    --f-r2: 18px;
     --f-primary:#2563eb;
     --f-primary2:#1d4ed8;
-    --f-r:22px;
   }
 
   .li-footer{
-    border-top: 1px solid var(--f-line);
+    position: relative;
+    margin-top: 26px;
+    border-top: 1px solid rgba(15,23,42,.08);
     background:
-      radial-gradient(1100px 260px at 15% 0%, rgba(37,99,235,.10), transparent 55%),
-      radial-gradient(900px 260px at 85% 20%, rgba(29,78,216,.10), transparent 55%),
-      rgba(248,250,252,.65);
-    backdrop-filter: blur(10px);
+      radial-gradient(900px 260px at 20% 0%, rgba(37,99,235,.10), transparent 55%),
+      radial-gradient(820px 300px at 85% 10%, rgba(29,78,216,.10), transparent 60%),
+      #f6f7fb;
   }
 
-  .li-footer__wrap{
-    max-width: 1280px;
+  .li-footer-inner{
+    max-width: 1120px;
     margin: 0 auto;
-    padding: 22px 18px 18px;
+    padding: 18px 18px 16px;
   }
 
-  .li-footer__top{
+  .li-foot-top{
     display:flex;
     align-items:flex-start;
     justify-content:space-between;
     gap: 14px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
+    margin-bottom: 12px;
   }
 
-  .li-footer__brand{
+  .li-foot-title{
     display:flex;
     align-items:center;
     gap:10px;
-    user-select:none;
-  }
-
-  .li-footer__logo{
-    width: 38px;
-    height: 38px;
-    border-radius: 14px;
-    background: linear-gradient(180deg, rgba(37,99,235,.16), rgba(29,78,216,.10));
-    border: 1px solid rgba(37,99,235,.18);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    box-shadow: var(--f-shadow2);
-  }
-
-  .li-footer__title{
     font-weight: 950;
-    letter-spacing: -.02em;
     color: var(--f-ink);
-    line-height: 1.1;
+    letter-spacing: -.02em;
   }
 
-  .li-footer__subtitle{
-    margin-top: 4px;
+  .li-foot-sub{
     color: var(--f-muted);
     font-weight: 700;
-    font-size: .92rem;
+    font-size: .88rem;
+    margin-top: 2px;
   }
 
-  .li-footer__grid{
-    display:grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: 12px;
-    margin-top: 12px;
-  }
-
-  .li-footer__card{
-    grid-column: span 12;
-    border-radius: var(--f-r);
-    border: 1px solid rgba(15,23,42,.10);
-    background: var(--f-surface2);
-    box-shadow: var(--f-shadow2);
-    overflow:hidden;
-    position:relative;
-  }
-
-  @media (min-width: 860px){
-    .li-footer__card{ grid-column: span 6; }
-  }
-
-  @media (min-width: 1160px){
-    .li-footer__card{ grid-column: span 3; }
-  }
-
-  .li-footer__cardInner{
-    padding: 14px 14px 14px;
-    display:flex;
-    gap: 12px;
-    align-items:flex-start;
-  }
-
-  .li-footer__pin{
-    width: 44px;
-    height: 44px;
-    border-radius: 999px;
-    border: 1px solid rgba(37,99,235,.18);
-    background: rgba(255,255,255,.90);
-    box-shadow: 0 10px 24px rgba(2,6,23,.10);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    flex: 0 0 auto;
-    color: rgba(15,23,42,.74);
-  }
-
-  .li-footer__name{
-    font-weight: 950;
-    letter-spacing: -.01em;
-    color: var(--f-ink);
-    line-height: 1.15;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap: 10px;
-  }
-
-  .li-footer__mapIcon{
-    width: 34px;
-    height: 34px;
-    border-radius: 999px;
-    border: 1px solid rgba(37,99,235,.20);
-    background: rgba(37,99,235,.08);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    color: rgba(29,78,216,.95);
-    text-decoration:none;
-    box-shadow: 0 10px 22px rgba(2,6,23,.08);
-    transition: transform .15s ease, background .15s ease, border-color .15s ease;
-    flex: 0 0 auto;
-  }
-  .li-footer__mapIcon:hover{
-    transform: translateY(-1px);
-    background: rgba(37,99,235,.12);
-    border-color: rgba(37,99,235,.32);
-  }
-
-  .li-footer__tag{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    margin-top: 6px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid rgba(37,99,235,.18);
-    background: rgba(37,99,235,.08);
-    color: rgba(29,78,216,.92);
-    font-weight: 850;
-    font-size: .78rem;
-  }
-
-  .li-footer__meta{
-    margin-top: 10px;
-    color: rgba(15,23,42,.68);
-    font-weight: 700;
-    font-size: .9rem;
-    line-height: 1.35;
-  }
-
-  .li-footer__meta small{
-    display:block;
-    color: rgba(15,23,42,.55);
-    font-weight: 750;
-    margin-top: 6px;
-  }
-
-  .li-footer__actions{
-    margin-top: 12px;
-    display:flex;
-    gap: 10px;
-    align-items:center;
-    flex-wrap: wrap;
-  }
-
-  .li-footer__btn{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding: 10px 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(15,23,42,.12);
-    background: rgba(255,255,255,.92);
-    color: rgba(15,23,42,.78);
-    font-weight: 900;
-    font-size: .85rem;
-    text-decoration:none;
-    box-shadow: 0 10px 22px rgba(2,6,23,.08);
-    transition: transform .15s ease, background .15s ease, border-color .15s ease;
-  }
-
-  .li-footer__btn:hover{
-    transform: translateY(-1px);
-    background:#fff;
-    border-color: rgba(15,23,42,.18);
-  }
-
-  .li-footer__btn.primary{
-    border-color: rgba(37,99,235,.22);
-    background: linear-gradient(180deg, rgba(37,99,235,1), rgba(29,78,216,1));
-    color: #fff;
-    box-shadow: 0 16px 34px rgba(37,99,235,.20);
-  }
-
-  /* ✅ Socials */
-  .li-footer__social{
+  .li-foot-tools{
     display:flex;
     align-items:center;
     gap:10px;
     flex-wrap: wrap;
-    justify-content:flex-end;
   }
 
-  .li-footer__socialTitle{
-    font-weight: 900;
-    color: rgba(15,23,42,.72);
-    font-size: .9rem;
-    margin-right: 2px;
-  }
-
-  .li-footer__socialBtn{
+  .li-icon{
     width: 42px;
     height: 42px;
     border-radius: 999px;
     border: 1px solid rgba(15,23,42,.12);
-    background: rgba(255,255,255,.92);
-    box-shadow: 0 10px 22px rgba(2,6,23,.08);
+    background: rgba(255,255,255,.88);
+    box-shadow: var(--f-shadow2);
     display:flex;
     align-items:center;
     justify-content:center;
-    color: rgba(15,23,42,.78);
-    text-decoration:none;
-    transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    color: rgba(15,23,42,.70);
+    cursor:pointer;
+    transition: transform .15s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+    user-select:none;
   }
-  .li-footer__socialBtn:hover{
+  .li-icon:hover{
     transform: translateY(-1px);
     background:#fff;
     border-color: rgba(15,23,42,.18);
   }
+  .li-icon.on{
+    background: linear-gradient(180deg, rgba(37,99,235,1), rgba(29,78,216,1));
+    color:#fff;
+    border-color: rgba(37,99,235,.55);
+    box-shadow: 0 16px 34px rgba(37,99,235,.22);
+  }
 
-  .li-footer__bottom{
-    margin-top: 16px;
-    padding-top: 14px;
-    border-top: 1px solid rgba(15,23,42,.08);
+  .li-foot-grid{
+    display:grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 14px;
+    align-items:start;
+  }
+
+  @media (max-width: 980px){
+    .li-foot-grid{ grid-template-columns: 1fr; }
+  }
+
+  .li-block{
+    border: 1px solid rgba(15,23,42,.10);
+    border-radius: var(--f-r);
+    background: rgba(255,255,255,.76);
+    box-shadow: var(--f-shadow);
+    overflow:hidden;
+  }
+
+  .li-block-h{
+    padding: 12px 14px;
     display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background: rgba(255,255,255,.65);
+    border-bottom: 1px solid rgba(15,23,42,.08);
+  }
+  .li-block-h strong{
+    font-weight: 950;
+    letter-spacing:-.01em;
+    color: var(--f-ink);
+  }
+
+  .li-pencil{
+    display:none;
+    align-items:center;
+    justify-content:center;
+    width: 36px; height: 36px;
+    border-radius: 999px;
+    border: 1px solid rgba(15,23,42,.12);
+    background: rgba(255,255,255,.92);
+    cursor:pointer;
+    box-shadow: 0 10px 22px rgba(2,6,23,.10);
+  }
+  .li-pencil:hover{ transform: translateY(-1px); }
+  .li-edit-on .li-pencil{ display:flex; } /* aparece solo en modo edición */
+
+  .li-list{
+    padding: 10px 12px 12px;
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Items compactos (solo nombre) */
+  .li-item{
+    border: 1px solid rgba(15,23,42,.10);
+    border-radius: 18px;
+    background: rgba(255,255,255,.85);
+    overflow:hidden;
+    transition: border-color .15s ease, background .15s ease, transform .15s ease;
+  }
+  .li-item:hover{
+    transform: translateY(-1px);
+    border-color: rgba(15,23,42,.18);
+    background: #fff;
+  }
+
+  .li-item-head{
+    padding: 11px 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .li-item-head .name{
+    display:flex; align-items:center; gap:10px;
+    font-weight: 950;
+    color: var(--f-ink);
+    letter-spacing:-.01em;
+  }
+
+  .li-chip{
+    font-size: .78rem;
+    font-weight: 900;
+    padding: .25rem .55rem;
+    border-radius: 999px;
+    border: 1px solid rgba(37,99,235,.22);
+    background: rgba(37,99,235,.08);
+    color: rgba(37,99,235,.92);
+    white-space:nowrap;
+  }
+
+  .li-caret{
+    color: rgba(15,23,42,.55);
+    font-weight: 900;
+    transition: transform .15s ease;
+  }
+
+  .li-item.open .li-caret{ transform: rotate(180deg); }
+
+  .li-item-body{
+    display:none;
+    padding: 0 12px 12px;
+    color: rgba(15,23,42,.72);
+    font-weight: 700;
+    font-size: .90rem;
+    line-height: 1.25;
+  }
+  .li-item.open .li-item-body{ display:block; }
+
+  .li-meta{ margin-top: 8px; display:flex; flex-direction:column; gap:6px; }
+  .li-meta small{ color: rgba(15,23,42,.62); font-weight: 800; }
+
+  .li-actions{
+    margin-top: 10px;
+    display:flex; gap: 8px; flex-wrap: wrap;
+  }
+  .li-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    border-radius: 999px;
+    padding: .58rem .78rem;
+    border: 1px solid rgba(15,23,42,.12);
+    background: rgba(255,255,255,.92);
+    font-weight: 900;
+    color: rgba(15,23,42,.78);
+    text-decoration:none;
+  }
+  .li-btn:hover{ background:#fff; border-color: rgba(15,23,42,.18); }
+
+  /* Capacitaciones simple list */
+  .li-cap-list{
+    padding: 10px 12px 12px;
+    display:flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .li-cap-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(15,23,42,.10);
+    border-radius: 16px;
+    background: rgba(255,255,255,.85);
+    text-decoration:none;
+    color: var(--f-ink);
+    font-weight: 950;
+  }
+  .li-cap-item:hover{ background:#fff; border-color: rgba(15,23,42,.18); }
+  .li-cap-item small{ color: var(--f-muted); font-weight: 800; }
+
+  .li-foot-bottom{
+    margin-top: 12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 12px;
+    color: rgba(15,23,42,.55);
+    font-weight: 800;
+    font-size: .86rem;
+  }
+
+  /* Modals */
+  .li-modal-backdrop{
+    position: fixed;
+    inset:0;
+    background: rgba(2,6,23,.72);
+    backdrop-filter: blur(10px);
+    z-index: 200;
+    display:none;
+  }
+  .li-modal{
+    position: fixed;
+    inset:0;
+    z-index: 210;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding: 16px;
+  }
+  .li-modal-card{
+    width: 100%;
+    max-width: 860px;
+    border-radius: 26px;
+    overflow:hidden;
+    background:
+      radial-gradient(900px 260px at 20% 0%, rgba(37,99,235,.12), transparent 55%),
+      #fff;
+    border: 1px solid rgba(15,23,42,.14);
+    box-shadow: 0 30px 90px rgba(2,6,23,.24);
+  }
+  .li-modal-head{
+    padding: 16px 18px;
+    border-bottom:1px solid rgba(15,23,42,.10);
+    display:flex;
+    align-items:flex-start;
     justify-content:space-between;
     gap: 10px;
-    flex-wrap: wrap;
-    color: rgba(15,23,42,.55);
-    font-weight: 700;
-    font-size: .88rem;
+    background: rgba(255,255,255,.80);
+  }
+  .li-modal-head .t{ font-weight: 950; color: var(--f-ink); letter-spacing:-.02em; }
+  .li-modal-body{
+    padding: 16px 18px 18px;
+    max-height: calc(100vh - 190px);
+    overflow:auto;
+  }
+  .li-modal-actions{
+    padding: 14px 18px;
+    border-top:1px solid rgba(15,23,42,.08);
+    display:flex;
+    justify-content:flex-end;
+    gap: 10px;
+    background: rgba(255,255,255,.80);
+  }
+  .li-mbtn{
+    border-radius: 16px;
+    padding: .70rem .95rem;
+    font-weight: 950;
+    border: 1px solid rgba(15,23,42,.14);
+    background: rgba(255,255,255,.92);
+    cursor:pointer;
+  }
+  .li-mbtn.primary{
+    border-color: rgba(37,99,235,.55);
+    background: linear-gradient(180deg, rgba(37,99,235,1), rgba(29,78,216,1));
+    color:#fff;
   }
 
-  .li-footer__link{
-    color: rgba(15,23,42,.70);
-    text-decoration:none;
-    font-weight: 850;
+  .li-grid2{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
   }
-  .li-footer__link:hover{ text-decoration: underline; }
+  @media (max-width: 860px){
+    .li-grid2{ grid-template-columns: 1fr; }
+  }
+
+  .li-field label{
+    display:block;
+    font-size:.83rem;
+    font-weight: 950;
+    color: rgba(15,23,42,.72);
+    margin-bottom: 6px;
+  }
+  .li-input, .li-textarea, .li-select{
+    width:100%;
+    border-radius: 16px;
+    border: 1px solid rgba(15,23,42,.14);
+    background: rgba(255,255,255,.95);
+    padding: .82rem .95rem;
+    font-weight: 800;
+    color: var(--f-ink);
+    outline:none;
+  }
+  .li-textarea{ min-height: 90px; resize: vertical; }
+
+  .li-row{
+    border: 1px solid rgba(15,23,42,.10);
+    border-radius: 18px;
+    padding: 12px;
+    background: rgba(248,250,252,.55);
+  }
+  .li-row + .li-row{ margin-top: 10px; }
+  .li-row-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom: 10px;
+  }
+  .li-row-head strong{ font-weight: 950; color: var(--f-ink); }
+  .li-del{
+    width: 36px; height: 36px;
+    border-radius: 999px;
+    border: 1px solid rgba(225,29,72,.25);
+    background: rgba(225,29,72,.08);
+    cursor:pointer;
+  }
+  .li-del:hover{ background: rgba(225,29,72,.12); }
+
+  .li-soc{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  .li-soc a{ text-decoration:none; }
 </style>
 
-<footer class="li-footer" role="contentinfo" aria-label="Showrooms Línea Italia">
-  <div class="li-footer__wrap">
-
-    <div class="li-footer__top">
-      <div class="li-footer__brand">
-        <div class="li-footer__logo" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2l8 4v6c0 5-3 9-8 10C7 21 4 17 4 12V6l8-4z" stroke="currentColor" stroke-width="1.7"/>
-            <path d="M8 12l2.2 2.2L16 8.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+<footer class="li-footer" id="liFooter">
+  <div class="li-footer-inner">
+    <div class="li-foot-top">
+      <div>
+        <div class="li-foot-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2l8 4v6c0 5-3 9-8 10C7 21 4 17 4 12V6l8-4z" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M8 12l2.2 2.2L16 8.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
+          <span>Showrooms Línea Italia</span>
         </div>
-        <div>
-          <div class="li-footer__title">Showrooms Línea Italia</div>
-          <div class="li-footer__subtitle">Ubicaciones y acceso directo a cada sucursal</div>
-        </div>
+        <div class="li-foot-sub">Ubicaciones, capacitaciones y accesos rápidos</div>
       </div>
 
-      <div class="li-footer__social" aria-label="Redes sociales Línea Italia">
-        
+      <div class="li-foot-tools">
+        {{-- Redes --}}
+        <div class="li-soc" aria-label="Redes sociales">
+          @foreach($socials as $s)
+            <a class="li-icon" href="{{ $s['href'] }}" target="_blank" rel="noopener" title="{{ $s['label'] }}">
+              @if($s['id']==='fb')
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v3H7v3h3v4h3v-4h3l1-3h-4v-3c0-.6.4-1 1-1z" fill="currentColor"/></svg>
+              @elseif($s['id']==='ig')
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5z" stroke="currentColor" stroke-width="1.7"/><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" stroke="currentColor" stroke-width="1.7"/><path d="M17.5 6.6h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+              @elseif($s['id']==='x')
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 19L19 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 5h5l5 14h-5L7 5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+              @else
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M10 15l5.2-3L10 9v6z" fill="currentColor"/><path d="M21 7a3 3 0 0 0-2-2c-1.7-.5-7-.5-7-.5s-5.3 0-7 .5a3 3 0 0 0-2 2A31 31 0 0 0 3 12a31 31 0 0 0 .5 5 3 3 0 0 0 2 2c1.7.5 7 .5 7 .5s5.3 0 7-.5a3 3 0 0 0 2-2A31 31 0 0 0 21 12a31 31 0 0 0-.5-5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              @endif
+            </a>
+          @endforeach
+        </div>
 
-        {{-- Facebook --}}
-        <a class="li-footer__socialBtn" href="https://www.facebook.com/lineaitaliamx/?locale=es_LA"
-           target="_blank" rel="noopener" title="Facebook">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M14 9h3V6h-3c-2 0-4 1.7-4 4v3H7v3h3v6h3v-6h3l1-3h-4v-3c0-.6.4-1 1-1z"
-                  fill="currentColor" style="opacity:.92"/>
-          </svg>
-        </a>
-
-        {{-- Instagram --}}
-        <a class="li-footer__socialBtn" href="https://www.instagram.com/lineaitalia/"
-           target="_blank" rel="noopener" title="Instagram">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4z"
-                  stroke="currentColor" stroke-width="1.7"/>
-            <path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"
-                  stroke="currentColor" stroke-width="1.7"/>
-            <path d="M17.5 6.5h.01" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>
-          </svg>
-        </a>
-
-        {{-- X --}}
-        <a class="li-footer__socialBtn" href="https://x.com/lineaitalia"
-           target="_blank" rel="noopener" title="X">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-          </svg>
-        </a>
-
-        {{-- YouTube --}}
-        <a class="li-footer__socialBtn" href="https://www.youtube.com/@litaliaofficefurnit"
-           target="_blank" rel="noopener" title="YouTube">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M21 12s0-3.5-.5-5.1a2.6 2.6 0 0 0-1.8-1.8C17.1 4.6 12 4.6 12 4.6s-5.1 0-6.7.5A2.6 2.6 0 0 0 3.5 6.9C3 8.5 3 12 3 12s0 3.5.5 5.1a2.6 2.6 0 0 0 1.8 1.8c1.6.5 6.7.5 6.7.5s5.1 0 6.7-.5a2.6 2.6 0 0 0 1.8-1.8C21 15.5 21 12 21 12z"
-                  stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
-            <path d="M10.5 9.5l5 2.5-5 2.5v-5z" fill="currentColor" style="opacity:.92"/>
-          </svg>
-        </a>
-
-
+        {{-- Engrane global (solo admin) --}}
+        @if($isAdmin)
+          <button type="button" class="li-icon" id="liFooterGear" title="Editar footer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M19.4 15a8 8 0 0 0 .1-1l2-1.2-2-3.6-2.3.8a7 7 0 0 0-1.7-1l-.4-2.4H9l-.4 2.4a7 7 0 0 0-1.7 1l-2.3-.8-2 3.6 2 1.2a8 8 0 0 0 .1 1 8 8 0 0 0-.1 1l-2 1.2 2 3.6 2.3-.8a7 7 0 0 0 1.7 1l.4 2.4h6.1l.4-2.4a7 7 0 0 0 1.7-1l2.3.8 2-3.6-2-1.2a8 8 0 0 0-.1-1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        @endif
       </div>
     </div>
 
-    <div class="li-footer__grid">
-      @foreach($showrooms as $s)
-        <div class="li-footer__card">
-          <div class="li-footer__cardInner">
-            <div class="li-footer__pin" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M12 22s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-                <path d="M12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" stroke="currentColor" stroke-width="1.7"/>
-              </svg>
-            </div>
+    <div class="li-foot-grid" id="liFootGrid">
 
-            <div style="min-width:0; width:100%;">
-              <div class="li-footer__name">
-                <span style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                  {{ $s['name'] }}
-                </span>
+      {{-- UBICACIONES --}}
+      <section class="li-block">
+        <div class="li-block-h">
+          <strong>Ubicaciones</strong>
+          <button type="button" class="li-pencil" id="liEditLocationsBtn" title="Editar ubicaciones">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 20h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
 
-                {{-- ✅ Icono que abre Maps --}}
-                <a class="li-footer__mapIcon" target="_blank" rel="noopener"
-                   href="{{ $s['maps'] }}" title="Abrir en Google Maps">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M12 22s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-                    <path d="M12 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" stroke="currentColor" stroke-width="1.7"/>
-                  </svg>
-                </a>
+        <div class="li-list" id="liLocationsList">
+          @foreach($locations as $loc)
+            <div class="li-item" data-loc="{{ $loc['id'] }}">
+              <div class="li-item-head" onclick="LI_FOOT.toggleItem(this)">
+                <div class="name">
+                  <span>{{ $loc['name'] }}</span>
+                  <span class="li-chip">{{ strtoupper($loc['id']) }}</span>
+                </div>
+                <span class="li-caret">▾</span>
               </div>
 
-              <div class="li-footer__tag">
-                <span style="width:7px;height:7px;border-radius:999px;background:rgba(37,99,235,.8);display:inline-block;"></span>
-                {{ $s['tag'] ?? 'Sucursal' }}
-              </div>
+              <div class="li-item-body">
+                <div class="li-meta">
+                  <div>{{ $loc['address'] }}</div>
+                  <small>Tel: {{ $loc['phone'] }}</small>
+                  <small>{{ $loc['hours'] }}</small>
+                </div>
 
-              <div class="li-footer__meta">
-                {{ $s['address'] }}
-                <small>{{ $s['hours'] }}</small>
-                @if(!empty($s['phone']))
-                  <small>Tel: {{ $s['phone'] }}</small>
-                @endif
-              </div>
-
-              <div class="li-footer__actions">
-                <a class="li-footer__btn" target="_blank" rel="noopener"
-                   href="{{ $s['maps'] }}" title="Cómo llegar">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M10 14l4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                    <path d="M14 10h-4v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M14 3h7v7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                    <path d="M21 3l-9 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                  </svg>
-                  Cómo llegar
-                </a>
-
-                @if(!empty($s['phone']))
-                  @php $tel = preg_replace('/[^0-9\+]/', '', $s['phone']); @endphp
-                  <a class="li-footer__btn" href="tel:{{ $tel }}" title="Llamar">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M22 16.5v3a2 2 0 0 1-2.2 2c-9.2-.9-16.4-8.1-17.3-17.3A2 2 0 0 1 4.5 2h3a2 2 0 0 1 2 1.7c.2 1.2.6 2.4 1.1 3.5a2 2 0 0 1-.5 2.2L9 10.6c1.4 2.6 3.5 4.7 6.1 6.1l1.2-1.1a2 2 0 0 1 2.2-.5c1.1.5 2.3.9 3.5 1.1A2 2 0 0 1 22 16.5z"
-                            stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                <div class="li-actions">
+                  <a class="li-btn" href="{{ $loc['maps'] }}" target="_blank" rel="noopener" title="Abrir en Maps">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 21s7-5 7-11a7 7 0 1 0-14 0c0 6 7 11 7 11z" stroke="currentColor" stroke-width="1.6"/>
+                      <path d="M12 10.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" fill="currentColor"/>
+                    </svg>
+                    Cómo llegar
+                  </a>
+                  <a class="li-btn" href="tel:{{ $loc['phone'] }}" title="Llamar">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M7 4l3 1-1 3c1 2 3 4 5 5l3-1 1 3c-2 2-6 2-10-2S5 6 7 4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
                     </svg>
                     Llamar
                   </a>
-                @endif
+                </div>
+              </div>
+            </div>
+          @endforeach
+        </div>
+      </section>
+
+      {{-- CAPACITACIONES --}}
+      <section class="li-block">
+        <div class="li-block-h">
+          <strong>Capacitaciones</strong>
+          <button type="button" class="li-pencil" id="liEditCapsBtn" title="Editar capacitaciones">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 20h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="li-cap-list" id="liCapsList">
+          @foreach($capacitaciones as $c)
+            @php
+              // fallback interno si no hay href externo
+              $fallback = '/menu/capacitaciones';
+              $href = trim($c['href'] ?? '') !== '' ? $c['href'] : $fallback;
+              $hint = trim($c['href'] ?? '') !== '' ? 'Externo/Custom' : 'Menú';
+            @endphp
+            <a class="li-cap-item" href="{{ $href }}" @if(str_starts_with($href,'http')) target="_blank" rel="noopener" @endif>
+              <span>{{ $c['label'] }}</span>
+              <small>{{ $hint }}</small>
+            </a>
+          @endforeach
+        </div>
+      </section>
+
+    </div>
+
+    <div class="li-foot-bottom">
+      <div>© {{ date('Y') }} Línea Italia · Portal interno</div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <span style="opacity:.75;">Inicio</span>
+        <span style="opacity:.55;">·</span>
+        <span style="opacity:.75;">Ubicaciones</span>
+      </div>
+    </div>
+  </div>
+
+  {{-- ============= MODAL: EDIT UBICACIONES ============= --}}
+  <div class="li-modal-backdrop" id="liModalBackdrop" onclick="LI_FOOT.closeAll()"></div>
+
+  <div class="li-modal" id="liModalLocations" aria-hidden="true">
+    <div class="li-modal-card">
+      <div class="li-modal-head">
+        <div>
+          <div class="t">Editar Ubicaciones</div>
+          <div style="color:rgba(15,23,42,.58); font-weight:800; font-size:.9rem;">Edita nombres, teléfono, horario y link de Maps.</div>
+        </div>
+        <button class="li-mbtn" type="button" onclick="LI_FOOT.closeAll()">Cerrar ✕</button>
+      </div>
+
+      <div class="li-modal-body" id="liLocationsEditor">
+        {{-- Se llena por JS --}}
+      </div>
+
+      <div class="li-modal-actions">
+        <button class="li-mbtn" type="button" onclick="LI_FOOT.closeAll()">Cancelar</button>
+        <button class="li-mbtn primary" type="button" onclick="LI_FOOT.saveLocations()">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+
+  {{-- ============= MODAL: EDIT CAPACITACIONES ============= --}}
+  <div class="li-modal" id="liModalCaps" aria-hidden="true">
+    <div class="li-modal-card">
+      <div class="li-modal-head">
+        <div>
+          <div class="t">Editar Capacitaciones</div>
+          <div style="color:rgba(15,23,42,.58); font-weight:800; font-size:.9rem;">
+            Define si el link es Externo (https://...) o Interno (/menu/...).
+            Si lo dejas vacío, irá a <span style="font-family:ui-monospace;">/menu/capacitaciones</span>.
+          </div>
+        </div>
+        <button class="li-mbtn" type="button" onclick="LI_FOOT.closeAll()">Cerrar ✕</button>
+      </div>
+
+      <div class="li-modal-body" id="liCapsEditor">
+        {{-- Se llena por JS --}}
+      </div>
+
+      <div class="li-modal-actions">
+        <button class="li-mbtn" type="button" onclick="LI_FOOT.closeAll()">Cancelar</button>
+        <button class="li-mbtn primary" type="button" onclick="LI_FOOT.saveCaps()">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ==========
+  // Estado en memoria (por ahora). Luego lo conectamos a DB con endpoints.
+  // ==========
+  const LI_FOOT = {
+    isEdit: false,
+    locations: @json($locations),
+    caps: @json($capacitaciones),
+    capsFallback: '/menu/capacitaciones',
+
+    toggleItem(headEl){
+      const item = headEl.closest('.li-item');
+      if (!item) return;
+      item.classList.toggle('open');
+    },
+
+    setEditMode(on){
+      this.isEdit = !!on;
+      const footer = document.getElementById('liFooter');
+      const gear = document.getElementById('liFooterGear');
+      if (!footer) return;
+
+      if (this.isEdit) footer.classList.add('li-edit-on');
+      else footer.classList.remove('li-edit-on');
+
+      if (gear){
+        if (this.isEdit) gear.classList.add('on');
+        else gear.classList.remove('on');
+      }
+    },
+
+    openModal(id){
+      const bd = document.getElementById('liModalBackdrop');
+      const m1 = document.getElementById('liModalLocations');
+      const m2 = document.getElementById('liModalCaps');
+      bd.style.display = 'block';
+      if (id === 'loc') m1.style.display = 'flex';
+      if (id === 'caps') m2.style.display = 'flex';
+      document.body.classList.add('no-scroll');
+    },
+
+    closeAll(){
+      document.getElementById('liModalBackdrop').style.display = 'none';
+      document.getElementById('liModalLocations').style.display = 'none';
+      document.getElementById('liModalCaps').style.display = 'none';
+      document.body.classList.remove('no-scroll');
+    },
+
+    // ==========
+    // Render editores
+    // ==========
+    renderLocationsEditor(){
+      const wrap = document.getElementById('liLocationsEditor');
+      if (!wrap) return;
+
+      wrap.innerHTML = this.locations.map((l, idx) => {
+        return `
+          <div class="li-row" data-idx="${idx}">
+            <div class="li-row-head">
+              <strong>${this.escape(l.name || '')}</strong>
+              <span style="color:rgba(15,23,42,.55); font-weight:900;">${this.escape((l.id||'').toUpperCase())}</span>
+            </div>
+
+            <div class="li-grid2">
+              <div class="li-field">
+                <label>Nombre</label>
+                <input class="li-input" data-k="name" value="${this.escapeAttr(l.name||'')}" />
+              </div>
+
+              <div class="li-field">
+                <label>Teléfono</label>
+                <input class="li-input" data-k="phone" value="${this.escapeAttr(l.phone||'')}" />
+              </div>
+
+              <div class="li-field" style="grid-column:1/-1;">
+                <label>Dirección</label>
+                <textarea class="li-textarea" data-k="address">${this.escape(l.address||'')}</textarea>
+              </div>
+
+              <div class="li-field">
+                <label>Horario</label>
+                <input class="li-input" data-k="hours" value="${this.escapeAttr(l.hours||'')}" />
+              </div>
+
+              <div class="li-field">
+                <label>Link Maps</label>
+                <input class="li-input" data-k="maps" value="${this.escapeAttr(l.maps||'')}" />
               </div>
             </div>
           </div>
-        </div>
-      @endforeach
-    </div>
+        `;
+      }).join('');
+    },
 
-    <div class="li-footer__bottom">
-      <div>© {{ date('Y') }} Línea Italia · Portal interno</div>
-      <div>
-        <a class="li-footer__link" href="{{ route('home') }}">Inicio</a>
-        <span style="opacity:.5; padding:0 8px;">·</span>
-        <a class="li-footer__link" target="_blank" rel="noopener" href="https://www.google.com/maps?q=Linea+Italia">Ubicaciones</a>
-      </div>
-    </div>
+    renderCapsEditor(){
+      const wrap = document.getElementById('liCapsEditor');
+      if (!wrap) return;
 
-  </div>
-</footer>
+      wrap.innerHTML = this.caps.map((c, idx) => {
+        return `
+          <div class="li-row" data-idx="${idx}">
+            <div class="li-row-head">
+              <strong>${this.escape(c.label||'')}</strong>
+              <span style="color:rgba(15,23,42,.55); font-weight:900;">${this.escape((c.id||''))}</span>
+            </div>
+
+            <div class="li-grid2">
+              <div class="li-field">
+                <label>Nombre</label>
+                <input class="li-input" data-k="label" value="${this.escapeAttr(c.label||'')}" />
+              </div>
+
+              <div class="li-field">
+                <label>Link (externo o interno)</label>
+                <input class="li-input" data-k="href" placeholder="https://... o /menu/..." value="${this.escapeAttr(c.href||'')}" />
+              </div>
+            </div>
+
+            <div style="margin-top:8px; color:rgba(15,23,42,.60); font-weight:800; font-size:.85rem;">
+              Tip: vacío = <span style="font-family:ui-monospace;">${this.escape(this.capsFallback)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    },
+
+    // ==========
+    // Guardados (por ahora: solo UI). Luego lo mandamos a DB.
+    // ==========
+    saveLocations(){
+      const wrap = document.getElementById('liLocationsEditor');
+      if (!wrap) return;
+
+      wrap.querySelectorAll('.li-row').forEach(row => {
+        const idx = Number(row.getAttribute('data-idx'));
+        if (Number.isNaN(idx)) return;
+        row.querySelectorAll('[data-k]').forEach(inp => {
+          const k = inp.getAttribute('data-k');
+          const v = (inp.value ?? inp.textContent ?? '').trim();
+          if (!k) return;
+          this.locations[idx][k] = v;
+        });
+      });
+
+      this.renderLocationsUI();
+      this.closeAll();
+    },
+
+    saveCaps(){
+      const wrap = document.getElementById('liCapsEditor');
+      if (!wrap) return;
+
+      wrap.querySelectorAll('.li-row').forEach(row => {
+        const idx = Number(row.getAttribute('data-idx'));
+        if (Number.isNaN(idx)) return;
+
+        row.querySelectorAll('[data-k]').forEach(inp => {
+          const k = inp.getAttribute('data-k');
+          const v = (inp.value ?? '').trim();
+          if (!k) return;
+          this.caps[idx][k] = v;
+        });
+      });
+
+      this.renderCapsUI();
+      this.closeAll();
+    },
+
+    renderLocationsUI(){
+      const list = document.getElementById('liLocationsList');
+      if (!list) return;
+
+      list.innerHTML = this.locations.map(l => {
+        const id = l.id || '';
+        const name = l.name || '';
+        const address = l.address || '';
+        const phone = l.phone || '';
+        const hours = l.hours || '';
+        const maps = l.maps || '#';
+
+        return `
+          <div class="li-item" data-loc="${this.escapeAttr(id)}">
+            <div class="li-item-head" onclick="LI_FOOT.toggleItem(this)">
+              <div class="name">
+                <span>${this.escape(name)}</span>
+                <span class="li-chip">${this.escape((id||'').toUpperCase())}</span>
+              </div>
+              <span class="li-caret">▾</span>
+            </div>
+
+            <div class="li-item-body">
+              <div class="li-meta">
+                <div>${this.escape(address)}</div>
+                <small>Tel: ${this.escape(phone)}</small>
+                <small>${this.escape(hours)}</small>
+              </div>
+
+              <div class="li-actions">
+                <a class="li-btn" href="${this.escapeAttr(maps)}" target="_blank" rel="noopener" title="Abrir en Maps">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 21s7-5 7-11a7 7 0 1 0-14 0c0 6 7 11 7 11z" stroke="currentColor" stroke-width="1.6"/>
+                    <path d="M12 10.5a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" fill="currentColor"/>
+                  </svg>
+                  Cómo llegar
+                </a>
+                <a class="li-btn" href="tel:${this.escapeAttr(phone)}" title="Llamar">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 4l3 1-1 3c1 2 3 4 5 5l3-1 1 3c-2 2-6 2-10-2S5 6 7 4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                  </svg>
+                  Llamar
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    },
+
+    renderCapsUI(){
+      const list = document.getElementById('liCapsList');
+      if (!list) return;
+
+      list.innerHTML = this.caps.map(c => {
+        const label = (c.label || '').trim();
+        const hrefRaw = (c.href || '').trim();
+        const href = hrefRaw !== '' ? hrefRaw : this.capsFallback;
+        const isExternal = /^https?:\/\//i.test(href);
+        const hint = hrefRaw !== '' ? 'Externo/Custom' : 'Menú';
+
+        return `
+          <a class="li-cap-item" href="${this.escapeAttr(href)}" ${isExternal ? 'target="_blank" rel="noopener"' : ''}>
+            <span>${this.escape(label)}</span>
+            <small>${this.escape(hint)}</small>
+          </a>
+        `;
+      }).join('');
+    },
+
+    escape(s){
+      return String(s ?? '')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'","&#039;");
+    },
+    escapeAttr(s){ return this.escape(s).replaceAll('\n',' '); },
+  };
+
+  // Bind UI
+  (function(){
+    const gear = document.getElementById('liFooterGear');
+    const btnLoc = document.getElementById('liEditLocationsBtn');
+    const btnCaps = document.getElementById('liEditCapsBtn');
+
+    if (gear){
+      gear.addEventListener('click', () => {
+        LI_FOOT.setEditMode(!LI_FOOT.isEdit);
+      });
+    }
+
+    if (btnLoc){
+      btnLoc.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        LI_FOOT.renderLocationsEditor();
+        LI_FOOT.openModal('loc');
+      });
+    }
+
+    if (btnCaps){
+      btnCaps.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        LI_FOOT.renderCapsEditor();
+        LI_FOOT.openModal('caps');
+      });
+    }
+
+    // ESC cierra modales
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') LI_FOOT.closeAll();
+    });
+  })();
+</script>

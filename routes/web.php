@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\QuickLinkController;
 use App\Http\Controllers\Admin\MenuCardImageController;
 use App\Http\Controllers\Admin\MenuNodeController;
 use App\Http\Controllers\Admin\MenuProductController;
+use App\Http\Controllers\Admin\FooterLinkController;
 
 /**
  * Root: si está logueado -> dashboard (redirige a home)
@@ -105,6 +106,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/quick-links/{quickLink}/edit', [QuickLinkController::class, 'edit'])->name('quick-links.edit');
         Route::put('/quick-links/{quickLink}', [QuickLinkController::class, 'update'])->name('quick-links.update');
         Route::delete('/quick-links/{quickLink}', [QuickLinkController::class, 'destroy'])->name('quick-links.destroy');
+
+        /**
+         * Footer Links (Admin) - editar links de Capacitaciones/otros
+         */
+        Route::put('/footer-links/{footer_link}', [FooterLinkController::class, 'update'])
+            ->name('footer-links.update');
     });
 });
 

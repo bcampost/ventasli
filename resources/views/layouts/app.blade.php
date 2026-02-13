@@ -11,7 +11,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans antialiased">
-    <div class="min-h-screen bg-gray-100 flex flex-col">
+    <div class="min-h-screen bg-gray-100">
         @include('layouts.navigation')
 
         {{-- Page Heading --}}
@@ -24,17 +24,17 @@
         @endisset
 
         {{-- Page Content --}}
-        <main class="flex-1">
+        <main>
             {{ $slot ?? '' }}
             @yield('content')
         </main>
-
-        {{-- ✅ FOOTER SIEMPRE VISIBLE --}}
-        @include('layouts.footer')
     </div>
 
     {{-- ✅ SIEMPRE visible (iconos laterales) --}}
     @include('partials.right-quick-menu')
+
+    {{-- ✅ FOOTER SIEMPRE visible --}}
+    @include('layouts.footer')
 
 <script>
   window.openCreateNode = function(parentId){
