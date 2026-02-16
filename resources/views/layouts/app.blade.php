@@ -36,6 +36,9 @@
     {{-- ✅ FOOTER SIEMPRE visible --}}
     @include('layouts.footer')
 
+    {{-- ✅ PDF Preview Modal (siempre disponible) --}}
+    <x-pdf-preview-modal />
+
 <script>
   window.openCreateNode = function(parentId){
     const input = document.getElementById('create_parent_id');

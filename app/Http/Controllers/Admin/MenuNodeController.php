@@ -5,193 +5,166 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\MenuNode;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class MenuNodeController extends Controller
 {
+    /**
+     * GET /admin/menu
+     * Pantalla para administrar el menú
+     */
+    public function index()
+    {
+        $roots = MenuNode::query()
+            ->where(function ($q) {
+                $q->whereNull('parent_id')->orWhere('parent_id', 0);
+            })
+            ->orderBy('sort')
+            ->orderBy('label')
+            ->with(['children' => function ($q) {
+                $q->orderBy('sort')->orderBy('label');
+            }])
+            ->get();
+
+        return view('admin.menu.index', [
+            'roots' => $roots,
+        ]);
+    }
+
+    /**
+     * GET /admin/menu/children/{menu_node}
+     * Devuelve hijos (JSON) por si lo usas con AJAX
+     */
+    public function children(MenuNode $menu_node)
+    {
+        $children = MenuNode::query()
+            ->where('parent_id', $menu_node->id)
+            ->orderBy('sort')
+            ->orderBy('label')
+            ->get();
+
+        return response()->json($children);
+    }
+
+    /**
+     * POST /admin/menu
+     * Crea un nodo (root o hijo)
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'parent_id'   => ['nullable', 'integer'],
-            'label'       => ['required', 'string', 'max:255'],
-            'url'         => ['nullable', 'string', 'max:2048'],
-            'sort'        => ['nullable', 'integer', 'min:0'],
-            'is_active'   => ['nullable'],
-            'redirect_to' => ['nullable', 'string', 'max:2048'],
+            'label'     => ['required', 'string', 'max:255'],
+            'parent_id' => ['nullable'],
+            'url'       => ['nullable', 'string', 'max:2048'],
+            'sort'      => ['nullable', 'integer'],
+            'is_active' => ['nullable'],
         ]);
 
-        $parentId = (int)($data['parent_id'] ?? 0);
+        $label = trim($data['label']);
+        $slug  = Str::slug($label, '-');
 
-        $parent = null;
-        if ($parentId > 0) {
+        $parentId = $data['parent_id'] ?? null;
+        if ($parentId === '' || $parentId === '0') $parentId = null;
+
+        // Calcula key requerido por tu DB
+        $key = $slug;
+        if ($parentId) {
             $parent = MenuNode::find($parentId);
-        }
-
-        $baseSlug = Str::slug($data['label'], '-');
-        if ($baseSlug === '') $baseSlug = 'item';
-
-        // slug único por parent
-        $slug = $baseSlug;
-        $i = 2;
-        while (
-            MenuNode::query()
-                ->where('parent_id', $parentId)
-                ->where('slug', $slug)
-                ->exists()
-        ) {
-            $slug = $baseSlug . '-' . $i;
-            $i++;
-        }
-
-        // key basado en parent.key + slug
-        $baseKeyPrefix = ($parent && !empty($parent->key)) ? trim($parent->key, '/') : '';
-        $keyBase = $baseKeyPrefix ? ($baseKeyPrefix . '/' . $slug) : $slug;
-
-        // key único global
-        $key = $keyBase;
-        $k = 2;
-        while (MenuNode::query()->where('key', $key)->exists()) {
-            $key = $keyBase . '-' . $k;
-            $k++;
+            if ($parent && !empty($parent->key)) {
+                $key = rtrim($parent->key, '/') . '/' . $slug;
+            }
         }
 
         MenuNode::create([
-            'parent_id' => $parentId,
-            'label'     => $data['label'],
+            'label'     => $label,
             'slug'      => $slug,
             'key'       => $key,
+            'parent_id' => $parentId,
             'url'       => $data['url'] ?? null,
-            'sort'      => (int)($data['sort'] ?? 0),
-            'is_active' => isset($data['is_active']) ? 1 : 0,
+            'sort'      => $data['sort'] ?? 0,
+            'is_active' => isset($data['is_active']) ? (bool)$data['is_active'] : true,
         ]);
 
-        return redirect($data['redirect_to'] ?? url()->previous())
-            ->with('success', 'Submenú creado correctamente.');
+        return redirect()
+            ->route('admin.menu.index')
+            ->with('status', 'Nodo creado.');
     }
 
+    /**
+     * PUT /admin/menu/{menu_node}
+     * Actualiza un nodo
+     */
     public function update(Request $request, MenuNode $menu_node)
     {
         $data = $request->validate([
-            'parent_id'   => ['nullable', 'integer'],
-            'label'       => ['required', 'string', 'max:255'],
-            'url'         => ['nullable', 'string', 'max:2048'],
-            'sort'        => ['nullable', 'integer', 'min:0'],
-            'is_active'   => ['nullable'],
-            'redirect_to' => ['nullable', 'string', 'max:2048'],
+            'label'     => ['required', 'string', 'max:255'],
+            'url'       => ['nullable', 'string', 'max:2048'],
+            'sort'      => ['nullable', 'integer'],
+            'is_active' => ['nullable'],
         ]);
 
-        $parentId = (int)($data['parent_id'] ?? ($menu_node->parent_id ?? 0));
+        $label = trim($data['label']);
+        $slug  = Str::slug($label, '-');
 
-        $parent = null;
-        if ($parentId > 0) {
-            $parent = MenuNode::find($parentId);
+        // Recalcula key
+        $key = $slug;
+        if ($menu_node->parent_id) {
+            $parent = MenuNode::find($menu_node->parent_id);
+            if ($parent && !empty($parent->key)) {
+                $key = rtrim($parent->key, '/') . '/' . $slug;
+            }
         }
 
-        $baseSlug = Str::slug($data['label'], '-');
-        if ($baseSlug === '') $baseSlug = 'item';
+        $menu_node->label = $label;
+        $menu_node->slug  = $slug;
+        $menu_node->key   = $key;
+        $menu_node->url   = $data['url'] ?? null;
+        $menu_node->sort  = $data['sort'] ?? 0;
+        $menu_node->is_active = isset($data['is_active']) ? (bool)$data['is_active'] : false;
 
-        // slug único por parent (excluye actual)
-        $slug = $baseSlug;
-        $i = 2;
-        while (
-            MenuNode::query()
-                ->where('parent_id', $parentId)
-                ->where('slug', $slug)
-                ->where('id', '!=', $menu_node->id)
-                ->exists()
-        ) {
-            $slug = $baseSlug . '-' . $i;
-            $i++;
-        }
+        $menu_node->save();
 
-        // key basado en parent.key + slug
-        $baseKeyPrefix = ($parent && !empty($parent->key)) ? trim($parent->key, '/') : '';
-        $keyBase = $baseKeyPrefix ? ($baseKeyPrefix . '/' . $slug) : $slug;
+        // También actualiza keys de hijos (por si cambiaste label/slug)
+        $this->refreshChildrenKeys($menu_node);
 
-        // key único global (excluye actual)
-        $key = $keyBase;
-        $k = 2;
-        while (
-            MenuNode::query()
-                ->where('key', $key)
-                ->where('id', '!=', $menu_node->id)
-                ->exists()
-        ) {
-            $key = $keyBase . '-' . $k;
-            $k++;
-        }
-
-        $menu_node->update([
-            'parent_id' => $parentId,
-            'label'     => $data['label'],
-            'slug'      => $slug,
-            'key'       => $key,
-            'url'       => $data['url'] ?? null,
-            'sort'      => (int)($data['sort'] ?? 0),
-            'is_active' => isset($data['is_active']) ? 1 : 0,
-        ]);
-
-        return redirect($data['redirect_to'] ?? url()->previous())
-            ->with('success', 'Opción actualizada correctamente.');
+        return redirect()
+            ->route('admin.menu.index')
+            ->with('status', 'Nodo actualizado.');
     }
 
     /**
      * DELETE /admin/menu/{menu_node}
-     * route: admin.menu.destroy
+     * Elimina un nodo (recursivo)
      */
-    public function destroy(Request $request, MenuNode $menu_node)
+    public function destroy(MenuNode $menu_node)
     {
-        $redirectTo = $request->input('redirect_to') ?? url()->previous();
+        $this->deleteRecursively($menu_node);
 
-        // ✅ Borrado en cascada (hijos -> nietos -> ...)
-        $this->deleteNodeRecursive($menu_node);
-
-        return redirect($redirectTo)->with('success', 'Opción eliminada correctamente.');
+        return redirect()
+            ->route('admin.menu.index')
+            ->with('status', 'Nodo eliminado.');
     }
 
-    /**
-     * Borra un nodo y todos sus hijos de forma recursiva.
-     * Además intenta borrar imagen asociada de "menu_card_images" si existe esa tabla.
-     */
-    private function deleteNodeRecursive(MenuNode $node): void
+    private function deleteRecursively(MenuNode $node): void
     {
-        // 1) primero hijos
         $children = MenuNode::query()->where('parent_id', $node->id)->get();
         foreach ($children as $child) {
-            $this->deleteNodeRecursive($child);
+            $this->deleteRecursively($child);
         }
-
-        // 2) limpiar imagen asociada (si existe tabla y columna correcta)
-        if (!empty($node->key) && Schema::hasTable('menu_card_images')) {
-
-            // Detectar columna correcta para relacionar
-            $linkCol = null;
-
-            if (Schema::hasColumn('menu_card_images', 'menu_key')) $linkCol = 'menu_key';
-            elseif (Schema::hasColumn('menu_card_images', 'key')) $linkCol = 'key';
-            elseif (Schema::hasColumn('menu_card_images', 'token')) $linkCol = 'token';
-
-            if ($linkCol) {
-                $row = DB::table('menu_card_images')->where($linkCol, $node->key)->first();
-
-                // Detectar columna del path de imagen
-                $pathCol = null;
-                if (Schema::hasColumn('menu_card_images', 'path')) $pathCol = 'path';
-                elseif (Schema::hasColumn('menu_card_images', 'image_path')) $pathCol = 'image_path';
-                elseif (Schema::hasColumn('menu_card_images', 'image')) $pathCol = 'image';
-
-                if ($row && $pathCol && !empty($row->{$pathCol})) {
-                    Storage::disk('public')->delete(ltrim($row->{$pathCol}, '/'));
-                }
-
-                DB::table('menu_card_images')->where($linkCol, $node->key)->delete();
-            }
-        }
-
-        // 3) borrar el nodo
         $node->delete();
+    }
+
+    private function refreshChildrenKeys(MenuNode $node): void
+    {
+        $children = MenuNode::query()->where('parent_id', $node->id)->get();
+        foreach ($children as $child) {
+            $child->key = rtrim($node->key, '/') . '/' . (Str::slug($child->label, '-'));
+            if (empty($child->slug)) {
+                $child->slug = Str::slug($child->label, '-');
+            }
+            $child->save();
+
+            $this->refreshChildrenKeys($child);
+        }
     }
 }

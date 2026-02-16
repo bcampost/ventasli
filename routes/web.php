@@ -12,6 +12,9 @@ use App\Http\Controllers\Admin\MenuNodeController;
 use App\Http\Controllers\Admin\MenuProductController;
 use App\Http\Controllers\Admin\FooterLinkController;
 
+// ✅ NUEVO
+use App\Http\Controllers\Admin\PriceListPdfController;
+
 /**
  * Root: si está logueado -> dashboard (redirige a home)
  * si no -> login
@@ -112,6 +115,15 @@ Route::middleware(['auth'])->group(function () {
          */
         Route::put('/footer-links/{footer_link}', [FooterLinkController::class, 'update'])
             ->name('footer-links.update');
+
+        /**
+         * ✅ NUEVO: Editor rápido de PDFs de "Lista de precios"
+         */
+        Route::get('/price-list-pdfs', [PriceListPdfController::class, 'index'])
+            ->name('price-list-pdfs.index');
+
+        Route::post('/price-list-pdfs/{menu_node}', [PriceListPdfController::class, 'upload'])
+            ->name('price-list-pdfs.upload');
     });
 });
 

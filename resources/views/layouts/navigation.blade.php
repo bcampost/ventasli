@@ -140,6 +140,36 @@
     font-weight: 700;
   }
 
+  /* ✅ NUEVO: contenedor para engrane (abajo derecha) */
+  .v-dd-tools{
+    display:flex;
+    justify-content:flex-end;
+    padding-top: 6px;
+    margin-top: 6px;
+    border-top: 1px solid rgba(15,23,42,.08);
+  }
+
+  .v-dd-gear{
+    width: 34px;
+    height: 34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius: 10px;
+    border: 1px solid rgba(15,23,42,.10);
+    background: rgba(248,250,252,.85);
+    color: rgba(15,23,42,.85);
+    text-decoration:none;
+    font-size: 16px;
+    line-height: 1;
+    transition: transform .15s ease, background .15s ease, border-color .15s ease;
+  }
+  .v-dd-gear:hover{
+    transform: translateY(-1px);
+    background: rgba(241,245,249,.95);
+    border-color: rgba(15,23,42,.18);
+  }
+
   .v-right{
     display:flex;
     align-items:center;
@@ -198,6 +228,7 @@
   .v-user-dd a:hover, .v-user-dd button:hover{
     background: rgba(248,250,252,.9);
   }
+
   .topbrand{
     display:flex;
     align-items:center;
@@ -206,7 +237,7 @@
     color: inherit;
   }
   .topbrand-logo{
-    height: 26px;     /* ajusta si lo quieres más grande */
+    height: 26px;
     width: auto;
     display:block;
     object-fit: contain;
@@ -215,7 +246,6 @@
     font-weight: 700;
     letter-spacing: -0.01em;
   }
-
 </style>
 
 <nav class="v-nav">
@@ -224,7 +254,7 @@
     <a href="{{ route('home') }}" class="topbrand">
       <img src="{{ asset('images/linea-italia.png') }}" alt="Línea Italia" class="topbrand-logo">
     </a>
-      <span>Ventas Linea Italia      
+      <span>Ventas Linea Italia
         <a href="{{ route('home') }}" class="topbrand">
       </span>
     </a>
@@ -239,6 +269,12 @@
           $rootHref = $hasKids
             ? 'javascript:void(0)'
             : ($root->url ?: route('menu.section', $rootSlug));
+
+          // ✅ NUEVO: detectar "Lista de precios" por label (case-insensitive)
+          $isPriceList = mb_strtolower(trim($root->label)) === mb_strtolower('Lista de precios');
+
+          // ✅ Solo admins ven engrane
+          $canEditPriceList = $isPriceList && $user && method_exists($user, 'hasRole') && $user->hasRole('admin');
         @endphp
 
         <div class="v-item">
@@ -251,13 +287,28 @@
             <div class="v-dd">
               @foreach($root->children as $child)
                 @php
-                  $childHref = route('menu.section', [$rootSlug, \Illuminate\Support\Str::slug($child->label, '-')]);
+                  // Si el child tiene url (ej: pdfs/xxx.pdf) usamos eso; si no, route normal
+                  $childHref = $child->url
+                    ? asset(ltrim($child->url, '/'))
+                    : route('menu.section', [$rootSlug, \Illuminate\Support\Str::slug($child->label, '-')]);
                 @endphp
                 <a href="{{ $childHref }}">
                   <span>{{ $child->label }}</span>
                   <small>Ver</small>
                 </a>
               @endforeach
+
+              {{-- ✅ NUEVO: engrane abajo derecha SOLO para Lista de precios y SOLO admin --}}
+              @if($canEditPriceList)
+                <div class="v-dd-tools">
+                  <a
+                    class="v-dd-gear"
+                    href="{{ route('admin.price-list-pdfs.index') }}"
+                    title="Editar PDFs de Lista de precios"
+                    aria-label="Editar PDFs de Lista de precios"
+                  >⚙️</a>
+                </div>
+              @endif
             </div>
           @endif
         </div>
