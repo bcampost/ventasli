@@ -12,8 +12,12 @@ use App\Http\Controllers\Admin\MenuNodeController;
 use App\Http\Controllers\Admin\MenuProductController;
 use App\Http\Controllers\Admin\FooterLinkController;
 
-// ✅ NUEVO
+// ✅ PDFs Lista de precios
 use App\Http\Controllers\Admin\PriceListPdfController;
+
+// ✅ NUEVO — subida de videos capacitaciones
+use App\Http\Controllers\Admin\TrainingMediaController;
+
 
 /**
  * Root: si está logueado -> dashboard (redirige a home)
@@ -24,6 +28,7 @@ Route::get('/', function () {
         ? redirect()->route('dashboard')
         : redirect()->route('login');
 });
+
 
 /**
  * Rutas protegidas
@@ -47,7 +52,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('menu.section');
 
     /**
-     * ADMIN (rol: admin - minúsculas)
+     * ADMIN (rol: admin)
      */
     Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {
 
@@ -56,17 +61,14 @@ Route::middleware(['auth'])->group(function () {
          */
         Route::get('/menu', [MenuNodeController::class, 'index'])->name('menu.index');
 
-        // Cargar hijos (accordion / AJAX)
         Route::get('/menu/children/{menu_node}', [MenuNodeController::class, 'children'])->name('menu.children');
 
-        // Crear (root o sub-opción)
         Route::post('/menu', [MenuNodeController::class, 'store'])->name('menu.store');
 
-        // Actualizar
         Route::put('/menu/{menu_node}', [MenuNodeController::class, 'update'])->name('menu.update');
 
-        // Eliminar (recursivo)
         Route::delete('/menu/{menu_node}', [MenuNodeController::class, 'destroy'])->name('menu.destroy');
+
 
         /**
          * Menu products (CRUD)
@@ -76,10 +78,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/menu-products/{menu_product}', [MenuProductController::class, 'update'])->name('menu-products.update');
         Route::delete('/menu-products/{menu_product}', [MenuProductController::class, 'destroy'])->name('menu-products.destroy');
 
+
         /**
          * Menu cards (imagenes/metadata)
-         * ✅ FIX: NO usamos {key} con "/" en la URL (Apache bloquea %2F)
-         * Usamos {token} base64url (sin /).
          */
         Route::get('/menu-cards', [MenuCardImageController::class, 'index'])->name('menu-cards.index');
         Route::post('/menu-cards/sync', [MenuCardImageController::class, 'sync'])->name('menu-cards.sync');
@@ -96,10 +97,12 @@ Route::middleware(['auth'])->group(function () {
             ->where('token', '[A-Za-z0-9\-_]+')
             ->name('menu-cards.destroy');
 
+
         /**
          * Slides (CRUD)
          */
         Route::resource('slides', SlideController::class)->except(['show']);
+
 
         /**
          * Quick Links (CRUD)
@@ -110,21 +113,32 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/quick-links/{quickLink}', [QuickLinkController::class, 'update'])->name('quick-links.update');
         Route::delete('/quick-links/{quickLink}', [QuickLinkController::class, 'destroy'])->name('quick-links.destroy');
 
-        /**
-         * Footer Links (Admin) - editar links de Capacitaciones/otros
-         */
+        // Footer Links (Admin)
         Route::put('/footer-links/{footer_link}', [FooterLinkController::class, 'update'])
             ->name('footer-links.update');
 
+        // ✅ NUEVO: subir archivo para una capacitación (pdf/mp4/webm/img)
+        Route::post('/footer-links/{footer_link}/upload', [FooterLinkController::class, 'upload'])
+            ->name('footer-links.upload');
+
         /**
-         * ✅ NUEVO: Editor rápido de PDFs de "Lista de precios"
+         * PDFs Lista de precios
          */
         Route::get('/price-list-pdfs', [PriceListPdfController::class, 'index'])
             ->name('price-list-pdfs.index');
 
         Route::post('/price-list-pdfs/{menu_node}', [PriceListPdfController::class, 'upload'])
             ->name('price-list-pdfs.upload');
+
+
+        /**
+         * ✅ NUEVO
+         * Upload de videos para capacitaciones (MP4 / WEBM)
+         */
+        Route::post('/training-media/upload', [TrainingMediaController::class, 'upload'])
+            ->name('training-media.upload');
     });
 });
+
 
 require __DIR__ . '/auth.php';

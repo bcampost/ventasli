@@ -63,7 +63,7 @@
                         </div>
                     </div>
 
-                    {{-- ✅ IMPORTANTE: data-modal-ignore para que NO lo intercepte el listener --}}
+                    {{-- ✅ NO interceptar este link por el listener --}}
                     <a
                         id="mediaPreviewDownload"
                         data-modal-ignore="1"
@@ -135,6 +135,12 @@
                     style="display:none; width:100%; height:100%; border:0; background:#fff; position:relative; z-index:1;"
                 ></iframe>
 
+                {{-- ✅ Video container --}}
+                <div
+                    id="mediaPreviewVideoWrap"
+                    style="display:none; width:100%; height:100%; background:#000; position:relative; z-index:1;"
+                ></div>
+
                 <div
                     id="mediaPreviewImageWrap"
                     style="display:none; width:100%; height:100%; overflow:auto; background:#111; position:relative; z-index:1;"
@@ -197,6 +203,9 @@
     const imgStage= $('mediaPreviewImageStage');
     const busy    = $('mediaPreviewBusy');
 
+    const videoWrap = $('mediaPreviewVideoWrap');
+    let currentVideoEl = null;
+
     // zoom controls
     const zOut   = $('mediaZoomOut');
     const zIn    = $('mediaZoomIn');
@@ -206,7 +215,7 @@
     const zLabel = $('mediaZoomLabel');
 
     let currentUrl = '';
-    let currentType = ''; // 'pdf' | 'img'
+    let currentType = ''; // 'pdf' | 'img' | 'video'
     let zoom = 100;       // percent
     let fitMode = false;  // PDF: page-width ; IMG: 100
 
@@ -226,6 +235,10 @@
     function isImage(url){
         const e = extOf(url);
         return ['jpg','jpeg','png','webp','gif','svg'].includes(e);
+    }
+    function isVideo(url){
+        const e = extOf(url);
+        return ['mp4','webm','ogg'].includes(e);
     }
     function toAbs(url){
         try { return new URL(url, window.location.href).toString(); }
@@ -269,8 +282,20 @@
         setTimeout(() => hideBusy(), 60);
     });
 
+    function clearVideo(){
+        if (currentVideoEl){
+            try{ currentVideoEl.pause(); }catch(e){}
+            currentVideoEl.remove();
+            currentVideoEl = null;
+        }
+        if (videoWrap) videoWrap.innerHTML = '';
+    }
+
     function applyZoom(){
         if (!currentUrl) return;
+
+        // video: no zoom (lo maneja el reproductor)
+        if (currentType === 'video') return;
 
         if (currentType === 'img'){
             imgStage.style.transform = 'scale(' + (zoom/100) + ')';
@@ -285,42 +310,97 @@
 
     function openAsPdf(url){
         currentType = 'pdf';
+        btnPrint.disabled = false;
+        btnPrint.style.opacity = '';
+        btnPrint.title = 'Imprimir';
+
+        clearVideo();
+        videoWrap.style.display = 'none';
+
         iframe.style.display = 'block';
         imgWrap.style.display = 'none';
         imgEl.src = '';
         imgStage.style.transform = 'scale(1)';
         fitMode = true;
         setZoomUI(100);
+
         showBusy();
         applyZoom();
     }
 
     function openAsImage(url){
         currentType = 'img';
+        btnPrint.disabled = false;
+        btnPrint.style.opacity = '';
+        btnPrint.title = 'Imprimir';
+
+        clearVideo();
+        videoWrap.style.display = 'none';
+
         hideBusy();
         iframe.style.display = 'none';
         iframe.src = 'about:blank';
+
         imgWrap.style.display = 'block';
         imgEl.src = url;
+
         fitMode = false;
         setZoomUI(100);
         applyZoom();
     }
 
-    function openMedia(url, title, forceAsImage){
+    function openAsVideo(url){
+        currentType = 'video';
+
+        // imprimir no aplica para video
+        btnPrint.disabled = true;
+        btnPrint.style.opacity = '.45';
+        btnPrint.title = 'Imprimir no disponible para video';
+
+        hideBusy();
+
+        iframe.style.display = 'none';
+        iframe.src = 'about:blank';
+        imgWrap.style.display = 'none';
+        imgEl.src = '';
+        imgStage.style.transform = 'scale(1)';
+
+        clearVideo();
+        videoWrap.style.display = 'block';
+
+        const v = document.createElement('video');
+        v.src = url;
+        v.controls = true;
+        v.autoplay = true;
+        v.playsInline = true;
+        v.style.width = '100%';
+        v.style.height = '100%';
+        v.style.background = '#000';
+        videoWrap.appendChild(v);
+        currentVideoEl = v;
+
+        // zoom UI sigue visible pero no afecta video
+        fitMode = false;
+        setZoomUI(100);
+    }
+
+    function openMedia(url, title){
         const abs = toAbs(url);
         currentUrl = abs;
 
         titleEl.textContent = title || 'Vista previa';
 
-        // ✅ Descargar debe usar la URL base sin cache-buster/zoom
+        // ✅ Descargar siempre apunta a la URL base sin hash/zoom
         aDown.href = abs.split('#')[0];
 
+        // reset
         iframe.style.display = 'none';
         imgWrap.style.display = 'none';
+        videoWrap.style.display = 'none';
         iframe.src = 'about:blank';
         imgEl.src = '';
         imgStage.style.transform = 'scale(1)';
+        clearVideo();
 
         pdfLoading = false;
         if (pdfReloadTimer) clearTimeout(pdfReloadTimer);
@@ -328,9 +408,9 @@
 
         if (isPdf(abs)){
             openAsPdf(abs);
+        } else if (isVideo(abs)){
+            openAsVideo(abs);
         } else if (isImage(abs)){
-            openAsImage(abs);
-        } else if (forceAsImage){
             openAsImage(abs);
         } else {
             window.open(abs, '_blank');
@@ -354,12 +434,17 @@
         iframe.src = 'about:blank';
         imgEl.src = '';
         imgStage.style.transform = 'scale(1)';
+        clearVideo();
         document.body.style.overflow = '';
 
         currentUrl = '';
         currentType = '';
         fitMode = false;
         setZoomUI(100);
+
+        btnPrint.disabled = false;
+        btnPrint.style.opacity = '';
+        btnPrint.title = 'Imprimir';
     }
 
     function printPdf(){
@@ -401,6 +486,7 @@
         if (!currentUrl) return;
         if (currentType === 'pdf') return printPdf();
         if (currentType === 'img') return printImage(currentUrl);
+        // video no imprime
     }
 
     // Zoom actions
@@ -433,18 +519,10 @@
         if(e.key === '0' && e.ctrlKey) { e.preventDefault(); zoomReset(); }
     });
 
-    // ✅ EXPO GLOBAL
-    window.openMediaPreview = function(url, title, forceAsImage){
-        if (!url) return;
-        openMedia(url, title || 'Vista previa', !!forceAsImage);
-    };
-
-    // ✅ Delegado: captura [data-preview="media"] y también <a> normales (PDF/IMG)
+    // ✅ Delegado: captura [data-preview="media"] y también <a> normales (PDF/IMG/VIDEO)
     document.addEventListener('click', function(e){
         // ✅ NO interceptar clicks dentro del modal (ej: Descargar)
         if (e.target.closest('#mediaPreviewModal')) return;
-
-        // ✅ si trae ignore explícito, tampoco
         if (e.target.closest('[data-modal-ignore="1"]')) return;
 
         const el = e.target.closest('[data-preview="media"], a');
@@ -462,7 +540,8 @@
         const candidate = (href && href !== '#' && !href.startsWith('javascript:')) ? href : (dataSrc || imgSrc);
         if (!candidate) return;
 
-        if (!forced && !isPdf(candidate) && !isImage(candidate)) return;
+        const ok = isPdf(candidate) || isImage(candidate) || isVideo(candidate);
+        if (!forced && !ok) return;
 
         e.preventDefault();
 
@@ -472,7 +551,7 @@
             (el.textContent ? el.textContent.trim() : '') ||
             'Vista previa';
 
-        openMedia(candidate, title, forced && !isPdf(candidate) && !isImage(candidate));
+        openMedia(candidate, title);
     }, true);
 })();
 </script>
