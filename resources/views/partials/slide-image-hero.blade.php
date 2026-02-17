@@ -1,9 +1,10 @@
 {{-- resources/views/partials/slide-image-hero.blade.php --}}
 @php
-  $src = asset('storage/'.$slide->image_path);
+  // ✅ Este es el src real que YA estás usando para renderizar el comunicado
+  $src = asset('storage/' . ltrim($slide->image_path ?? '', '/'));
 @endphp
 
-<div class="hero-media hero-media--pro">
+<div class="hero-media hero-media--pro" data-media-src="{{ $src }}">
   {{-- Fondo full (cover) con blur: rellena todo sin franjas --}}
   <img src="{{ $src }}" class="hero-bg" alt="" aria-hidden="true" loading="lazy"/>
 
@@ -34,6 +35,9 @@
     transform: scale(1.12);
     filter: blur(26px) saturate(1.05);
     opacity: .95;
+
+    /* ✅ IMPORTANTE: no bloquear clicks del <a> padre */
+    pointer-events: none;
   }
 
   /* Capa pro: baja contraste, agrega profundidad */
@@ -53,7 +57,9 @@
         rgba(0,0,0,.18) 100%
       );
     opacity: .75;
-    pointer-events:none;
+
+    /* ✅ IMPORTANTE: no bloquear clicks del <a> padre */
+    pointer-events: none;
   }
 
   /* Flyer centrado, grande y legible */
@@ -75,6 +81,9 @@
       0 10px 30px rgba(0,0,0,.18),
       inset 0 0 0 1px rgba(255,255,255,.16);
     background: rgba(255,255,255,.02);
+
+    /* ✅ IMPORTANTE: no bloquear clicks del <a> padre */
+    pointer-events: none;
   }
 
   /* Responsive */
