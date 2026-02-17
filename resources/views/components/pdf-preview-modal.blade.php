@@ -63,8 +63,10 @@
                         </div>
                     </div>
 
+                    {{-- ✅ IMPORTANTE: data-modal-ignore para que NO lo intercepte el listener --}}
                     <a
                         id="mediaPreviewDownload"
+                        data-modal-ignore="1"
                         class="px-3 py-2 rounded-lg border text-sm font-semibold hover:bg-gray-50"
                         href="#"
                         download
@@ -212,14 +214,8 @@
     let pdfReloadTimer = null;
     let pdfLoading = false;
 
-    function showBusy(){
-        if (!busy) return;
-        busy.style.opacity = '1';
-    }
-    function hideBusy(){
-        if (!busy) return;
-        busy.style.opacity = '0';
-    }
+    function showBusy(){ if (busy) busy.style.opacity = '1'; }
+    function hideBusy(){ if (busy) busy.style.opacity = '0'; }
 
     function extOf(url){
         const clean = (url || '').split('#')[0].split('?')[0].toLowerCase();
@@ -244,49 +240,32 @@
 
     function buildPdfUrlWithZoom(absUrl){
         const base = absUrl.split('#')[0];
-
-        // cache buster (query)
         const hasQuery = base.includes('?');
         const bust = (hasQuery ? '&' : '?') + '_z=' + Date.now();
-
         const zoomPart = fitMode ? 'page-width' : String(zoom);
         const hash = '#toolbar=0&navpanes=0&page=1&zoom=' + encodeURIComponent(zoomPart);
-
         return base + bust + hash;
     }
 
-    // ✅ Smooth PDF reload (debounced + overlay)
     function smoothReloadPdf(){
         if (!currentUrl || currentType !== 'pdf') return;
 
-        // debounce: si el usuario mueve slider rápido, no recargues 30 veces
         if (pdfReloadTimer) clearTimeout(pdfReloadTimer);
-
-        // overlay visible inmediatamente (suave)
         showBusy();
 
         pdfReloadTimer = setTimeout(() => {
             const next = buildPdfUrlWithZoom(currentUrl);
-
             pdfLoading = true;
 
-            // reset para forzar recarga real
             iframe.src = 'about:blank';
-
-            // pequeño delay para que se alcance a ver el overlay (evita flash)
-            setTimeout(() => {
-                iframe.src = next;
-            }, 40);
+            setTimeout(() => { iframe.src = next; }, 40);
         }, 80);
     }
 
-    // cuando el iframe termina de cargar, quita overlay suavemente
     iframe?.addEventListener('load', () => {
         if (currentType !== 'pdf') return;
         if (!pdfLoading) return;
-
         pdfLoading = false;
-        // deja respirar 1 frame y luego fade-out
         setTimeout(() => hideBusy(), 60);
     });
 
@@ -310,9 +289,8 @@
         imgWrap.style.display = 'none';
         imgEl.src = '';
         imgStage.style.transform = 'scale(1)';
-        fitMode = true;          // default: Ajustar
+        fitMode = true;
         setZoomUI(100);
-
         showBusy();
         applyZoom();
     }
@@ -320,13 +298,10 @@
     function openAsImage(url){
         currentType = 'img';
         hideBusy();
-
         iframe.style.display = 'none';
         iframe.src = 'about:blank';
-
         imgWrap.style.display = 'block';
         imgEl.src = url;
-
         fitMode = false;
         setZoomUI(100);
         applyZoom();
@@ -337,7 +312,9 @@
         currentUrl = abs;
 
         titleEl.textContent = title || 'Vista previa';
-        aDown.href = abs;
+
+        // ✅ Descargar debe usar la URL base sin cache-buster/zoom
+        aDown.href = abs.split('#')[0];
 
         iframe.style.display = 'none';
         imgWrap.style.display = 'none';
@@ -345,7 +322,6 @@
         imgEl.src = '';
         imgStage.style.transform = 'scale(1)';
 
-        // reset pdf reload state
         pdfLoading = false;
         if (pdfReloadTimer) clearTimeout(pdfReloadTimer);
         pdfReloadTimer = null;
@@ -465,6 +441,12 @@
 
     // ✅ Delegado: captura [data-preview="media"] y también <a> normales (PDF/IMG)
     document.addEventListener('click', function(e){
+        // ✅ NO interceptar clicks dentro del modal (ej: Descargar)
+        if (e.target.closest('#mediaPreviewModal')) return;
+
+        // ✅ si trae ignore explícito, tampoco
+        if (e.target.closest('[data-modal-ignore="1"]')) return;
+
         const el = e.target.closest('[data-preview="media"], a');
         if(!el) return;
 
