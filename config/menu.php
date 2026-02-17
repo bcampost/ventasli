@@ -9,87 +9,117 @@ return [
       ['label' => 'Comercialización', 'url' => '#'],
     ],
   ],
+  
   [
     'label' => 'Productos',
     'children' => [
-      ['label' => 'Detalles de productos', 'url' => '#'],
 
-      ['label' => 'Escritorios', 'children' => [
-        ['label' => 'Anzio', 'url' => '#'],
-        ['label' => 'Vetta', 'url' => '#'],
-        ['label' => 'Aura', 'url' => '#'],
-        ['label' => 'Vasari', 'url' => '#'],
-        ['label' => 'Livello', 'url' => '#'],
-        ['label' => 'Italia', 'url' => '#'],
-        ['label' => 'E-link', 'url' => '#'],
-        ['label' => 'Urban', 'url' => '#'],
-      ]],
+      /*
+      |--------------------------------------------------------------------------
+      | DETALLES DE PRODUCTOS
+      |--------------------------------------------------------------------------
+      */
+      [
+        'label' => 'Detalles de productos',
+        'children' => [
 
-      ['label' => 'Estaciones de trabajo', 'children' => [
-        ['label' => 'Setto', 'url' => '#'],
-        ['label' => 'Anzio', 'url' => '#'],
-        ['label' => 'Vetta', 'url' => '#'],
-        ['label' => 'Aura', 'url' => '#'],
-        ['label' => 'Vasari', 'url' => '#'],
-        ['label' => 'Livello', 'url' => '#'],
-        ['label' => 'iWork', 'url' => '#'],
-        ['label' => 'E-link', 'url' => '#'],
-      ]],
+          ['label' => 'Escritorios', 'children' => [
+            ['label' => 'Anzio', 'url' => '#'],
+            ['label' => 'Vetta', 'url' => '#'],
+            ['label' => 'Aura', 'url' => '#'],
+            ['label' => 'Vasari', 'url' => '#'],
+            ['label' => 'Livello', 'url' => '#'],
+            ['label' => 'Italia', 'url' => '#'],
+            ['label' => 'E-link', 'url' => '#'],
+            ['label' => 'Urban', 'url' => '#'],
+          ]],
 
-      ['label' => 'Sillería', 'children' => [
-        ['label' => 'Ejecutivas', 'url' => '#'],
-        ['label' => 'Operativas', 'url' => '#'],
-        ['label' => 'Visita', 'url' => '#'],
-        ['label' => 'Comedor', 'url' => '#'],
-      ]],
+          ['label' => 'Estaciones de trabajo', 'children' => [
+            ['label' => 'Setto', 'url' => '#'],
+            ['label' => 'Anzio', 'url' => '#'],
+            ['label' => 'Vetta', 'url' => '#'],
+            ['label' => 'Aura', 'url' => '#'],
+            ['label' => 'Vasari', 'url' => '#'],
+            ['label' => 'Livello', 'url' => '#'],
+            ['label' => 'iWork', 'url' => '#'],
+            ['label' => 'E-link', 'url' => '#'],
+          ]],
 
-      ['label' => 'Almacenamiento', 'children' => [
-        ['label' => 'Anzio', 'url' => '#'],
-        ['label' => 'Filio', 'url' => '#'],
-        ['label' => 'Italia', 'url' => '#'],
-        ['label' => 'Urban', 'url' => '#'],
-        ['label' => 'iWork', 'url' => '#'],
-        ['label' => 'Vasari', 'url' => '#'],
-      ]],
+          ['label' => 'Sillería', 'children' => [
+            ['label' => 'Ejecutivas', 'url' => '#'],
+            ['label' => 'Operativas', 'url' => '#'],
+            ['label' => 'Visita', 'url' => '#'],
+            ['label' => 'Comedor', 'url' => '#'],
+          ]],
 
-      ['label' => 'Mesas', 'children' => [
-        ['label' => 'Anzio', 'url' => '#'],
-        ['label' => 'Aura', 'url' => '#'],
-        ['label' => 'Italia', 'url' => '#'],
-        ['label' => 'Vasari', 'url' => '#'],
-      ]],
+          ['label' => 'Almacenamiento', 'children' => [
+            ['label' => 'Anzio', 'url' => '#'],
+            ['label' => 'Filio', 'url' => '#'],
+            ['label' => 'Italia', 'url' => '#'],
+            ['label' => 'Urban', 'url' => '#'],
+            ['label' => 'iWork', 'url' => '#'],
+            ['label' => 'Vasari', 'url' => '#'],
+          ]],
 
-      ['label' => 'Salas', 'children' => [
-        ['label' => 'Attesa', 'url' => '#'],
-      ]],
+          ['label' => 'Mesas', 'children' => [
+            ['label' => 'Anzio', 'url' => '#'],
+            ['label' => 'Aura', 'url' => '#'],
+            ['label' => 'Italia', 'url' => '#'],
+            ['label' => 'Vasari', 'url' => '#'],
+          ]],
 
-      ['label' => 'Recepciones', 'children' => [
-        ['label' => 'Anzio', 'url' => '#'],
-        ['label' => 'Italia', 'url' => '#'],
-      ]],
+          ['label' => 'Salas', 'children' => [
+            ['label' => 'Attesa', 'url' => '#'],
+          ]],
 
-      ['label' => 'Cabinas', 'children' => [
-        ['label' => 'Acusto', 'url' => '#'],
-      ]],
+          ['label' => 'Recepciones', 'children' => [
+            ['label' => 'Anzio', 'url' => '#'],
+            ['label' => 'Italia', 'url' => '#'],
+          ]],
 
-      ['label' => 'Accesorios', 'children' => [
-        ['label' => 'Generales', 'url' => '#'],
-      ]],
+          ['label' => 'Cabinas', 'children' => [
+            ['label' => 'Acusto', 'url' => '#'],
+          ]],
 
-      ['label' => 'Inventarios', 'children' => [
-        ['label' => 'Mobiliario', 'url' => '#'],
-        ['label' => 'Sillería', 'url' => '#'],
-      ]],
+          ['label' => 'Accesorios', 'children' => [
+            ['label' => 'Generales', 'url' => '#'],
+          ]],
+        ],
+      ],
 
-      ['label' => 'Comercialización', 'children' => [
-        ['label' => 'Master Offiho', 'url' => '#'],
-        ['label' => 'Master Offichairs', 'url' => '#'],
-        ['label' => 'Master Albar', 'url' => '#'],
-        ['label' => 'Master Cabfun', 'url' => '#'],
-        ['label' => 'Master muebles noriega', 'url' => '#'],
-      ]],
+      /*
+      |--------------------------------------------------------------------------
+      | INVENTARIOS
+      |--------------------------------------------------------------------------
+      */
+      [
+        'label' => 'Inventarios',
+        'children' => [
+          ['label' => 'Mobiliario', 'url' => '#'],
+          ['label' => 'Sillería', 'url' => '#'],
+        ],
+      ],
+
+      /*
+      |--------------------------------------------------------------------------
+      | COMERCIALIZACIÓN
+      |--------------------------------------------------------------------------
+      */
+      [
+        'label' => 'Comercialización',
+        'children' => [
+          ['label' => 'Master Offiho', 'url' => '#'],
+          ['label' => 'Master Offichairs', 'url' => '#'],
+          ['label' => 'Master Albar', 'url' => '#'],
+          ['label' => 'Master Cabfun', 'url' => '#'],
+          ['label' => 'Master muebles noriega', 'url' => '#'],
+        ],
+      ],
+
     ],
   ],
+
+
   [
     'label' => 'Material Visual',
     'children' => [

@@ -1,6 +1,7 @@
 {{-- resources/views/layouts/navigation.blade.php --}}
 @php
   use App\Models\MenuNode;
+  use Illuminate\Support\Str;
 
   $navRoots = MenuNode::query()
     ->active()
@@ -8,12 +9,35 @@
       $q->whereNull('parent_id')->orWhere('parent_id', 0);
     })
     ->orderBy('sort')->orderBy('label')
-    ->with(['children' => function($q){
-      $q->active()->orderBy('sort')->orderBy('label');
-    }])
+    ->with([
+      'children' => function($q){
+        $q->active()->orderBy('sort')->orderBy('label');
+      },
+      // ✅ para "Productos" (nivel 3)
+      'children.children' => function($q){
+        $q->active()->orderBy('sort')->orderBy('label');
+      }
+    ])
     ->get();
 
   $user = auth()->user();
+
+  // Helper: resuelve href (url si existe, si no route menu.section)
+  $hrefFor = function(string $rootSlug, $node, array $pathParts = []) {
+    $u = trim((string)($node->url ?? ''));
+
+    // 1) Si hay URL explícita (pdf/external/archivo)
+    if ($u !== '') {
+      if (Str::startsWith($u, ['http://','https://'])) return $u;
+      return asset(ltrim($u, '/'));
+    }
+
+    // 2) Si no hay url, navega al menú (ruta dinámica)
+    $path = implode('/', array_filter($pathParts));
+    return $path !== ''
+      ? route('menu.section', [$rootSlug, $path])
+      : route('menu.section', $rootSlug);
+  };
 @endphp
 
 <style>
@@ -46,15 +70,26 @@
     gap: 16px;
   }
 
-  .v-brand{
+  /* ✅ Brand (sin <a> anidados) */
+  .topbrand{
     display:flex;
     align-items:center;
     gap:10px;
-    font-weight: 950;
-    letter-spacing: -.02em;
-    color: var(--nav-ink);
     text-decoration:none;
+    color: inherit;
     user-select:none;
+  }
+  .topbrand-logo{
+    height: 26px;
+    width: auto;
+    display:block;
+    object-fit: contain;
+  }
+  .topbrand-text{
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--nav-ink);
+    white-space: nowrap;
   }
 
   .v-menu{
@@ -91,7 +126,7 @@
     margin-left: 2px;
   }
 
-  /* ✅ puente invisible para que no se "rompa" el hover */
+  /* ✅ puente invisible para hover */
   .v-item::after{
     content:"";
     position:absolute;
@@ -101,6 +136,7 @@
     height: 14px;
   }
 
+  /* Dropdown base (nivel 2) */
   .v-dd{
     position:absolute;
     left:0;
@@ -116,11 +152,12 @@
     z-index: 80;
   }
 
-  .v-item:hover .v-dd,
-  .v-item:focus-within .v-dd{
+  .v-item:hover > .v-dd,
+  .v-item:focus-within > .v-dd{
     display:block;
   }
 
+  /* Links dentro */
   .v-dd a{
     display:flex;
     align-items:center;
@@ -132,6 +169,7 @@
     font-size: 14px;
     text-decoration:none;
     color: var(--nav-ink);
+    white-space: nowrap;
   }
   .v-dd a:hover{ background: rgba(248,250,252,.9); }
 
@@ -140,7 +178,36 @@
     font-weight: 700;
   }
 
-  /* ✅ NUEVO: contenedor para engrane (abajo derecha) */
+  /* ✅ Para submenú (nivel 3) SOLO en Productos */
+  .v-dd-item{ position: relative; }
+  .v-dd-item.has-kids > .v-dd-sub{ display:none; }
+
+  .v-dd-sub{
+    position:absolute;
+    top: -8px;
+    left: calc(100% + 10px);
+    min-width: 240px;
+    background: #fff;
+    border: 1px solid rgba(15,23,42,.12);
+    border-radius: 16px;
+    box-shadow: var(--nav-shadow);
+    padding: 8px;
+    z-index: 90;
+  }
+
+  .v-dd-item.has-kids:hover > .v-dd-sub,
+  .v-dd-item.has-kids:focus-within > .v-dd-sub{
+    display:block;
+  }
+
+  .v-dd-arrow{
+    font-size: 12px;
+    color: rgba(15,23,42,.55);
+    font-weight: 900;
+    margin-left: 8px;
+  }
+
+  /* ✅ NUEVO: contenedor engrane */
   .v-dd-tools{
     display:flex;
     justify-content:flex-end;
@@ -228,52 +295,31 @@
   .v-user-dd a:hover, .v-user-dd button:hover{
     background: rgba(248,250,252,.9);
   }
-
-  .topbrand{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    text-decoration:none;
-    color: inherit;
-  }
-  .topbrand-logo{
-    height: 26px;
-    width: auto;
-    display:block;
-    object-fit: contain;
-  }
-  .topbrand-text{
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
 </style>
 
 <nav class="v-nav">
   <div class="v-nav-wrap">
-    <a class="v-brand" href="{{ route('home') }}">
+
     <a href="{{ route('home') }}" class="topbrand">
       <img src="{{ asset('images/linea-italia.png') }}" alt="Línea Italia" class="topbrand-logo">
-    </a>
-      <span>Ventas Linea Italia
-        <a href="{{ route('home') }}" class="topbrand">
-      </span>
+      <span class="topbrand-text">Ventas Línea Italia</span>
     </a>
 
     <div class="v-menu">
       @foreach($navRoots as $root)
         @php
-          $rootSlug = \Illuminate\Support\Str::slug($root->label, '-');
+          $rootSlug = Str::slug($root->label, '-');
           $hasKids = $root->children && $root->children->count() > 0;
 
-          // ✅ Root NO clickeable si tiene hijos (solo dropdown)
+          // Root NO clickeable si tiene hijos
           $rootHref = $hasKids
             ? 'javascript:void(0)'
-            : ($root->url ?: route('menu.section', $rootSlug));
+            : $hrefFor($rootSlug, $root, []);
 
-          // ✅ NUEVO: detectar "Lista de precios" por label (case-insensitive)
+          // Identificadores especiales
           $isPriceList = mb_strtolower(trim($root->label)) === mb_strtolower('Lista de precios');
+          $isProducts  = mb_strtolower(trim($root->label)) === mb_strtolower('Productos');
 
-          // ✅ Solo admins ven engrane
           $canEditPriceList = $isPriceList && $user && method_exists($user, 'hasRole') && $user->hasRole('admin');
         @endphp
 
@@ -285,20 +331,59 @@
 
           @if($hasKids)
             <div class="v-dd">
-              @foreach($root->children as $child)
-                @php
-                  // Si el child tiene url (ej: pdfs/xxx.pdf) usamos eso; si no, route normal
-                  $childHref = $child->url
-                    ? asset(ltrim($child->url, '/'))
-                    : route('menu.section', [$rootSlug, \Illuminate\Support\Str::slug($child->label, '-')]);
-                @endphp
-                <a href="{{ $childHref }}">
-                  <span>{{ $child->label }}</span>
-                  <small>Ver</small>
-                </a>
-              @endforeach
+              {{-- ✅ Root normal: solo nivel 2 --}}
+              @if(!$isProducts)
+                @foreach($root->children as $child)
+                  @php
+                    $childSlug = Str::slug($child->label, '-');
+                    $childHref = $hrefFor($rootSlug, $child, [$childSlug]);
+                  @endphp
 
-              {{-- ✅ NUEVO: engrane abajo derecha SOLO para Lista de precios y SOLO admin --}}
+                  <a href="{{ $childHref }}">
+                    <span>{{ $child->label }}</span>
+                    <small>Ver</small>
+                  </a>
+                @endforeach
+              @else
+                {{-- ✅ SOLO en Productos: nivel 2 + nivel 3 (flyout) --}}
+                @foreach($root->children as $child)
+                  @php
+                    $childSlug = Str::slug($child->label, '-');
+                    $childHasKids = $child->children && $child->children->count() > 0;
+
+                    // ✅ SIEMPRE clickeable (aunque tenga hijos) para ir a su página
+                    $childHref = $hrefFor($rootSlug, $child, [$childSlug]);
+                  @endphp
+
+                  <div class="v-dd-item {{ $childHasKids ? 'has-kids' : '' }}">
+                    <a href="{{ $childHref }}">
+                      <span>{{ $child->label }}</span>
+                      @if($childHasKids)
+                        <span class="v-dd-arrow">▸</span>
+                      @else
+                        <small>Ver</small>
+                      @endif
+                    </a>
+
+                    @if($childHasKids)
+                      <div class="v-dd v-dd-sub">
+                        @foreach($child->children as $g)
+                          @php
+                            $gSlug = Str::slug($g->label, '-');
+                            $gHref = $hrefFor($rootSlug, $g, [$childSlug, $gSlug]);
+                          @endphp
+                          <a href="{{ $gHref }}">
+                            <span>{{ $g->label }}</span>
+                            <small>Ver</small>
+                          </a>
+                        @endforeach
+                      </div>
+                    @endif
+                  </div>
+                @endforeach
+              @endif
+
+              {{-- Engrane SOLO Lista de precios y SOLO admin --}}
               @if($canEditPriceList)
                 <div class="v-dd-tools">
                   <a
@@ -332,6 +417,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </nav>
 
