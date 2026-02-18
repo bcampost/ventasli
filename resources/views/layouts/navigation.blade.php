@@ -180,6 +180,15 @@
 
   /* ✅ Para submenú (nivel 3) SOLO en Productos */
   .v-dd-item{ position: relative; }
+  /* ✅ Puente invisible horizontal para ir al submenú (nivel 3) sin que se cierre */
+.v-dd-item.has-kids::after{
+  content:"";
+  position:absolute;
+  top: 0;
+  bottom: 0;
+  right: -12px;     /* puente hacia la derecha */
+  width: 12px;      /* debe cubrir el gap (10px) */
+}
   .v-dd-item.has-kids > .v-dd-sub{ display:none; }
 
   .v-dd-sub{
