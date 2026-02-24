@@ -53,7 +53,16 @@
       </div>
 
       <div class="hero-search">
-        <input type="text" placeholder="Buscar comunicado…" />
+        <form method="GET" action="{{ route('search.global') }}" class="hero-search-form">
+          <input
+            type="text"
+            name="q"
+            value="{{ request('q') }}"
+            placeholder="Buscar en todo…"
+            class="hero-search-input"
+            autocomplete="off"
+          />
+        </form>
       </div>
     </div>
   </div>
@@ -154,7 +163,8 @@
   }
   .hero-dot{ width: 8px; height: 8px; border-radius: 999px; background:#fff; opacity:.95; display:inline-block; }
 
-  .hero-search input{
+  .hero-search-form{ margin:0; }
+  .hero-search-input{
     width: 260px; height: 36px;
     border-radius: 999px; border: 1px solid var(--line);
     background: #fff; padding: 0 14px;
