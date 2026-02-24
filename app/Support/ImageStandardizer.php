@@ -11,25 +11,81 @@ use Intervention\Image\Drivers\Gd\Driver;
 class ImageStandardizer
 {
     /**
-     * Recorta a un estándar fijo (ej. 1600x900) y guarda en storage public.
+     * Guarda una imagen "cover" (recorta para llenar exacto WxH) y la normaliza.
+     * Ideal si quieres tiles uniformes sin franjas, PERO recorta.
      *
-     * @return string ruta relativa (ej. "menu/cards/abc.webp")
+     * @return string ruta relativa (ej. "menu/cards/abc.webp" o "menu/cards/abc.jpg")
      */
     public static function storeCover(UploadedFile $file, string $diskDir, int $w = 1600, int $h = 900): string
     {
         $manager = new ImageManager(new Driver());
-
         $img = $manager->read($file->getPathname());
 
         // cover = recorta para llenar exacto WxH (centrado)
         $img = $img->cover($w, $h);
 
-        // Guardamos como WEBP (pro, ligero)
-        $name = uniqid('img_', true) . '.webp';
-        $path = trim($diskDir, '/') . '/' . $name;
+        return self::encodeAndStore($img, $diskDir, 85);
+    }
 
-        $binary = (string) $img->toWebp(85);
+    /**
+     * Guarda una imagen SIN RECORTAR (imagen completa).
+     * Mantiene proporción y la acomoda dentro de WxH (puede haber "bandas" si no coincide ratio).
+     *
+     * @return string ruta relativa (ej. "menu/cards/abc.webp" o "menu/cards/abc.jpg")
+     */
+    public static function storeContain(UploadedFile $file, string $diskDir, int $w = 1600, int $h = 900): string
+    {
+        $manager = new ImageManager(new Driver());
+        $img = $manager->read($file->getPathname());
 
+        // contain = NO recorta. Encaja dentro de WxH conservando proporción.
+        // Background neutro (puedes cambiarlo a transparente si guardas PNG).
+        $img = $img->contain($w, $h, 'ffffff');
+
+        return self::encodeAndStore($img, $diskDir, 85);
+    }
+
+    /**
+     * Por si quieres decidir por parámetro sin cambiar controladores.
+     * $mode: 'cover' (recorta) | 'contain' (no recorta)
+     */
+    public static function storeAuto(
+        UploadedFile $file,
+        string $diskDir,
+        string $mode = 'contain',
+        int $w = 1600,
+        int $h = 900
+    ): string {
+        return $mode === 'cover'
+            ? self::storeCover($file, $diskDir, $w, $h)
+            : self::storeContain($file, $diskDir, $w, $h);
+    }
+
+    /**
+     * Encoda a WEBP si está disponible; si no, cae a JPG.
+     * Devuelve la ruta final que se guardó.
+     */
+    private static function encodeAndStore($img, string $diskDir, int $quality = 85): string
+    {
+        $diskDir = trim($diskDir, '/');
+
+        $canWebp = function_exists('imagewebp');
+
+        if ($canWebp) {
+            $name = uniqid('img_', true) . '.webp';
+            $path = $diskDir . '/' . $name;
+
+            $binary = (string) $img->toWebp($quality);
+            Storage::disk('public')->put($path, $binary);
+
+            return $path;
+        }
+
+        // Fallback robusto: JPG (no requiere imagewebp)
+        $name = uniqid('img_', true) . '.jpg';
+        $path = $diskDir . '/' . $name;
+
+        $binary = (string) $img->toJpeg($quality);
         Storage::disk('public')->put($path, $binary);
 
         return $path;
@@ -38,6 +94,7 @@ class ImageStandardizer
     public static function deleteIfExists(?string $path): void
     {
         if (!$path) return;
+
         if (Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
         }

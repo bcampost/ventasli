@@ -104,6 +104,9 @@
     --danger:#e11d48;
     --rXL: 24px;
     --tileR: 16px;
+
+    /* ✅ “ventana” uniforme de imagen */
+    --tileMediaH: 170px; /* ajusta a gusto (170–230) */
   }
 
   .wrap{ max-width: 1120px; margin:0 auto; padding: 22px 18px; }
@@ -147,51 +150,74 @@
   .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
   /* =========================================================
-     ✅ TILES PRO (solo imagen completa, SIN recorte)
+     ✅ TILES PRO (imagen completa SIN recorte + tooltip encima)
      ========================================================= */
   .tile-grid{
     padding: 18px 16px 20px;
     display:grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 18px;
+    align-items: stretch; /* ✅ uniformidad */
   }
 
-  .tile{
-    position:relative;
-    border-radius: var(--tileR);
-    overflow:hidden;
-    border: 1px solid rgba(15,23,42,.10);
-    box-shadow: 0 10px 22px rgba(2,6,23,.06);
-    background:#fff;
-    cursor:pointer;
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-  }
+.tile{
+  position:relative;
+  border-radius: var(--tileR);
+  overflow:hidden;
+  border: 1px solid rgba(15,23,42,.10);
+  box-shadow: 0 10px 22px rgba(2,6,23,.06);
+  background:#fff;
+  cursor:pointer;
+
+  padding:0 !important;        /* 👈 elimina espacio interno */
+  line-height:0 !important;    /* 👈 elimina espacio fantasma */
+  display:block !important;
+}
   .tile:hover{
     transform: translateY(-2px);
     box-shadow: 0 18px 38px rgba(2,6,23,.10);
     border-color: rgba(15,23,42,.18);
   }
 
-  /* ✅ IMAGEN COMPLETA (como antes):
-     - NO cuadrado
-     - NO object-fit cover
-     - NO recorte
-     - se ve completa
-  */
-  .tile-img{
-    width: 100%;
-    background: #f3f4f6;
-    display:block;
-  }
-  .tile-img img{
-    width: 100%;
-    height: auto;
-    display:block;
-    object-fit: contain;   /* NO recorta */
-    background: #f3f4f6;
-  }
+  /*
+/* ✅ eliminar franja: que el contenedor se ajuste a la imagen */
+.tile-img{
+  display:block !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important; /* <- quita el gris */
+  overflow: hidden !important;        /* por el border-radius del tile */
+}
 
-  /* overlay sutil pro */
+/* ====== FIX FINAL: matar franja gris sí o sí ====== */
+.tile-img{
+  background: transparent !important;
+  height: auto !important;
+  min-height: 0 !important;
+  line-height: 0 !important;     /* evita “huecos” por line-height */
+  font-size: 0 !important;       /* evita huecos por inline content */
+  padding: 0 !important;
+  margin: 0 !important;
+  display: block !important;      /* clave: ajusta al contenido */
+  align-items: stretch !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.tile-img > img{
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* por si un CSS global mete vertical-align / inline gaps */
+.tile-img img{ vertical-align: top !important; }
+
+  /* overlay sutil */
   .tile::before{
     content:"";
     position:absolute;
@@ -200,16 +226,17 @@
     opacity:0;
     transition: opacity .16s ease;
     pointer-events:none;
+    z-index: 4;
   }
   .tile:hover::before{ opacity:1; }
 
-  /* Tooltip emergente (título/desc SOLO aquí) */
+  /* Tooltip encima (no empuja layout) */
   .tile-tooltip{
     position:absolute;
     left: 12px;
     right: 12px;
     bottom: 12px;
-    z-index: 6;
+    z-index: 10;
 
     background: rgba(15,23,42,.92);
     color:#fff;
@@ -349,6 +376,69 @@
     border-top: 1px dashed rgba(15,23,42,.18);
   }
   .dbg b{ font-weight: 900; }
+/* 1) EVITA que el grid estire las cards */
+.tile-grid{
+  align-items: start !important;   /* clave */
+}
+
+/* 2) QUE LA TILE NO TENGA “CAJA” (sin fondo/borde/sombra) */
+.tile{
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  overflow: visible !important;    /* para que no “corte” nada */
+  align-self: start !important;    /* no se estira */
+}
+
+/* 3) QUITA OVERLAYS QUE PUEDAN “pintar” abajo */
+.tile::before{
+  display: none !important;
+}
+
+/* 4) QUE SOLO SEA IMAGEN: el contenedor NO pinta fondo */
+.tile-img{
+  background: transparent !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;     /* solo por bordes redondeados si quieres */
+}
+
+/* 5) IMAGEN MANDA: sin recorte, sin zoom, sin gap */
+.tile-img img{
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  object-fit: unset !important;
+}
+
+/* ✅ imagen completa (NUNCA recorta) */
+.tile-img{
+  height: auto !important;
+  min-height: 0 !important;
+  background: transparent !important;
+  overflow: visible !important; /* no cortes nada */
+}
+
+/* fuerza a que cualquier cover quede anulado */
+.tile-img img{
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: none !important;
+  object-fit: contain !important;     /* ✅ clave */
+  object-position: center center !important;
+  display: block !important;
+}
+/* rompe recortes de padres */
+.tile, .tile-img{
+  overflow: visible !important;
+  height: auto !important;
+}
+
+
+
 </style>
 
 <div class="wrap">
@@ -437,7 +527,7 @@
               </div>
             </div>
 
-            {{-- imagen (SOLO imagen visible) --}}
+            {{-- imagen (ventana fija + contain = no recorte) --}}
             <div class="tile-img">
               @if($imgUrl)
                 <img src="{{ $imgUrl }}" alt="{{ $title }}">
@@ -511,7 +601,7 @@
               </div>
             </div>
 
-            {{-- imagen (SOLO imagen visible) --}}
+            {{-- imagen (ventana fija + contain = no recorte) --}}
             <div class="tile-img">
               @if($pImgUrl)
                 <img src="{{ $pImgUrl }}" alt="{{ $pTitle }}">
