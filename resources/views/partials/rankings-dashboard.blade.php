@@ -93,9 +93,11 @@
   $monthLabel = [];
   foreach($monthsAllowed as $m){ $monthLabel[$m['k']] = $m['l']; }
 
-  // ✅ MODO: vendor | total
-  $qMode = request()->query('mode', 'vendor');
-  if(!in_array($qMode, ['vendor','total'], true)) $qMode = 'vendor';
+$qMode = request()->query('mode', 'total');
+if(!in_array($qMode, ['vendor','total'], true)) $qMode = 'total';
+
+// ✅ si alguien intenta ?mode=vendor, lo ocultamos forzando total
+if($qMode === 'vendor') $qMode = 'total';
 
   $qVendor = request()->query('vendor', $vendors[0] ?? '');
   $qFromY  = (int)request()->query('from_year', 2025);
@@ -653,11 +655,14 @@
 
                   <div>
                     <div class="rk-viewToggle" aria-label="Cambiar vista">
-                      <button type="button"
-                              class="rk-viewBtn {{ $qMode==='vendor' ? 'is-active' : '' }}"
-                              data-mode="vendor">
-                        Ventas por vendedor
-                      </button>
+                        {{-- OCULTO: Ventas por vendedor --}}
+                        {{--
+                        <button type="button"
+                                class="rk-viewBtn {{ $qMode==='vendor' ? 'is-active' : '' }}"
+                                data-mode="vendor">
+                          Ventas por vendedor
+                        </button>
+                        --}}
 
                       <button type="button"
                               class="rk-viewBtn {{ $qMode==='total' ? 'is-active' : '' }}"
