@@ -515,17 +515,13 @@
               </div>
             @endif
 
-            {{-- tooltip (SOLO hover) --}}
-            <div class="tile-tooltip" aria-hidden="true">
-              <div class="tt-title">
-                <span>{{ $title }}</span>
-                <span style="opacity:.85;font-weight:900;font-size:12px;">Submenú</span>
+              {{-- tooltip (SOLO hover): solo Título + Descripción --}}
+              <div class="tile-tooltip" aria-hidden="true">
+                <div class="tt-title">
+                  <span>{{ $title }}</span>
+                </div>
+                <div class="tt-body">{{ trim((string)$desc) !== '' ? $desc : 'Sin descripción.' }}</div>
               </div>
-              <div class="tt-body">{{ trim((string)$desc) !== '' ? $desc : 'Sin descripción.' }}</div>
-              <div class="tt-meta">
-                <span class="pill">key: {{ $key }}</span>
-              </div>
-            </div>
 
             {{-- imagen (ventana fija + contain = no recorte) --}}
             <div class="tile-img">
@@ -547,79 +543,7 @@
     @endif
   </div>
 
-  {{-- PRODUCTOS --}}
-  <div class="panel">
-    <div class="panel-head">
-      <div class="h">Productos</div>
-      <div class="hint">
-        Coincidencia con: <span class="mono">{{ $fpTrim }}</span>
-      </div>
-    </div>
 
-    @if($isAdmin)
-      <div class="dbg">
-        <b>DEBUG productos</b><br>
-        mode: <span class="mono">{{ $productsMode }}</span><br>
-        fullPath: <span class="mono">{{ $fpTrim }}</span><br>
-        count: <b>{{ $productsSafe?->count() ?? 0 }}</b><br>
-        @if($productsSafe && $productsSafe->count())
-          first menu_key: <span class="mono">{{ $productsSafe->first()->menu_key }}</span>
-        @endif
-      </div>
-    @endif
-
-    @if($productsSafe && $productsSafe->count())
-      <div class="tile-grid">
-        @foreach($productsSafe as $p)
-          @php
-            $pTitle = $p->title ?? '—';
-            $pDesc  = trim((string)($p->description ?? ''));
-            $pUrl   = trim((string)($p->url ?? ''));
-
-            // ✅ image_path (menu_products)
-            $pImgPath = $p->image_path ?? null;
-            $pImgUrl  = $pImgPath ? asset('storage/' . ltrim($pImgPath, '/')) : null;
-          @endphp
-
-          <a class="tile"
-             href="{{ $pUrl !== '' ? $pUrl : 'javascript:void(0)' }}"
-             @if($pUrl !== '') target="_blank" rel="noopener noreferrer" @else onclick="event.preventDefault();" @endif
-             style="text-decoration:none; color:inherit; display:block;">
-
-            {{-- tooltip (SOLO hover) --}}
-            <div class="tile-tooltip" aria-hidden="true">
-              <div class="tt-title">
-                <span>{{ $pTitle }}</span>
-                <span style="opacity:.85;font-weight:900;font-size:12px;">
-                  {{ $pUrl !== '' ? 'Abrir ↗' : 'Sin URL' }}
-                </span>
-              </div>
-              <div class="tt-body">{{ $pDesc !== '' ? $pDesc : 'Sin descripción.' }}</div>
-              <div class="tt-meta">
-                <span class="pill">ID: {{ $p->id }}</span>
-                <span class="pill">menu_key: {{ $p->menu_key }}</span>
-              </div>
-            </div>
-
-            {{-- imagen (ventana fija + contain = no recorte) --}}
-            <div class="tile-img">
-              @if($pImgUrl)
-                <img src="{{ $pImgUrl }}" alt="{{ $pTitle }}">
-              @else
-                <img
-                  src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='700'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='34' font-family='Arial'%3ESin%20imagen%3C/text%3E%3C/svg%3E"
-                  alt="Sin imagen"
-                >
-              @endif
-            </div>
-
-          </a>
-        @endforeach
-      </div>
-    @else
-      <div class="empty">No hay productos en este nivel.</div>
-    @endif
-  </div>
 
 </div>
 
