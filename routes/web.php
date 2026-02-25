@@ -19,6 +19,8 @@ use App\Http\Controllers\Admin\PriceListPdfController;
 // Subida de videos capacitaciones
 use App\Http\Controllers\Admin\TrainingMediaController;
 
+use App\Http\Controllers\Admin\MenuHeroController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -142,6 +144,14 @@ Route::middleware(['auth'])->group(function () {
             ->name('menu-cards.destroy');
 
 
+            // ✅ HERO / SLIDER por producto-nivel (editor)
+        Route::get('/menu-hero/{token}/edit', [MenuHeroController::class, 'edit'])
+            ->where('token', '[A-Za-z0-9\-_]+')
+            ->name('menu-hero.edit');
+
+        Route::put('/menu-hero/{token}', [MenuHeroController::class, 'update'])
+            ->where('token', '[A-Za-z0-9\-_]+')
+            ->name('menu-hero.update');
         /*
         |--------------------------------------------------------------------------
         | Slides (CRUD)

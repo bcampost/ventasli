@@ -450,7 +450,8 @@
 
       @if($isAdmin)
         <div class="head-actions" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <button type="button" class="btn btn-primary" onclick="openCreateNode(@js($currentNodeId ?? 0))">
+          
+        <button type="button" class="btn btn-primary" onclick="openCreateNode(@js($currentNodeId ?? 0))">
             + Agregar submenú
           </button>
           <button type="button" class="btn btn-primary" onclick="openCreateProduct()">

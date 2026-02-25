@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\MenuNode;
 use App\Models\MenuProduct;
 use App\Models\MenuCardImage;
+use App\Models\MenuProductHero;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -17,7 +18,7 @@ class MenuController extends Controller
         // ✅ Ruta completa tipo: "productos/detalles-de-productos/escritorios"
         $fullPath = $this->buildMenuKey($sectionSlug, $path);
 
-        // Resolver el nodo actual por el path (usando children por label)
+        // Resolver el nodo actual por el path (ususing children por label)
         [$currentNode, $currentChain] = $this->resolveCurrentNode($section, $path);
 
         $currentNodeId = $currentNode?->id; // para “Agregar submenú”
@@ -94,6 +95,42 @@ class MenuController extends Controller
             ->get()
             ->keyBy('key');
 
+        /**
+         * ✅ DETECTAR NIVEL "DETALLE" (leaf) para mostrar HERO gigante + productos
+         * - Debe ser leaf (sin children)
+         * - Debe tener path con profundidad (ej: detalles-de-productos/escritorios/anzio => 2 slashes o más)
+         * - Y normalmente vive bajo "detalles-de-productos"
+         */
+        $trimPath = trim((string)$path, '/');
+        $depth = $trimPath === '' ? 0 : (substr_count($trimPath, '/') + 1);
+
+        $isDetailLevel =
+            $children->isEmpty()
+            && $depth >= 3
+            && Str::contains($fullPath, 'detalles-de-productos/');
+
+        if ($isDetailLevel) {
+            // ✅ HERO: crea/obtiene por key=fullPath
+            $hero = MenuProductHero::query()->firstOrCreate(
+                ['key' => $fullPath],
+                ['title' => null, 'description' => null, 'images' => []]
+            );
+
+            return view('menu.detail', [
+                'section'        => $section,
+                'current'        => ['label' => $currentNode?->label],
+                'cards'          => $cards,          // en detalle normalmente vendrá vacío, pero lo pasamos
+                'images'         => $images,         // idem
+                'currentNodeId'  => $currentNodeId,
+                'fullPath'       => $fullPath,
+                'products'       => $products,
+                'productTargets' => $productTargets, // en detalle: solo nivel actual
+                'redirectTo'     => url()->current(),
+                'hero'           => $hero,
+            ]);
+        }
+
+        // ✅ NIVEL NORMAL (como lo tienes hoy)
         return view('menu.show', [
             'section'        => $section,
             'current'        => ['label' => $currentNode?->label],
