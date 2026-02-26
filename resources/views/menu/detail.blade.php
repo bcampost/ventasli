@@ -95,7 +95,7 @@
 
       <div class="pd-actions">
         @if($isAdmin)
-          <button type="button" class="pd-btn" onclick="openCreateProduct()">
+          <button type="button" class="pd-btn" onclick="handleCreateProduct()">
             + Agregar producto
           </button>
         @endif
@@ -446,6 +446,35 @@
     // fallback: manda al admin listado (si quieres)
     // window.location.href = "{{ route('admin.menu-products.index') }}";
   }
+</script>
+
+<script>
+function handleCreateProduct(){
+
+  // 1) Si existe el modal global (como en show.blade.php), lo abre
+  const backdrop = document.getElementById('createProductBackdrop');
+  const modal    = document.getElementById('createProductModal');
+
+  if(backdrop && modal){
+    backdrop.classList.remove('hidden');
+    modal.classList.remove('hidden');
+    modal.classList.add('modal-open');
+
+    document.body.classList.add('no-scroll');
+    document.body.classList.add('modal-open');
+    return;
+  }
+
+  // 2) Si NO existe modal → redirige a la ruta que SÍ tienes definida
+  const indexUrl = @json(route('admin.menu-products.index'));
+  const menuKey  = @json($fullPath ?? '');
+
+  const url = menuKey
+    ? (indexUrl + (indexUrl.includes('?') ? '&' : '?') + 'menu_key=' + encodeURIComponent(menuKey))
+    : indexUrl;
+
+  window.location.href = url;
+}
 </script>
 
 @endsection
