@@ -21,13 +21,16 @@ use App\Http\Controllers\Admin\TrainingMediaController;
 
 use App\Http\Controllers\Admin\MenuHeroController;
 
+// ✅ NUEVO (detalle público + editor admin)
+use App\Http\Controllers\MenuProductPublicController;
+use App\Http\Controllers\Admin\MenuProductDetailController;
+
 
 /*
 |--------------------------------------------------------------------------
 | ROOT
 |--------------------------------------------------------------------------
 */
-
 Route::get('/', function () {
     return auth()->check()
         ? redirect()->route('dashboard')
@@ -40,12 +43,9 @@ Route::get('/', function () {
 | BUSCADOR GLOBAL (NUEVO)
 |--------------------------------------------------------------------------
 */
-
 Route::middleware(['auth'])->group(function () {
-
     Route::get('/buscar', [GlobalSearchController::class, 'index'])
         ->name('search.global');
-
 });
 
 
@@ -54,7 +54,6 @@ Route::middleware(['auth'])->group(function () {
 | RUTAS PROTEGIDAS
 |--------------------------------------------------------------------------
 */
-
 Route::middleware(['auth'])->group(function () {
 
     // Dashboard (Breeze)
@@ -73,6 +72,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/menu/{sectionSlug}/{path?}', [MenuController::class, 'show'])
         ->where('path', '.*')
         ->name('menu.section');
+
+    /*
+    |--------------------------------------------------------------------------
+    | ✅ DETALLE PÚBLICO DE PRODUCTO (NUEVO)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/producto/{menu_product}', [MenuProductPublicController::class, 'show'])
+        ->name('menu.product.show');
 
 
     /*
@@ -122,6 +129,18 @@ Route::middleware(['auth'])->group(function () {
 
         /*
         |--------------------------------------------------------------------------
+        | ✅ Editor de DETALLE de producto (NUEVO)
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/product-details/{menu_product}/edit', [MenuProductDetailController::class, 'edit'])
+            ->name('product-details.edit');
+
+        Route::put('/product-details/{menu_product}', [MenuProductDetailController::class, 'update'])
+            ->name('product-details.update');
+
+
+        /*
+        |--------------------------------------------------------------------------
         | Menu Cards (imagenes / metadata)
         |--------------------------------------------------------------------------
         */
@@ -144,7 +163,11 @@ Route::middleware(['auth'])->group(function () {
             ->name('menu-cards.destroy');
 
 
-            // ✅ HERO / SLIDER por producto-nivel (editor)
+        /*
+        |--------------------------------------------------------------------------
+        | ✅ HERO / SLIDER por producto-nivel (editor)
+        |--------------------------------------------------------------------------
+        */
         Route::get('/menu-hero/{token}/edit', [MenuHeroController::class, 'edit'])
             ->where('token', '[A-Za-z0-9\-_]+')
             ->name('menu-hero.edit');
@@ -152,6 +175,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/menu-hero/{token}', [MenuHeroController::class, 'update'])
             ->where('token', '[A-Za-z0-9\-_]+')
             ->name('menu-hero.update');
+
+
         /*
         |--------------------------------------------------------------------------
         | Slides (CRUD)
@@ -216,6 +241,5 @@ Route::middleware(['auth'])->group(function () {
     });
 
 });
-
 
 require __DIR__ . '/auth.php';

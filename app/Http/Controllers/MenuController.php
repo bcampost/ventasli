@@ -8,9 +8,45 @@ use App\Models\MenuCardImage;
 use App\Models\MenuProductHero;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+
 
 class MenuController extends Controller
 {
+
+        public function product(MenuProduct $menu_product)
+    {
+        // ✅ defaults seguros
+        $gallery = is_array($menu_product->gallery_images) ? $menu_product->gallery_images : (json_decode((string)$menu_product->gallery_images, true) ?: []);
+        $specs   = is_array($menu_product->specs) ? $menu_product->specs : (json_decode((string)$menu_product->specs, true) ?: []);
+
+        // Si no hay galería, usa image_path como primera imagen (si existe)
+        if (empty($gallery) && !empty($menu_product->image_path)) {
+            $gallery = [$menu_product->image_path];
+        }
+
+        // Defaults del “boceto”
+        $specs = array_merge([
+            'measures' => [
+                'largo' => '',
+                'ancho' => '',
+                'alto'  => '',
+            ],
+            'colors_acero'    => [],
+            'colors_melamina' => [],
+            'notes'           => '',
+        ], $specs);
+
+        return view('menu.product', [
+            'p'       => $menu_product,
+            'gallery' => $gallery,
+            'specs'   => $specs,
+            'backTo'  => url()->previous(),
+        ]);
+    }
+
+
+
     public function show(Request $request, string $sectionSlug, ?string $path = null)
     {
         $section = $this->resolveSectionRoot($sectionSlug);
