@@ -109,8 +109,43 @@
     --tileMediaH: 170px; /* ajusta a gusto (170–230) */
   }
 
-  .wrap{ max-width: 1120px; margin:0 auto; padding: 22px 18px; }
+/* 1) contenedor más ancho */
+.wrap{
+  max-width: 1360px;     /* antes 1120 */
+  margin: 0 auto;
+  padding: 22px 18px;
+}
 
+/* 1) contenedor más ancho */
+.wrap{
+  max-width: 1360px;     /* antes 1120 */
+  margin: 0 auto;
+  padding: 22px 18px;
+}
+
+/* 2) grid con cards más grandes */
+.tile-grid{
+  padding: 18px 16px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* antes 220/4col */
+  gap: 26px; /* más aire */
+}
+
+/* 3) opcional: un poquito más grande el título */
+.tile-title{
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 750;
+  opacity: .60;
+}
+
+/* 3) opcional: un poquito más grande el título */
+.tile-title{
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 750;
+  opacity: .60;
+}
   .btn{
     display:inline-flex; align-items:center; justify-content:center;
     gap:.55rem; font-weight: 900; border-radius: 16px;
@@ -152,70 +187,95 @@
   /* =========================================================
      ✅ TILES PRO (imagen completa SIN recorte + tooltip encima)
      ========================================================= */
-  .tile-grid{
-    padding: 18px 16px 20px;
-    display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 18px;
-    align-items: stretch; /* ✅ uniformidad */
-  }
+/* GRID como la foto 2 */
+.tile-grid{
+  padding: 18px 16px 24px;
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
 
+@media(max-width: 1100px){
+  .tile-grid{ grid-template-columns: repeat(3, 1fr); }
+}
+@media(max-width: 820px){
+  .tile-grid{ grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width: 520px){
+  .tile-grid{ grid-template-columns: 1fr; }
+}
+
+/* Card limpio */
 .tile{
-  position:relative;
-  border-radius: var(--tileR);
-  overflow:hidden;
-  border: 1px solid rgba(15,23,42,.10);
-  box-shadow: 0 10px 22px rgba(2,6,23,.06);
-  background:#fff;
+  position: relative;
+  cursor: pointer;
+}
+
+/* Caja de imagen estilo foto 2 */
+.tile-img{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #e5e7eb; /* fallback suave */
+}
+
+/* ✅ Esto hace que se vea como la foto 2 */
+.tile-img img{
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;       /* <-- CLAVE */
+  object-position: center;
+}
+
+/* Título abajo */
+.tile-title{
+  margin-top: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  opacity: .55;
+  line-height: 1.15;
+}
+
+/* ====== ICONOS overlay (respeta tu tema) ====== */
+.tile-actions{
+  position:absolute;
+  top:10px;
+  right:10px;
+  display:flex;
+  gap:8px;
+  z-index: 20;
+}
+
+.icon-btn{
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,23,42,.14);
+  background: rgba(255,255,255,.92);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow: 0 12px 24px rgba(2,6,23,.10);
   cursor:pointer;
-
-  padding:0 !important;        /* 👈 elimina espacio interno */
-  line-height:0 !important;    /* 👈 elimina espacio fantasma */
-  display:block !important;
+  transition: transform .15s ease, border-color .15s ease, background .15s ease;
 }
-  .tile:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 18px 38px rgba(2,6,23,.10);
-    border-color: rgba(15,23,42,.18);
-  }
-
-  /*
-/* ✅ eliminar franja: que el contenedor se ajuste a la imagen */
-.tile-img{
-  display:block !important;
-  height: auto !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important; /* <- quita el gris */
-  overflow: hidden !important;        /* por el border-radius del tile */
+.icon-btn:hover{
+  transform: translateY(-1px);
+  background:#fff;
+  border-color: rgba(15,23,42,.22);
+}
+.icon-btn.danger{
+  border-color: rgba(225,29,72,.28);
+  background: rgba(225,29,72,.08);
+}
+.icon-btn.danger:hover{
+  border-color: rgba(225,29,72,.38);
+  background: rgba(225,29,72,.12);
 }
 
-/* ====== FIX FINAL: matar franja gris sí o sí ====== */
-.tile-img{
-  background: transparent !important;
-  height: auto !important;
-  min-height: 0 !important;
-  line-height: 0 !important;     /* evita “huecos” por line-height */
-  font-size: 0 !important;       /* evita huecos por inline content */
-  padding: 0 !important;
-  margin: 0 !important;
-  display: block !important;      /* clave: ajusta al contenido */
-  align-items: stretch !important;
-  justify-content: center !important;
-  overflow: hidden !important;
-}
-
-.tile-img > img{
-  display: block !important;
-  width: 100% !important;
-  height: auto !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* por si un CSS global mete vertical-align / inline gaps */
-.tile-img img{ vertical-align: top !important; }
 
   /* overlay sutil */
   .tile::before{
@@ -524,7 +584,7 @@
                 <div class="tt-body">{{ trim((string)$desc) !== '' ? $desc : 'Sin descripción.' }}</div>
               </div>
 
-            {{-- imagen (ventana fija + contain = no recorte) --}}
+            {{-- imagen (full-bleed) --}}
             <div class="tile-img">
               @if($imgUrl)
                 <img src="{{ $imgUrl }}" alt="{{ $title }}">
@@ -535,6 +595,9 @@
                 >
               @endif
             </div>
+
+            {{-- título abajo como la foto 2 --}}
+            <div class="tile-title">{{ $title }}</div>
 
           </div>
         @endforeach
