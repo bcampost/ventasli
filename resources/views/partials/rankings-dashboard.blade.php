@@ -93,11 +93,9 @@
   $monthLabel = [];
   foreach($monthsAllowed as $m){ $monthLabel[$m['k']] = $m['l']; }
 
-$qMode = request()->query('mode', 'total');
-if(!in_array($qMode, ['vendor','total'], true)) $qMode = 'total';
-
-// ✅ si alguien intenta ?mode=vendor, lo ocultamos forzando total
-if($qMode === 'vendor') $qMode = 'total';
+  $qMode = request()->query('mode', 'total');
+  if(!in_array($qMode, ['vendor','total'], true)) $qMode = 'total';
+  if($qMode === 'vendor') $qMode = 'total';
 
   $qVendor = request()->query('vendor', $vendors[0] ?? '');
   $qFromY  = (int)request()->query('from_year', 2025);
@@ -144,9 +142,6 @@ if($qMode === 'vendor') $qMode = 'total';
     $monthKeys[] = ['y'=>$y, 'm'=>str_pad((string)$m,2,'0',STR_PAD_LEFT)];
   }
 
-  // ===========================
-  // ✅ RANGO DINÁMICO POR ÁREA (solo vendor)
-  // ===========================
   $rangesNumeric = [
     'Fuera de expectativas' => ['min'=>0,        'max'=>200000],
     'Abajo de expectativas' => ['min'=>200000,   'max'=>400000],
@@ -155,7 +150,6 @@ if($qMode === 'vendor') $qMode = 'total';
     'Redefiniendo expectativas' => ['min'=>1500000, 'max'=>2500000],
   ];
 
-  // ========== SERIES (vendor o total) ==========
   $series = [];
 
   if($qMode === 'vendor'){
@@ -199,33 +193,27 @@ if($qMode === 'vendor') $qMode = 'total';
     $chartSub = 'Mes con mes (MXN)';
 
   } else {
-    // ✅ TOTAL EMPRESA: simula un total/avg mes con mes
-    // Base = suma de promedios (aprox) + variación determinística por mes
     $baseSum = 0;
     foreach($ranking as $r){
       $baseSum += $toIntMoney($r['promedio'] ?? '$0');
     }
 
-    // Normalizamos a un "promedio empresa" mensual
-    // (puedes cambiar a suma total real si luego conectas BC)
-    $baseCompany = (int) round($baseSum / max(1, count($ranking)) * count($ranking)); // equivalente a suma de promedios
+    $baseCompany = (int) round($baseSum / max(1, count($ranking)) * count($ranking));
 
-    // Seed global
     $seed = abs((int)crc32('VENTAS_TOTALES_EMPRESA'));
 
     foreach($monthKeys as $i => $ym){
       $t = ($seed + ($ym['y']*100) + (int)$ym['m']*29 + $i*137);
-      $noise = ($t % 1000) / 1000;         // 0..1
-      $season = sin(($i+1) * 0.45) * 0.10; // +-10%
-      $drift  = cos(($i+1) * 0.22) * 0.06; // +-6%
+      $noise = ($t % 1000) / 1000;
+      $season = sin(($i+1) * 0.45) * 0.10;
+      $drift  = cos(($i+1) * 0.22) * 0.06;
 
-      $val = $baseCompany * (0.88 + 0.24*$noise); // 88%..112%
+      $val = $baseCompany * (0.88 + 0.24*$noise);
       $val = $val * (1 + $season + $drift);
 
       $series[] = (int) max(0, $val);
     }
 
-    // Para total, eje Y automático con padding
     $minSeries = min($series);
     $maxSeries = max($series);
     $pad = max(1, (int)(($maxSeries - $minSeries) * 0.18));
@@ -238,9 +226,6 @@ if($qMode === 'vendor') $qMode = 'total';
     $chartSub = 'Mes con mes (MXN)';
   }
 
-  // ===========================
-  // ✅ SVG BASE
-  // ===========================
   $minV = min($series);
   $maxV = max($series);
 
@@ -288,6 +273,15 @@ if($qMode === 'vendor') $qMode = 'total';
   foreach($monthKeys as $ym){
     $xLabels[] = ($monthLabel[$ym['m']] ?? $ym['m']) . ' ' . substr((string)$ym['y'], -2);
   }
+
+  // ✅ Labels para TOP5 (estilo imagen)
+  $top5Badges = [
+    1 => ['p'=>'P1','tag'=>'LEADER'],
+    2 => ['p'=>'P2','tag'=>'CHALLENGER'],
+    3 => ['p'=>'P3','tag'=>'ON FIRE'],
+    4 => ['p'=>'P4','tag'=>'CONSISTENT'],
+    5 => ['p'=>'P5','tag'=>'ROOKIE'],
+  ];
 @endphp
 
 <style>
@@ -356,7 +350,6 @@ if($qMode === 'vendor') $qMode = 'total';
     gap: 12px;
   }
 
-  /* ✅ Toggle modo */
   .rk-viewToggle{
     display:flex;
     gap:10px;
@@ -569,6 +562,223 @@ if($qMode === 'vendor') $qMode = 'total';
     border-top: 1px solid rgba(15,23,42,.07);
     color: rgba(15,23,42,.92);
   }
+
+  /* ===========================
+     ✅ TOP 5 (IGUAL AL MOCK)
+     =========================== */
+
+  /* wrapper para que no pegue con el card */
+  .rk-top5-panel{
+    padding: 14px;
+  }
+
+  .rk-top5-wrap{
+    position: relative;
+    padding: 16px 16px 18px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.12);
+    background:
+      radial-gradient(900px 320px at 30% 0%, rgba(255,255,255,.10), transparent 60%),
+      linear-gradient(180deg, rgba(31,41,55,.98) 0%, rgba(2,6,23,.96) 70%, rgba(2,6,23,.94) 100%);
+    color:#fff;
+    box-shadow: 0 18px 60px rgba(0,0,0,.28);
+    overflow:hidden;
+  }
+
+  /* brillo superior como el ejemplo */
+  .rk-top5-wrap:before{
+    content:"";
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    background: linear-gradient(180deg, rgba(255,255,255,.12), transparent 48%);
+    opacity:.95;
+  }
+
+  .rk-top5-head{
+    position: relative;
+    z-index: 1;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .rk-top5-head .left{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    font-weight: 950;
+    letter-spacing: .10em;
+    text-transform: uppercase;
+    font-size: 12px;
+    opacity: .95;
+  }
+
+  .rk-top5-head .left .flag{
+    opacity:.9;
+    transform: translateY(-1px);
+  }
+
+  .rk-top5-head .monthPill{
+    font-weight: 900;
+    font-size: 12px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18);
+    background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+    white-space: nowrap;
+  }
+
+  .rk-top5-list{
+    position: relative;
+    z-index: 1;
+    display:grid;
+    gap: 12px;
+  }
+
+.rk-top5-row{
+  display: grid;
+  grid-template-columns: 140px 1fr auto; /* left | mid | money */
+  align-items: center;
+  gap: 14px;
+}
+
+  /* brillo diagonal del mock */
+  .rk-top5-row:after{
+    content:"";
+    position:absolute;
+    top:-60%;
+    left:-30%;
+    width: 62%;
+    height: 220%;
+    transform: rotate(18deg);
+    background: linear-gradient(90deg, rgba(255,255,255,.18), transparent 70%);
+    opacity:.18;
+    pointer-events:none;
+  }
+
+/* círculo P1..P5 */
+.rk-rankCircle{
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 950;
+  font-size: 12px;
+  letter-spacing: .02em;
+  border: 1px solid rgba(255,255,255,.20);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 10px 18px rgba(0,0,0,.22);
+}
+
+/* cápsula LEADER/CHALLENGER... */
+.rk-tagCapsule{
+  height: 26px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-weight: 950;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,.18);
+  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+  white-space: nowrap;
+  opacity:.95;
+}
+
+
+ /* centro */
+.rk-top5-mid{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* avatar circular (iniciales) */
+.rk-avatarRound{
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 950;
+  font-size: 12px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(255,255,255,.12);
+  box-shadow:
+    0 12px 20px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.10);
+  flex: 0 0 auto;
+}
+
+  .rk-top5-meta{ min-width:0; }
+
+  .rk-top5-name{
+    font-weight: 950;
+    font-size: 13px;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 210px;
+  }
+
+  .rk-top5-sub{
+    margin-top: 3px;
+    font-size: 10.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    opacity: .82;
+    font-weight: 900;
+  }
+
+/* monto */
+.rk-top5-money{
+  font-weight: 950;
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: .96;
+  align-self: center;
+}
+
+  /* Gradientes por posición (como el ejemplo) */
+  .rk-top5-row.pos1{ background: linear-gradient(90deg, rgba(245,158,11,.32) 0%, rgba(255,255,255,.05) 55%); }
+  .rk-top5-row.pos2{ background: linear-gradient(90deg, rgba(59,130,246,.30) 0%, rgba(255,255,255,.05) 55%); }
+  .rk-top5-row.pos3{ background: linear-gradient(90deg, rgba(239,68,68,.30) 0%, rgba(255,255,255,.05) 55%); }
+  .rk-top5-row.pos4{ background: linear-gradient(90deg, rgba(168,85,247,.28) 0%, rgba(255,255,255,.05) 55%); }
+  .rk-top5-row.pos5{ background: linear-gradient(90deg, rgba(16,185,129,.26) 0%, rgba(255,255,255,.05) 55%); }
+
+  /* El círculo P1 con el mismo color dominante */
+  .rk-top5-row.pos1 .rk-rankCircle{ background: rgba(245,158,11,.26); }
+  .rk-top5-row.pos2 .rk-rankCircle{ background: rgba(59,130,246,.24); }
+  .rk-top5-row.pos3 .rk-rankCircle{ background: rgba(239,68,68,.24); }
+  .rk-top5-row.pos4 .rk-rankCircle{ background: rgba(168,85,247,.22); }
+  .rk-top5-row.pos5 .rk-rankCircle{ background: rgba(16,185,129,.20); }
+
+  /* Responsive */
+  @media(max-width: 420px){
+/* izquierda: P1 arriba del tag, centrados */
+.rk-top5-left{
+  display:flex;
+  flex-direction: column;
+  align-items: center;     /* <-- antes start; esto centra como tu referencia */
+  justify-content: center;
+  gap: 6px;
+  min-width: 140px;
+}    .rk-top5-name{ max-width: 160px; }
+  }
 </style>
 
 <div class="rk">
@@ -655,15 +865,6 @@ if($qMode === 'vendor') $qMode = 'total';
 
                   <div>
                     <div class="rk-viewToggle" aria-label="Cambiar vista">
-                        {{-- OCULTO: Ventas por vendedor --}}
-                        {{--
-                        <button type="button"
-                                class="rk-viewBtn {{ $qMode==='vendor' ? 'is-active' : '' }}"
-                                data-mode="vendor">
-                          Ventas por vendedor
-                        </button>
-                        --}}
-
                       <button type="button"
                               class="rk-viewBtn {{ $qMode==='total' ? 'is-active' : '' }}"
                               data-mode="total">
@@ -676,11 +877,9 @@ if($qMode === 'vendor') $qMode = 'total';
 
               <div class="rk-controls">
                 <form method="GET" action="{{ url()->current() }}" id="rkChartForm">
-                  {{-- ✅ clave: este hidden controla el modo en la URL --}}
                   <input type="hidden" name="mode" id="rkMode" value="{{ $qMode }}">
 
                   <div class="rk-controls-row">
-                    {{-- ✅ SOLO si es vendor --}}
                     @if($qMode === 'vendor')
                       <div class="rk-pill">
                         <div class="label">
@@ -807,6 +1006,7 @@ if($qMode === 'vendor') $qMode = 'total';
         {{-- RIGHT: widgets --}}
         <div class="rk-right-col">
 
+          {{-- ✅ FEBRERO --}}
           <div class="rk-card">
             <div class="rk-card-head">
               <div class="rk-mini-head">
@@ -815,35 +1015,41 @@ if($qMode === 'vendor') $qMode = 'total';
               </div>
             </div>
 
-            <div class="rk-scroll">
-              <table class="rk-table">
-                <thead>
-                  <tr>
-                    <th class="rk-num">#</th>
-                    <th>Vendedor</th>
-                    <th>Sucursal</th>
-                    <th style="text-align:right;">Acumulado Mensual</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach($mejoresFeb as $i => $r)
-                    <tr>
-                      <td class="rk-num">{{ $i+1 }}</td>
-                      <td>
-                        <div class="rk-person">
-                          <div class="rk-avatar">{{ $initials($r['name']) }}</div>
-                          <div class="rk-name">{{ mb_strtoupper($r['name']) }}</div>
-                        </div>
-                      </td>
-                      <td class="rk-sucursal">{{ $r['sucursal'] }}</td>
-                      <td class="rk-money">{{ $r['monto'] }}</td>
-                    </tr>
-                  @endforeach
-                </tbody>
-              </table>
-            </div>
+<div class="rk-top5-panel">
+  <div class="rk-top5-head">
+    <div class="left"><span class="flag">🏁</span> TOP 5 DEL MES</div>
+    <div class="monthPill">Enero</div>
+  </div>
+
+  <div class="rk-top5-list">
+    @foreach($mejoresEne as $i => $r)
+      @php
+        $pos = $i + 1;
+        $b = $top5Badges[$pos] ?? ['p'=>"P{$pos}", 'tag'=>'TOP'];
+      @endphp
+
+      <div class="rk-top5-row pos{{ $pos }}">
+        <div class="rk-top5-left">
+          <div class="rk-rankCircle">{{ $b['p'] }}</div>
+          <div class="rk-tagCapsule">{{ $b['tag'] }}</div>
+        </div>
+
+        <div class="rk-top5-mid">
+          <div class="rk-avatarRound">{{ $initials($r['name']) }}</div>
+          <div class="rk-top5-meta">
+            <div class="rk-top5-name">{{ $r['name'] }}</div>
+            <div class="rk-top5-sub">{{ $r['sucursal'] }}</div>
+          </div>
+        </div>
+
+        <div class="rk-top5-money">{{ $r['monto'] }}</div>
+      </div>
+    @endforeach
+  </div>
+</div>
           </div>
 
+          {{-- ✅ ENERO (TOP 5 estilo tarjeta) --}}
           <div class="rk-card">
             <div class="rk-card-head">
               <div class="rk-mini-head">
@@ -852,35 +1058,42 @@ if($qMode === 'vendor') $qMode = 'total';
               </div>
             </div>
 
-            <div class="rk-scroll">
-              <table class="rk-table">
-                <thead>
-                  <tr>
-                    <th class="rk-num">#</th>
-                    <th>Vendedor</th>
-                    <th>Sucursal</th>
-                    <th style="text-align:right;">Acumulado Mensual</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach($mejoresEne as $i => $r)
-                    <tr>
-                      <td class="rk-num">{{ $i+1 }}</td>
-                      <td>
-                        <div class="rk-person">
-                          <div class="rk-avatar">{{ $initials($r['name']) }}</div>
-                          <div class="rk-name">{{ mb_strtoupper($r['name']) }}</div>
-                        </div>
-                      </td>
-                      <td class="rk-sucursal">{{ $r['sucursal'] }}</td>
-                      <td class="rk-money">{{ $r['monto'] }}</td>
-                    </tr>
-                  @endforeach
-                </tbody>
-              </table>
+            <div class="rk-top5-wrap">
+              <div class="rk-top5-head">
+                <div class="left"><span class="flag">🏁</span> TOP 5 DEL MES</div>
+                <div class="monthPill">Enero</div>
+              </div>
+
+              <div class="rk-top5-list">
+                @foreach($mejoresEne as $i => $r)
+                  @php
+                    $pos = $i+1;
+                    $b = $top5Badges[$pos] ?? ['p'=>"P{$pos}", 'tag'=>'TOP'];
+                  @endphp
+
+                  <div class="rk-top5-row pos{{ $pos }}">
+                    <div class="rk-top5-left">
+                      <div class="rk-rankCircle">{{ $b['p'] }}</div>
+                      <div class="rk-tagCapsule">{{ $b['tag'] }}</div>
+                    </div>
+
+                    <div class="rk-top5-mid">
+                      <div class="rk-avatarRound">{{ $initials($r['name']) }}</div>
+
+                      <div class="rk-top5-meta">
+                        <div class="rk-top5-name">{{ $r['name'] }}</div>
+                        <div class="rk-top5-sub">{{ $r['sucursal'] }}</div>
+                      </div>
+                    </div>
+
+                    <div class="rk-top5-money">{{ $r['monto'] }}</div>
+                  </div>
+                @endforeach
+              </div>
             </div>
           </div>
 
+          {{-- RANGOS (igual) --}}
           <div class="rk-card">
             <div class="rk-card-head">
               <div class="title">Rangos</div>
@@ -930,7 +1143,6 @@ if($qMode === 'vendor') $qMode = 'total';
         var url = new URL(window.location.href);
         var fd = new FormData(form);
 
-        // Limpia params previos del chart
         ['mode','vendor','from_year','from_month','to_year','to_month'].forEach(function(k){
           url.searchParams.delete(k);
         });
@@ -941,7 +1153,6 @@ if($qMode === 'vendor') $qMode = 'total';
           }
         });
 
-        // Si mode=total, NO mandes vendor
         if(url.searchParams.get('mode') === 'total'){
           url.searchParams.delete('vendor');
         }
@@ -980,8 +1191,6 @@ if($qMode === 'vendor') $qMode = 'total';
           }
 
           window.scrollTo(0, currentY);
-
-          // ✅ re-bindea eventos
           bindChartHandlers();
 
         }catch(e){
@@ -994,7 +1203,6 @@ if($qMode === 'vendor') $qMode = 'total';
         }
       }
 
-      // ✅ autosubmit para selects
       form.querySelectorAll('[data-autosubmit]').forEach(function(el){
         el.onchange = null;
       });
@@ -1005,7 +1213,6 @@ if($qMode === 'vendor') $qMode = 'total';
         });
       });
 
-      // ✅ Toggle modo (vendor / total)
       var modeInput = document.getElementById('rkMode');
 
       document.querySelectorAll('[data-mode]').forEach(function(btn){
@@ -1016,12 +1223,10 @@ if($qMode === 'vendor') $qMode = 'total';
           var nextMode = btn.getAttribute('data-mode') || 'vendor';
           modeInput.value = nextMode;
 
-          // UI active
           document.querySelectorAll('[data-mode]').forEach(function(b){
             b.classList.toggle('is-active', b.getAttribute('data-mode') === nextMode);
           });
 
-          // Si es total, limpia vendor visualmente y en la URL
           if(nextMode === 'total'){
             var vendorSel = form.querySelector('select[name="vendor"]');
             if(vendorSel) vendorSel.value = '';
