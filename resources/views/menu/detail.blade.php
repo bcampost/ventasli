@@ -101,26 +101,26 @@
         @endif
       </div>
 
-        @if(isset($products) && $products->count())
-          <div class="pd-grid">
-            @foreach($products as $prod)
-              <a class="pd-tile"
-                href="{{ route('menu.product.show', ['menu_product' => $prod->id]) }}"
-                style="text-decoration:none;color:inherit;display:block;">
-                <div class="pd-img">
-                  @if($prod->image_path)
-                    <img src="{{ asset('storage/'.ltrim($prod->image_path,'/')) }}" alt="{{ $prod->title }}">
-                  @else
-                    <img
-                      src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='700'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='34' font-family='Arial'%3ESin%20imagen%3C/text%3E%3C/svg%3E"
-                      alt="Sin imagen">
-                  @endif
-                </div>
-                <div class="pd-tt">{{ $prod->title }}</div>
-              </a>
-            @endforeach
-          </div>
-        @else
+          @if(isset($products) && $products->count())
+            <div class="pd-grid">
+              @foreach($products as $prod)
+                <a class="pd-tile"
+                  href="{{ route('menu.product.show', $prod) }}"
+                  style="text-decoration:none; color:inherit;">
+                  <div class="pd-img">
+                    @if($prod->image_path)
+                      <img src="{{ asset('storage/'.ltrim($prod->image_path,'/')) }}" alt="{{ $prod->title }}">
+                    @else
+                      <img
+                        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='700'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='34' font-family='Arial'%3ESin%20imagen%3C/text%3E%3C/svg%3E"
+                        alt="Sin imagen">
+                    @endif
+                  </div>
+                  <div class="pd-tt">{{ $prod->title }}</div>
+                </a>
+              @endforeach
+            </div>
+          @else
         <div class="pd-empty-products">No hay productos en este nivel.</div>
       @endif
 

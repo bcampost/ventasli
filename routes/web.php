@@ -13,10 +13,7 @@ use App\Http\Controllers\Admin\MenuNodeController;
 use App\Http\Controllers\Admin\MenuProductController;
 use App\Http\Controllers\Admin\FooterLinkController;
 
-// PDFs Lista de precios
 use App\Http\Controllers\Admin\PriceListPdfController;
-
-// Subida de videos capacitaciones
 use App\Http\Controllers\Admin\TrainingMediaController;
 
 use App\Http\Controllers\Admin\MenuHeroController;
@@ -25,6 +22,8 @@ use App\Http\Controllers\Admin\MenuHeroController;
 use App\Http\Controllers\MenuProductPublicController;
 use App\Http\Controllers\Admin\MenuProductDetailController;
 
+// ✅ NUEVO: editor SOLO de colores
+use App\Http\Controllers\Admin\MenuProductVariantColorsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,17 +36,15 @@ Route::get('/', function () {
         : redirect()->route('login');
 });
 
-
 /*
 |--------------------------------------------------------------------------
-| BUSCADOR GLOBAL (NUEVO)
+| BUSCADOR GLOBAL
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
     Route::get('/buscar', [GlobalSearchController::class, 'index'])
         ->name('search.global');
 });
-
 
 /*
 |--------------------------------------------------------------------------
@@ -56,17 +53,15 @@ Route::middleware(['auth'])->group(function () {
 */
 Route::middleware(['auth'])->group(function () {
 
-    // Dashboard (Breeze)
     Route::get('/dashboard', function () {
         return redirect()->route('home');
     })->name('dashboard');
 
-    // HOME real
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     /*
     |--------------------------------------------------------------------------
-    | MENU (CLICK -> pantalla de cards)
+    | MENU
     |--------------------------------------------------------------------------
     */
     Route::get('/menu/{sectionSlug}/{path?}', [MenuController::class, 'show'])
@@ -75,25 +70,20 @@ Route::middleware(['auth'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | ✅ DETALLE PÚBLICO DE PRODUCTO (NUEVO)
+    | ✅ DETALLE PÚBLICO DE PRODUCTO
     |--------------------------------------------------------------------------
     */
     Route::get('/producto/{menu_product}', [MenuProductPublicController::class, 'show'])
         ->name('menu.product.show');
 
-
     /*
     |--------------------------------------------------------------------------
-    | ADMIN (rol: admin)
+    | ADMIN
     |--------------------------------------------------------------------------
     */
     Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {
 
-        /*
-        |--------------------------------------------------------------------------
-        | MENU SUPERIOR (DB) - Editor
-        |--------------------------------------------------------------------------
-        */
+        // MENU SUPERIOR (DB)
         Route::get('/menu', [MenuNodeController::class, 'index'])->name('menu.index');
 
         Route::get('/menu/children/{menu_node}', [MenuNodeController::class, 'children'])
@@ -107,7 +97,6 @@ Route::middleware(['auth'])->group(function () {
 
         Route::delete('/menu/{menu_node}', [MenuNodeController::class, 'destroy'])
             ->name('menu.destroy');
-
 
         /*
         |--------------------------------------------------------------------------
@@ -126,10 +115,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/menu-products/{menu_product}', [MenuProductController::class, 'destroy'])
             ->name('menu-products.destroy');
 
-
         /*
         |--------------------------------------------------------------------------
-        | ✅ Editor de DETALLE de producto (NUEVO)
+        | ✅ ASIGNACIÓN de imágenes + detalle (NO edita colores)
         |--------------------------------------------------------------------------
         */
         Route::get('/product-details/{menu_product}/edit', [MenuProductDetailController::class, 'edit'])
@@ -138,10 +126,20 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/product-details/{menu_product}', [MenuProductDetailController::class, 'update'])
             ->name('product-details.update');
 
+        /*
+        |--------------------------------------------------------------------------
+        | ✅ Editor SOLO de colores (Acero/Melamina)
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/product-variants/{menu_product}/colors', [MenuProductVariantColorsController::class, 'edit'])
+            ->name('product-variants.colors.edit');
+
+        Route::put('/product-variants/{menu_product}/colors', [MenuProductVariantColorsController::class, 'update'])
+            ->name('product-variants.colors.update');
 
         /*
         |--------------------------------------------------------------------------
-        | Menu Cards (imagenes / metadata)
+        | Menu Cards
         |--------------------------------------------------------------------------
         */
         Route::get('/menu-cards', [MenuCardImageController::class, 'index'])
@@ -162,10 +160,9 @@ Route::middleware(['auth'])->group(function () {
             ->where('token', '[A-Za-z0-9\-_]+')
             ->name('menu-cards.destroy');
 
-
         /*
         |--------------------------------------------------------------------------
-        | ✅ HERO / SLIDER por producto-nivel (editor)
+        | HERO / SLIDER por nivel
         |--------------------------------------------------------------------------
         */
         Route::get('/menu-hero/{token}/edit', [MenuHeroController::class, 'edit'])
@@ -176,18 +173,16 @@ Route::middleware(['auth'])->group(function () {
             ->where('token', '[A-Za-z0-9\-_]+')
             ->name('menu-hero.update');
 
-
         /*
         |--------------------------------------------------------------------------
-        | Slides (CRUD)
+        | Slides
         |--------------------------------------------------------------------------
         */
         Route::resource('slides', SlideController::class)->except(['show']);
 
-
         /*
         |--------------------------------------------------------------------------
-        | Quick Links (CRUD)
+        | Quick Links
         |--------------------------------------------------------------------------
         */
         Route::get('/quick-links', [QuickLinkController::class, 'index'])
@@ -205,10 +200,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/quick-links/{quickLink}', [QuickLinkController::class, 'destroy'])
             ->name('quick-links.destroy');
 
-
         /*
         |--------------------------------------------------------------------------
-        | Footer Links (Admin)
+        | Footer Links
         |--------------------------------------------------------------------------
         */
         Route::put('/footer-links/{footer_link}', [FooterLinkController::class, 'update'])
@@ -216,7 +210,6 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/footer-links/{footer_link}/upload', [FooterLinkController::class, 'upload'])
             ->name('footer-links.upload');
-
 
         /*
         |--------------------------------------------------------------------------
@@ -229,7 +222,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/price-list-pdfs/{menu_node}', [PriceListPdfController::class, 'upload'])
             ->name('price-list-pdfs.upload');
 
-
         /*
         |--------------------------------------------------------------------------
         | Upload videos capacitaciones
@@ -237,9 +229,7 @@ Route::middleware(['auth'])->group(function () {
         */
         Route::post('/training-media/upload', [TrainingMediaController::class, 'upload'])
             ->name('training-media.upload');
-
     });
-
 });
 
 require __DIR__ . '/auth.php';

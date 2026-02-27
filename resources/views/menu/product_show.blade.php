@@ -2,21 +2,39 @@
 
 @section('content')
 @php
-  $isAdmin = auth()->check() && method_exists(auth()->user(),'hasRole') && auth()->user()->hasRole('admin');
+  $user = auth()->user();
+  $isAdmin = auth()->check() && method_exists($user, 'hasRole') && $user->hasRole('admin');
 
-  $imgs = is_array($detail->images) ? $detail->images : (json_decode((string)$detail->images, true) ?: []);
-  $imgs = array_values(array_filter($imgs, fn($p)=>trim((string)$p)!==''));
+  $mainImg = $product->image_path ? asset('storage/'.ltrim($product->image_path,'/')) : null;
 
-  $imgUrls = array_map(fn($p)=>asset('storage/'.ltrim($p,'/')), $imgs);
+  $aceroColors = is_array($detail->acero_colors ?? null) ? $detail->acero_colors : (json_decode((string)($detail->acero_colors ?? ''), true) ?: []);
+  $melaColors  = is_array($detail->melamina_colors ?? null) ? $detail->melamina_colors : (json_decode((string)($detail->melamina_colors ?? ''), true) ?: []);
 
-  $title = $detail->title ?: ($product->title ?? 'Producto');
-  $desc  = trim((string)($detail->description ?? ''));
-  $desc  = $desc !== '' ? $desc : 'Sin descripción.';
+  $aceroColors = array_values(array_filter(array_map('trim', $aceroColors)));
+  $melaColors  = array_values(array_filter(array_map('trim', $melaColors)));
 
-  $acero = $detail->acero_colors ?: [];
-  $mela  = $detail->melamina_colors ?: [];
+  $galleryArr = $detail->images_safe ?? [];
+  $galleryArr = is_array($galleryArr) ? $galleryArr : [];
 
-  $heroDefault = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='900'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='44' font-family='Arial'%3ESin%20imagen%3C/text%3E%3C/svg%3E";
+  $payload = [
+    'id' => $product->id,
+    'title' => $product->title,
+    'main' => $mainImg,
+    'acero' => $aceroColors,
+    'melamina' => $melaColors,
+    'gallery' => array_values(array_filter(array_map(function($it){
+      if(!is_array($it)) return null;
+      $p = trim((string)($it['path'] ?? ''));
+      if($p==='') return null;
+
+      return [
+        'url' => asset('storage/'.ltrim($p,'/')),
+        'path' => ltrim($p,'/'),
+        'acero' => trim((string)($it['acero'] ?? '')),
+        'melamina' => trim((string)($it['melamina'] ?? '')),
+      ];
+    }, $galleryArr))),
+  ];
 @endphp
 
 <style>
@@ -24,280 +42,256 @@
     --ink:#0b1220;
     --line:rgba(15,23,42,.12);
     --line2:rgba(15,23,42,.18);
-    --shadowXL: 0 30px 90px rgba(2,6,23,.22);
-    --shadowM: 0 12px 30px rgba(15,23,42,.10);
-    --rXL: 26px;
+    --shadowM: 0 12px 26px rgba(2,6,23,.08);
+    --rXL: 22px;
+    --primary:#2563eb;
   }
+  .pd-wrap{ max-width: 1280px; margin: 22px auto; padding: 0 18px; }
+  .pd-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+  .pd-title{ font-weight:950; font-size:22px; color:var(--ink); letter-spacing:-.02em; }
+  .pd-sub{ margin-top:4px; font-weight:750; color:rgba(15,23,42,.62); }
 
-  .pd-wrap{ max-width: 1220px; margin: 22px auto; padding: 0 18px 40px; }
-  .pd-topbar{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; }
-  .pd-back{
-    display:inline-flex; align-items:center; gap:10px;
-    padding: .62rem .92rem; border-radius: 999px;
-    background:#fff; border:1px solid var(--line);
-    text-decoration:none; color:var(--ink); font-weight:900;
-    box-shadow: var(--shadowM);
-  }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.55rem; font-weight:900; border-radius:16px; padding:.72rem .92rem; font-size:.86rem; border:1px solid transparent; text-decoration:none; }
+  .btn-ghost{ background:#fff; border-color: var(--line); color: var(--ink); }
+  .btn-primary{ background: linear-gradient(180deg, rgba(37,99,235,1), rgba(29,78,216,1)); color:#fff; box-shadow: 0 14px 30px rgba(37,99,235,.22); }
 
-  .pd-shell{
-    display:grid;
-    grid-template-columns: 1.35fr .85fr;
-    gap: 16px;
-    align-items:start;
-  }
+  .layout{ display:grid; grid-template-columns: 1.9fr 1fr; gap:16px; align-items:start; }
+  @media(max-width:980px){ .layout{ grid-template-columns:1fr; } }
 
-  @media (max-width: 980px){
-    .pd-shell{ grid-template-columns: 1fr; }
-  }
+  .card{ border:1px solid var(--line); border-radius: var(--rXL); background:#fff; box-shadow: var(--shadowM); overflow:hidden; }
+  .card-head{ padding:14px 16px; border-bottom:1px solid rgba(15,23,42,.08); display:flex; align-items:center; justify-content:space-between; gap:10px; background: rgba(255,255,255,.78); }
+  .h{ font-weight:950; color:var(--ink); }
+  .muted{ font-weight:900; color:rgba(15,23,42,.6); }
 
-  /* IZQUIERDA: thumbnails arriba + imagen grande */
-  .pd-left{
-    border-radius: var(--rXL);
-    background:#fff;
-    border:1px solid var(--line);
-    box-shadow: var(--shadowXL);
-    overflow:hidden;
-  }
+  .media{ position:relative; background:#f3f4f6; overflow:hidden; }
+  .media-frame{ width:100%; aspect-ratio:21/10; display:flex; align-items:center; justify-content:center; background:#fff; }
+  .media-frame img{ width:100%; height:100%; object-fit:contain; display:block; background:#fff; }
+  .media-empty{ padding:52px 18px; color:#94a3b8; font-weight:950; }
+  .nav{ position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:999px; background:rgba(255,255,255,.92); border:1px solid rgba(15,23,42,.18); font-size:24px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 16px 34px rgba(2,6,23,.16); user-select:none; }
+  .nav.prev{ left:12px; } .nav.next{ right:12px; }
 
-  .pd-thumbs{
-    padding: 12px;
-    display:flex;
-    gap:10px;
-    overflow:auto;
-    border-bottom: 1px solid rgba(15,23,42,.08);
-    background: rgba(248,250,252,.75);
-  }
+  .thumbs{ display:flex; gap:10px; padding:12px 14px; border-top:1px solid rgba(15,23,42,.08); overflow:auto; background: rgba(15,23,42,.015); }
+  .th{ width:98px; aspect-ratio:16/10; border-radius:12px; border:1px solid rgba(15,23,42,.14); overflow:hidden; background:#fff; cursor:pointer; flex:0 0 auto; }
+  .th img{ width:100%; height:100%; object-fit:contain; display:block; }
+  .th.is-active{ outline:4px solid rgba(37,99,235,.22); border-color: rgba(37,99,235,.45); }
 
-  .pd-thumb{
-    width:84px;
-    height:58px;
-    border-radius: 14px;
-    border:1px solid rgba(15,23,42,.14);
-    overflow:hidden;
-    background:#fff;
-    cursor:pointer;
-    flex: 0 0 auto;
-    opacity:.85;
-    transition: transform .15s ease, opacity .15s ease, border-color .15s ease;
-  }
-  .pd-thumb:hover{ transform: translateY(-1px); opacity:1; border-color: rgba(15,23,42,.22); }
-  .pd-thumb.active{ opacity:1; border-color: rgba(37,99,235,.55); box-shadow: 0 0 0 5px rgba(37,99,235,.14); }
-  .pd-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .info{ padding:14px 16px; }
+  .k{ font-weight:950; color:var(--ink); }
+  .chips{ margin-top:10px; display:flex; flex-wrap:wrap; gap:10px; }
+  .chip{ padding:8px 12px; border-radius:999px; border:1px solid rgba(15,23,42,.14); background:rgba(255,255,255,.92); font-weight:900; font-size:12.5px; cursor:pointer; user-select:none; }
+  .chip.is-on{ border-color: rgba(37,99,235,.55); box-shadow: 0 0 0 6px rgba(37,99,235,.14); }
+  .hint{ margin-top:10px; font-weight:750; color: rgba(15,23,42,.62); font-size:12.5px; line-height:1.35; }
 
-  .pd-stage{
-    position:relative;
-    background: #fff;
-  }
-
-  .pd-stage-inner{
-    aspect-ratio: 21/9;
-    background:#f3f4f6;
-    overflow:hidden;
-    position:relative;
-  }
-
-  .pd-stage-inner img{
-    width:100%;
-    height:100%;
-    object-fit: cover; /* ✅ estilo tipo web (banner) */
-    object-position: center;
-    display:block;
-  }
-
-  .pd-nav{
-    position:absolute;
-    top:50%;
-    transform: translateY(-50%);
-    width:54px; height:54px;
-    border-radius: 999px;
-    background: rgba(255,255,255,.95);
-    border: 1px solid rgba(15,23,42,.18);
-    box-shadow: 0 14px 28px rgba(2,6,23,.16);
-    cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
-    font-size: 26px; font-weight: 900;
-    user-select:none;
-  }
-  .pd-nav.prev{ left: 14px; }
-  .pd-nav.next{ right: 14px; }
-
-  .pd-edit-fab{
-    position:absolute;
-    top: 14px;
-    right: 14px;
-    width:46px; height:46px;
-    border-radius:999px;
-    background: rgba(255,255,255,.95);
-    border:1px solid rgba(15,23,42,.18);
-    box-shadow: 0 14px 28px rgba(2,6,23,.16);
-    display:flex; align-items:center; justify-content:center;
-    text-decoration:none;
-    color: var(--ink);
-    font-weight: 950;
-    z-index: 5;
-  }
-
-  /* DERECHA: panel info */
-  .pd-right{
-    border-radius: var(--rXL);
-    background:#fff;
-    border:1px solid var(--line);
-    box-shadow: var(--shadowXL);
-    overflow:hidden;
-  }
-
-  .pd-rhead{
-    padding: 16px 16px 12px;
-    border-bottom: 1px solid rgba(15,23,42,.08);
-  }
-  .pd-title{ font-size: 22px; font-weight: 950; letter-spacing:-.02em; }
-  .pd-desc{ margin-top: 8px; color: rgba(15,23,42,.68); font-weight: 650; line-height:1.35; }
-
-  .pd-sec{ padding: 14px 16px; border-top: 1px solid rgba(15,23,42,.08); }
-  .pd-sec h4{ margin:0 0 10px; font-size: 14px; font-weight: 950; color: rgba(15,23,42,.78); }
-
-  .pd-measures{
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-  .pd-m{
-    border-radius: 14px;
-    border:1px solid rgba(15,23,42,.14);
-    background: rgba(248,250,252,.75);
-    padding: 10px 10px;
-  }
-  .pd-m small{ display:block; opacity:.7; font-weight:900; }
-  .pd-m b{ display:block; font-size: 18px; margin-top: 3px; }
-
-  .pd-pills{ display:flex; gap:8px; flex-wrap:wrap; }
-  .pill{
-    display:inline-flex; align-items:center;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border:1px solid rgba(15,23,42,.14);
-    background: rgba(248,250,252,.85);
-    font-weight: 900;
-    color: rgba(15,23,42,.78);
-    font-size: 12.5px;
-  }
+  .specbox{ padding:14px 16px; display:grid; gap:10px; }
+  .specgrid{ display:grid; grid-template-columns: repeat(3,1fr); gap:10px; }
+  @media(max-width:980px){ .specgrid{ grid-template-columns:1fr; } }
+  .spec{ border:1px solid rgba(15,23,42,.10); border-radius:14px; padding:12px; background: rgba(15,23,42,.02); }
+  .lab{ font-size:12px; font-weight:950; color:rgba(15,23,42,.55); }
+  .val{ margin-top:6px; font-weight:950; color:var(--ink); }
+  .desc{ padding:14px 16px; color:rgba(15,23,42,.78); font-weight:650; line-height:1.35; }
 </style>
 
 <div class="pd-wrap">
-  <div class="pd-topbar">
-    <a class="pd-back" href="{{ $redirectTo }}">← Volver</a>
-    {{-- aquí podrías poner un botón extra si quieres --}}
+  <div class="pd-top">
+    <div>
+      <div class="pd-title">{{ $product->title }}</div>
+      <div class="pd-sub">Detalle del producto</div>
+    </div>
+
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <a class="btn btn-ghost" href="{{ $redirectTo }}">← Volver</a>
+
+      @if($isAdmin)
+        <a class="btn btn-ghost"
+           href="{{ route('admin.product-variants.colors.edit', ['menu_product' => $product->id, 'redirect_to' => url()->current()]) }}">
+          🎨 Editar colores
+        </a>
+
+        <a class="btn btn-primary"
+           href="{{ route('admin.product-details.edit', ['menu_product' => $product->id, 'redirect_to' => url()->current()]) }}">
+          ✎ Asignar imágenes
+        </a>
+      @endif
+    </div>
   </div>
 
-  <div class="pd-shell">
-
-    {{-- IZQ --}}
-    <div class="pd-left">
-      <div class="pd-thumbs" id="pdThumbs">
-        @if(count($imgUrls))
-          @foreach($imgUrls as $i => $u)
-            <div class="pd-thumb {{ $i===0?'active':'' }}" data-idx="{{ $i }}">
-              <img src="{{ $u }}" alt="">
-            </div>
-          @endforeach
-        @else
-          <div class="pd-thumb active" data-idx="0">
-            <img src="{{ $heroDefault }}" alt="">
-          </div>
-        @endif
+  <div class="layout">
+    <div class="card">
+      <div class="card-head">
+        <div class="h">Galería</div>
+        <div class="muted" id="pdFilterLabel">Sin filtros</div>
       </div>
 
-      <div class="pd-stage">
-        @if($isAdmin)
-          <a class="pd-edit-fab"
-             href="{{ route('admin.product-details.edit', ['menu_product'=>$product->id, 'redirect_to'=>url()->current()]) }}"
-             title="Editar producto">✎</a>
-        @endif
-
-        <div class="pd-stage-inner">
-          <img id="pdMainImg"
-               src="{{ count($imgUrls) ? $imgUrls[0] : $heroDefault }}"
-               alt="">
-          @if(count($imgUrls) > 1)
-            <div class="pd-nav prev" id="pdPrev">‹</div>
-            <div class="pd-nav next" id="pdNext">›</div>
+      <div class="media">
+        <div class="media-frame">
+          @if($mainImg)
+            <img id="pdMainImg" src="{{ $mainImg }}" alt="{{ $product->title }}">
+          @else
+            <div class="media-empty">Sin imagen principal</div>
           @endif
         </div>
+
+        <button type="button" class="nav prev" id="pdPrev" style="display:none;">‹</button>
+        <button type="button" class="nav next" id="pdNext" style="display:none;">›</button>
       </div>
+
+      <div class="thumbs" id="pdThumbs"></div>
     </div>
 
-    {{-- DER --}}
-    <div class="pd-right">
-      <div class="pd-rhead">
-        <div class="pd-title">{{ $title }}</div>
-        <div class="pd-desc">{{ $desc }}</div>
+    <div class="card">
+      <div class="card-head">
+        <div class="h">Variantes</div>
+        <div class="muted">Acero + Melamina</div>
       </div>
 
-      <div class="pd-sec">
-        <h4>Medidas</h4>
-        <div class="pd-measures">
-          <div class="pd-m"><small>Largo</small><b>{{ $detail->largo ?: '—' }}</b></div>
-          <div class="pd-m"><small>Ancho</small><b>{{ $detail->ancho ?: '—' }}</b></div>
-          <div class="pd-m"><small>Alto</small><b>{{ $detail->alto  ?: '—' }}</b></div>
+      <div class="info">
+        <div class="k">Acero</div>
+        <div class="chips" id="chipsA"></div>
+
+        <div class="k" style="margin-top:14px;">Melamina</div>
+        <div class="chips" id="chipsM"></div>
+
+        <div class="hint">
+          Si eliges <b>Acero</b> + <b>Melamina</b>, se mostrarán solo las imágenes asignadas a esa combinación.
         </div>
       </div>
 
-      <div class="pd-sec">
-        <h4>Colores de Acero</h4>
-        <div class="pd-pills">
-          @if(count($acero))
-            @foreach($acero as $c)
-              <span class="pill">{{ $c }}</span>
-            @endforeach
-          @else
-            <span class="pill">—</span>
-          @endif
+      <div style="border-top:1px solid rgba(15,23,42,.08);"></div>
+
+      <div class="specbox">
+        <div class="k">Ficha técnica</div>
+        <div class="specgrid">
+          <div class="spec"><div class="lab">Largo</div><div class="val">{{ $detail->length ?: '—' }}</div></div>
+          <div class="spec"><div class="lab">Ancho</div><div class="val">{{ $detail->width ?: '—' }}</div></div>
+          <div class="spec"><div class="lab">Alto</div><div class="val">{{ $detail->height ?: '—' }}</div></div>
         </div>
       </div>
 
-      <div class="pd-sec">
-        <h4>Colores de Melamina</h4>
-        <div class="pd-pills">
-          @if(count($mela))
-            @foreach($mela as $c)
-              <span class="pill">{{ $c }}</span>
-            @endforeach
-          @else
-            <span class="pill">—</span>
-          @endif
-        </div>
+      <div style="border-top:1px solid rgba(15,23,42,.08);"></div>
+
+      <div class="desc">
+        <div class="k" style="margin-bottom:6px;">Descripción</div>
+        {{ $detail->description ?: ($product->description ?: 'Sin descripción.') }}
       </div>
     </div>
-
   </div>
 </div>
 
 <script>
-(function(){
-  const urls = @json($imgUrls);
-  if(!urls || urls.length <= 1) return;
+  window.PROD = @json($payload);
 
-  let idx = 0;
+  (function(){
+    const acero = window.PROD.acero || [];
+    const melamina = window.PROD.melamina || [];
+    const gallery = window.PROD.gallery || [];
 
-  const main = document.getElementById('pdMainImg');
-  const thumbs = Array.from(document.querySelectorAll('#pdThumbs .pd-thumb'));
+    let selA = '';
+    let selM = '';
+    let base = [];
+    let idx = 0;
 
-  function setActive(i){
-    idx = Math.max(0, Math.min(urls.length - 1, i));
-    main.src = urls[idx];
+    const chipsA = document.getElementById('chipsA');
+    const chipsM = document.getElementById('chipsM');
+    const thumbs = document.getElementById('pdThumbs');
+    const mainImg = document.getElementById('pdMainImg');
+    const prev = document.getElementById('pdPrev');
+    const next = document.getElementById('pdNext');
+    const filterLabel = document.getElementById('pdFilterLabel');
 
-    thumbs.forEach(t => t.classList.remove('active'));
-    const t = thumbs.find(x => Number(x.dataset.idx) === idx);
-    if(t) t.classList.add('active');
-  }
+    function chip(label, on){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip' + (on ? ' is-on' : '');
+      b.textContent = label;
+      return b;
+    }
 
-  thumbs.forEach(t => {
-    t.addEventListener('click', () => setActive(Number(t.dataset.idx)));
-  });
+    function renderChips(){
+      chipsA.innerHTML = '';
+      chipsM.innerHTML = '';
 
-  document.getElementById('pdPrev')?.addEventListener('click', () => setActive(idx - 1));
-  document.getElementById('pdNext')?.addEventListener('click', () => setActive(idx + 1));
-})();
+      const allA = chip('Todos', selA==='');
+      allA.onclick = ()=>{ selA=''; apply(); renderChips(); };
+      chipsA.appendChild(allA);
+
+      acero.forEach(c=>{
+        const b = chip(c, selA===c);
+        b.onclick = ()=>{ selA = (selA===c) ? '' : c; apply(); renderChips(); };
+        chipsA.appendChild(b);
+      });
+
+      const allM = chip('Todos', selM==='');
+      allM.onclick = ()=>{ selM=''; apply(); renderChips(); };
+      chipsM.appendChild(allM);
+
+      melamina.forEach(c=>{
+        const b = chip(c, selM===c);
+        b.onclick = ()=>{ selM = (selM===c) ? '' : c; apply(); renderChips(); };
+        chipsM.appendChild(b);
+      });
+    }
+
+    function apply(){
+      const filtered = gallery.filter(it=>{
+        const okA = selA ? (it.acero === selA) : true;
+        const okM = selM ? (it.melamina === selM) : true;
+        return okA && okM;
+      });
+
+      base = filtered.length ? filtered : (gallery.length ? gallery : []);
+      idx = 0;
+
+      const a = selA ? `Acero: ${selA}` : '';
+      const m = selM ? `Melamina: ${selM}` : '';
+      filterLabel.textContent = (a||m) ? [a,m].filter(Boolean).join(' · ') : 'Sin filtros';
+
+      renderGallery();
+    }
+
+    function renderGallery(){
+      if(!mainImg) return;
+
+      thumbs.innerHTML = '';
+      const firstUrl = base[0]?.url || window.PROD.main || '';
+      if(firstUrl) mainImg.src = firstUrl;
+
+      base.forEach((it, i)=>{
+        const d = document.createElement('div');
+        d.className = 'th' + (i===0 ? ' is-active' : '');
+        const im = document.createElement('img');
+        im.src = it.url;
+        d.appendChild(im);
+
+        d.onclick = ()=>{
+          idx = i;
+          mainImg.src = base[idx].url;
+          [...thumbs.querySelectorAll('.th')].forEach((x,k)=>x.classList.toggle('is-active', k===idx));
+          updateNav(base.length);
+        };
+
+        thumbs.appendChild(d);
+      });
+
+      updateNav(base.length);
+      prev.onclick = ()=>go(-1);
+      next.onclick = ()=>go(+1);
+    }
+
+    function updateNav(len){
+      if(len > 1){ prev.style.display='flex'; next.style.display='flex'; }
+      else { prev.style.display='none'; next.style.display='none'; }
+    }
+
+    function go(step){
+      if(!base.length) return;
+      idx = Math.max(0, Math.min(base.length-1, idx + step));
+      mainImg.src = base[idx].url;
+      [...thumbs.querySelectorAll('.th')].forEach((x,k)=>x.classList.toggle('is-active', k===idx));
+      updateNav(base.length);
+    }
+
+    renderChips();
+    apply();
+  })();
 </script>
-
 @endsection
