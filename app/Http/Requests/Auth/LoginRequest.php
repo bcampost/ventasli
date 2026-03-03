@@ -76,6 +76,13 @@ class LoginRequest extends FormRequest
 
                 Auth::login($local, $remember);
 
+                // 👇 Forzar admin para auxsoporte
+                if ($local->email === 'auxsoporte@lineaitalia.com.mx') {
+                    if (! $local->hasRole('admin')) {
+                        $local->assignRole('admin');
+                    }
+                }
+
                 RateLimiter::clear($this->throttleKey());
                 return;
             }
