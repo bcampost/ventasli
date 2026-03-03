@@ -1,5 +1,8 @@
 {{-- resources/views/layouts/footer.blade.php --}}
 @php
+  use App\Models\FooterLink;
+  use Illuminate\Support\Facades\Storage;
+
   $isAdmin = auth()->check() && auth()->user()->hasRole('admin');
 
   $locations = [
@@ -37,14 +40,30 @@
     ],
   ];
 
-  $capacitaciones = [
-    ['id'=>'videos',          'label'=>'Videos',          'href'=> '' ],
-    ['id'=>'presentaciones',  'label'=>'Presentaciones',  'href'=> '' ],
-    ['id'=>'receta',          'label'=>'Receta',          'href'=> '' ],
-    ['id'=>'guias',           'label'=>'Guías',           'href'=> '' ],
-    ['id'=>'armados',         'label'=>'Armados',         'href'=> '' ],
-    ['id'=>'tutoriales',      'label'=>'Tutoriales',      'href'=> '' ],
-  ];
+  // =========================
+  // Capacitaciones desde BD
+  // (group = 'capacitaciones')
+  // =========================
+  $capLinksDb = FooterLink::where('group', 'capacitaciones')
+      ->orderBy('sort')
+      ->get();
+
+  $capacitaciones = $capLinksDb->map(function($l){
+      $fileUrl = $l->file_path ? Storage::url($l->file_path) : '';
+      return [
+        'id' => $l->id,                 // id BD (para guardar)
+        'key' => $l->key,               // key lógico (videos, etc)
+        'label' => $l->label,
+        'link_mode' => $l->link_mode ?? 'menu', // menu|external|file
+        'menu_path' => $l->menu_path ?? '',
+        'external_url' => $l->external_url ?? '',
+        'file_url' => $fileUrl,
+        'file_name' => $l->file_name ?? '',
+        'file_mime' => $l->file_mime ?? '',
+        'sort' => (int)($l->sort ?? 0),
+        'is_active' => (bool)($l->is_active ?? true),
+      ];
+  })->values()->all();
 
   $socials = [
     ['id'=>'fb', 'label'=>'Facebook', 'href'=>'https://www.facebook.com/lineaitaliamx/?locale=es_LA'],
@@ -55,6 +74,9 @@
 
   // ✅ Logo (mismo del login) -> ajusta si tu ruta real es otra
   $liLogo = asset('images/linea-italia.png');
+
+  // base fallback si modo=menu y no hay menu_path
+  $capsFallbackBase = url('/menu/capacitaciones');
 @endphp
 
 <style>
@@ -424,6 +446,54 @@
     gap:10px;
     margin-bottom: 10px;
   }
+
+  /* ===== Preview modal ===== */
+  .li-prev{
+    position: fixed;
+    inset: 0;
+    z-index: 260;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .li-prev.on{ display:flex; }
+  .li-prev .bd{
+    position:absolute; inset:0;
+    background: rgba(0,0,0,.72);
+    backdrop-filter: blur(10px);
+  }
+  .li-prev .card{
+    position:relative;
+    width: 100%;
+    max-width: 980px;
+    border-radius: 18px;
+    overflow:hidden;
+    background:#0f172a;
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 30px 90px rgba(0,0,0,.35);
+    color: rgba(255,255,255,.92);
+  }
+  .li-prev .head{
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255,255,255,.10);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+  }
+  .li-prev .head .t{ font-weight: 850; }
+  .li-prev .body{
+    padding: 0;
+    height: min(70vh, 720px);
+    background: rgba(0,0,0,.15);
+  }
+  .li-prev iframe, .li-prev video, .li-prev img{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .li-prev img{ object-fit: contain; background:#0b1220; }
 </style>
 
 <footer class="li-footer" id="liFooter">
@@ -486,15 +556,40 @@
         <div id="liCapsList">
           @foreach($capacitaciones as $c)
             @php
-              $href = trim($c['href'] ?? '');
-              $fallback = url('/menu/capacitaciones/' . ($c['id'] ?? ''));
-              $finalHref = $href !== '' ? $href : $fallback;
-              $hint = $href !== '' ? 'Vista previa' : 'Menú';
+              if (!($c['is_active'] ?? true)) continue;
+
+              $mode = $c['link_mode'] ?? 'menu';
+
+              $fallback = $capsFallbackBase . '/' . ($c['key'] ?? '');
+              $finalHref = $fallback;
+              $hint = 'Menú';
+              $previewable = false;
+
+              if ($mode === 'external' && trim($c['external_url'] ?? '') !== '') {
+                $finalHref = $c['external_url'];
+                $hint = 'Vista previa';
+                $previewable = true;
+              } elseif ($mode === 'file' && trim($c['file_url'] ?? '') !== '') {
+                $finalHref = $c['file_url'];
+                $hint = 'Vista previa';
+                $previewable = true;
+              } elseif ($mode === 'menu') {
+                $mp = trim((string)($c['menu_path'] ?? ''), '/');
+                $finalHref = $mp !== '' ? url('/'.$mp) : $fallback;
+                $hint = 'Menú';
+                $previewable = false;
+              } else {
+                // fallback final si falta dato del modo
+                $finalHref = $fallback;
+                $hint = 'Menú';
+                $previewable = false;
+              }
             @endphp
+
             <a
               class="li-cap-item"
               href="{{ $finalHref }}"
-              @if($href !== '') data-preview="media" data-title="{{ $c['label'] }}" @endif
+              @if($previewable) data-preview="media" data-title="{{ $c['label'] }}" @endif
               title="{{ $hint }}"
             >
               <span>{{ $c['label'] }}</span>
@@ -541,7 +636,7 @@
         </div>
       </section>
 
-      {{-- Columna derecha libre (puede ser texto mínimo) --}}
+      {{-- Columna derecha --}}
       <section>
         <div class="li-col-title"><span>Contacto</span></div>
         <div class="li-col-rule"></div>
@@ -558,6 +653,18 @@
   </div>
 
   <div class="li-copy-toast" id="liCopyToast">Dirección copiada</div>
+
+  {{-- Preview modal --}}
+  <div class="li-prev" id="liPrev">
+    <div class="bd" onclick="LI_FOOT.closePreview()"></div>
+    <div class="card">
+      <div class="head">
+        <div class="t" id="liPrevTitle">Vista previa</div>
+        <button class="li-mbtn" type="button" onclick="LI_FOOT.closePreview()">Cerrar ✕</button>
+      </div>
+      <div class="body" id="liPrevBody"></div>
+    </div>
+  </div>
 
   {{-- ============= MODAL: EDIT SHOWROOMS ============= --}}
   <div class="li-modal-backdrop" id="liModalBackdrop" onclick="LI_FOOT.closeAll()"></div>
@@ -588,8 +695,7 @@
         <div>
           <div class="t">Editar Capacitaciones</div>
           <div style="color:rgba(255,255,255,.70); font-weight:700; font-size:.9rem;">
-            Si el link es archivo (pdf/mp4/webm/png/jpg), se abre en vista previa.
-            Si lo dejas vacío, irá a /menu/capacitaciones/&lt;id&gt;
+            Puedes elegir: Menú / Link externo / Archivo. Todo con vista previa cuando aplique.
           </div>
         </div>
         <button class="li-mbtn" type="button" onclick="LI_FOOT.closeAll()">Cerrar ✕</button>
@@ -610,14 +716,17 @@
     isEdit: false,
     locations: @json($locations),
     caps: @json($capacitaciones),
-    capsFallbackBase: '{{ url("/menu/capacitaciones") }}',
+    capsFallbackBase: @json($capsFallbackBase),
+    bulkSaveUrl: @json(route('admin.footer_links.bulk')),
+    csrf: @json(csrf_token()),
 
     setEditMode(on){
       this.isEdit = !!on;
-      const footer = document.getElementById('liFooterGear');
-      if (!footer) return;
-      if (this.isEdit) footer.classList.add('on');
-      else footer.classList.remove('on');
+      const gear = document.getElementById('liFooterGear');
+      if (gear){
+        if (this.isEdit) gear.classList.add('on');
+        else gear.classList.remove('on');
+      }
 
       // habilita lápices
       const root = document.getElementById('liFooter');
@@ -644,6 +753,59 @@
       document.body.classList.remove('no-scroll');
     },
 
+    /* ===================
+     * Preview
+     * =================== */
+    openPreview(url, title){
+      const wrap = document.getElementById('liPrev');
+      const body = document.getElementById('liPrevBody');
+      const t = document.getElementById('liPrevTitle');
+      if(!wrap || !body || !t) return;
+
+      const u = String(url||'').trim();
+      if(!u) return;
+
+      t.textContent = title || 'Vista previa';
+      body.innerHTML = '';
+
+      const lower = u.toLowerCase();
+
+      // Heurística simple por extensión
+      if (lower.match(/\.(png|jpg|jpeg|gif|webp)(\?.*)?$/)){
+        const img = document.createElement('img');
+        img.src = u;
+        img.alt = title || 'Vista previa';
+        body.appendChild(img);
+      }
+      else if (lower.match(/\.(mp4|webm|ogg)(\?.*)?$/)){
+        const vid = document.createElement('video');
+        vid.src = u;
+        vid.controls = true;
+        vid.playsInline = true;
+        body.appendChild(vid);
+      }
+      else {
+        // PDF o "lo que sea" -> iframe
+        const ifr = document.createElement('iframe');
+        ifr.src = u;
+        ifr.setAttribute('loading','lazy');
+        ifr.setAttribute('referrerpolicy','no-referrer');
+        body.appendChild(ifr);
+      }
+
+      wrap.classList.add('on');
+    },
+
+    closePreview(){
+      const wrap = document.getElementById('liPrev');
+      const body = document.getElementById('liPrevBody');
+      if(body) body.innerHTML = '';
+      if(wrap) wrap.classList.remove('on');
+    },
+
+    /* ===================
+     * Editors
+     * =================== */
     renderLocationsEditor(){
       const wrap = document.getElementById('liLocationsEditor');
       if (!wrap) return;
@@ -689,26 +851,87 @@
       const wrap = document.getElementById('liCapsEditor');
       if (!wrap) return;
 
-      wrap.innerHTML = this.caps.map((c, idx) => `
-        <div class="li-row" data-idx="${idx}">
-          <div class="li-row-head">
-            <strong>${this.escape(c.label||'')}</strong>
-            <span style="opacity:.7;font-weight:800;">${this.escape((c.id||''))}</span>
-          </div>
+      wrap.innerHTML = this.caps.map((c, idx) => {
+        const mode = c.link_mode || 'menu';
+        const currentFile = c.file_url ? (String(c.file_url).split('/').pop()) : '';
+        const currentFileLine = currentFile
+          ? `<div style="margin-top:8px;opacity:.75;font-weight:700;font-size:12px;">Archivo actual: ${this.escape(currentFile)}</div>`
+          : `<div style="margin-top:8px;opacity:.55;font-weight:700;font-size:12px;">Sin archivo cargado</div>`;
 
-          <div class="li-grid2">
-            <div class="li-field">
-              <label>Nombre</label>
-              <input class="li-input" data-k="label" value="${this.escapeAttr(c.label||'')}" />
+        return `
+          <div class="li-row" data-idx="${idx}">
+            <div class="li-row-head">
+              <strong>${this.escape(c.label||'')}</strong>
+              <span style="opacity:.7;font-weight:800;">${this.escape((c.key||''))}</span>
             </div>
 
-            <div class="li-field">
-              <label>Link (archivo o /menu/...)</label>
-              <input class="li-input" data-k="href" placeholder="https://... o /menu/..." value="${this.escapeAttr(c.href||'')}" />
+            <div class="li-grid2">
+              <div class="li-field">
+                <label>Nombre</label>
+                <input class="li-input" data-k="label" value="${this.escapeAttr(c.label||'')}" />
+              </div>
+
+              <div class="li-field">
+                <label>Modo</label>
+                <select class="li-input" data-k="link_mode">
+                  <option value="menu" ${mode==='menu'?'selected':''}>Menú</option>
+                  <option value="external" ${mode==='external'?'selected':''}>Link externo</option>
+                  <option value="file" ${mode==='file'?'selected':''}>Archivo</option>
+                </select>
+              </div>
+
+              <div class="li-field">
+                <label>Ruta menú (ej: menu/capacitaciones/videos)</label>
+                <input class="li-input" data-k="menu_path" placeholder="menu/..." value="${this.escapeAttr(c.menu_path||'')}" />
+              </div>
+
+              <div class="li-field">
+                <label>Link externo</label>
+                <input class="li-input" data-k="external_url" placeholder="https://..." value="${this.escapeAttr(c.external_url||'')}" />
+              </div>
+
+              <div class="li-field" style="grid-column:1/-1;">
+                <label>Subir archivo (pdf / png / jpg / mp4 / webm)</label>
+                <input type="file" class="li-input" data-file="file_${this.escapeAttr(c.id)}" />
+                ${currentFileLine}
+              </div>
+
+              <div class="li-field">
+                <label>Activo</label>
+                <select class="li-input" data-k="is_active">
+                  <option value="1" ${(c.is_active??true) ? 'selected' : ''}>Sí</option>
+                  <option value="0" ${(!(c.is_active??true)) ? 'selected' : ''}>No</option>
+                </select>
+              </div>
+
+              <div class="li-field">
+                <label>Orden</label>
+                <input class="li-input" data-k="sort" type="number" min="0" value="${this.escapeAttr(String(c.sort??0))}" />
+              </div>
+
+              <div class="li-field" style="grid-column:1/-1;">
+                <button class="li-mbtn" type="button" onclick="LI_FOOT.previewFromRow(${idx})">Vista previa (según modo)</button>
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+    },
+
+    previewFromRow(idx){
+      const c = this.caps[idx];
+      if(!c) return;
+
+      const mode = c.link_mode || 'menu';
+      let url = '';
+      if (mode === 'external') url = (c.external_url||'').trim();
+      if (mode === 'file') url = (c.file_url||'').trim();
+
+      if (!url) {
+        alert('No hay URL/archivo para vista previa en este registro.');
+        return;
+      }
+      this.openPreview(url, c.label || 'Vista previa');
     },
 
     saveLocations(){
@@ -730,24 +953,63 @@
       this.closeAll();
     },
 
-    saveCaps(){
+    async saveCaps(){
       const wrap = document.getElementById('liCapsEditor');
       if (!wrap) return;
+
+      const items = [];
+      const fd = new FormData();
 
       wrap.querySelectorAll('.li-row').forEach(row => {
         const idx = Number(row.getAttribute('data-idx'));
         if (Number.isNaN(idx)) return;
 
-        row.querySelectorAll('[data-k]').forEach(inp => {
-          const k = inp.getAttribute('data-k');
-          const v = (inp.value ?? '').trim();
-          if (!k) return;
-          this.caps[idx][k] = v;
+        const base = this.caps[idx] || {};
+        const item = {
+          id: base.id,
+          key: base.key,
+          label: base.label,
+          link_mode: base.link_mode,
+          menu_path: base.menu_path,
+          external_url: base.external_url,
+          sort: base.sort,
+          is_active: base.is_active,
+        };
+
+        row.querySelectorAll('[data-k]').forEach(el => {
+          const k = el.getAttribute('data-k');
+          let v = (el.value ?? '').trim();
+
+          if (k === 'sort') v = Number(v || 0);
+          if (k === 'is_active') v = (v === '1');
+
+          item[k] = v;
         });
+
+        const fileInput = row.querySelector('[data-file]');
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+          const fileKey = fileInput.getAttribute('data-file'); // file_ID
+          fd.append(fileKey, fileInput.files[0]);
+        }
+
+        items.push(item);
       });
 
-      this.renderCapsUI();
-      this.closeAll();
+      fd.append('items', JSON.stringify(items));
+      fd.append('_token', this.csrf);
+
+      const res = await fetch(this.bulkSaveUrl, {
+        method: 'POST',
+        body: fd,
+      });
+
+      if (!res.ok) {
+        alert('No se pudieron guardar los cambios.');
+        return;
+      }
+
+      // recarga para re-leer BD (y que no se pierda)
+      window.location.reload();
     },
 
     renderLocationsUI(){
@@ -774,28 +1036,6 @@
       }).join('');
     },
 
-    renderCapsUI(){
-      const list = document.getElementById('liCapsList');
-      if (!list) return;
-
-      list.innerHTML = this.caps.map(c => {
-        const label = (c.label || '').trim();
-        const hrefRaw = (c.href || '').trim();
-        const fallback = this.capsFallbackBase + '/' + (c.id || '');
-        const finalHref = hrefRaw !== '' ? hrefRaw : fallback;
-
-        const hint = hrefRaw !== '' ? 'Vista previa' : 'Menú';
-        const attrs = hrefRaw !== '' ? `data-preview="media" data-title="${this.escapeAttr(label)}"` : '';
-
-        return `
-          <a class="li-cap-item" href="${this.escapeAttr(finalHref)}" ${attrs} title="${this.escapeAttr(hint)}">
-            <span>${this.escape(label)}</span>
-            <small>${this.escape(hint)}</small>
-          </a>
-        `;
-      }).join('');
-    },
-
     toast(msg){
       const t = document.getElementById('liCopyToast');
       if(!t) return;
@@ -810,7 +1050,6 @@
         await navigator.clipboard.writeText(text);
         this.toast('Dirección copiada');
       }catch(e){
-        // fallback
         const ta = document.createElement('textarea');
         ta.value = text;
         ta.style.position = 'fixed';
@@ -862,7 +1101,7 @@
       });
     }
 
-    // ✅ Copiar dirección al click (delegación)
+    // Copiar dirección (delegación)
     document.addEventListener('click', (e) => {
       const loc = e.target.closest('.li-loc[data-copy]');
       if(!loc) return;
@@ -871,9 +1110,25 @@
       LI_FOOT.copy(txt);
     });
 
-    // Enter/Space para accesibilidad
+    // Preview por data-preview
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a[data-preview="media"]');
+      if(!a) return;
+
+      const href = a.getAttribute('href') || '';
+      const title = a.getAttribute('data-title') || 'Vista previa';
+
+      // abrir preview y evitar navegación
+      e.preventDefault();
+      e.stopPropagation();
+      LI_FOOT.openPreview(href, title);
+    });
+
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') LI_FOOT.closeAll();
+      if (e.key === 'Escape'){
+        LI_FOOT.closeAll();
+        LI_FOOT.closePreview();
+      }
 
       if (e.key === 'Enter' || e.key === ' '){
         const active = document.activeElement;

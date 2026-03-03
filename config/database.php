@@ -62,7 +62,26 @@ return [
                 (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
-
+        
+        'li_users' => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST_LI', '127.0.0.1'),
+            'port' => env('DB_PORT_LI', '3306'),
+            'database' => env('DB_DATABASE_LI'),
+            'username' => env('DB_USERNAME_LI'),
+            'password' => env('DB_PASSWORD_LI'),
+            'unix_socket' => env('DB_SOCKET_LI', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+            
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

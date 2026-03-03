@@ -83,6 +83,9 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {
 
+        Route::post('/footer-links/bulk', [FooterLinkController::class, 'bulkUpdate'])
+            ->name('footer_links.bulk');
+
         // MENU SUPERIOR (DB)
         Route::get('/menu', [MenuNodeController::class, 'index'])->name('menu.index');
 
