@@ -232,6 +232,13 @@ Route::middleware(['auth'])->group(function () {
         */
         Route::post('/training-media/upload', [TrainingMediaController::class, 'upload'])
             ->name('training-media.upload');
+
+        Route::get('/users', [\App\Http\Controllers\Admin\UserAdminController::class, 'index'])
+            ->name('users.index');
+
+        Route::put('/users/{user}/role', [\App\Http\Controllers\Admin\UserAdminController::class, 'updateRole'])
+            ->name('users.role');
+
     });
 });
 
