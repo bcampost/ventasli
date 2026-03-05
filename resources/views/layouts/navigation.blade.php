@@ -13,6 +13,7 @@
       'children' => function($q){
         $q->active()->orderBy('sort')->orderBy('label');
       },
+      // ✅ para "Productos" (nivel 3)
       'children.children' => function($q){
         $q->active()->orderBy('sort')->orderBy('label');
       }
@@ -22,16 +23,17 @@
   $user = auth()->user();
   $isAdmin = $user && method_exists($user, 'hasRole') && $user->hasRole('admin');
 
-  // ✅ Si hay URL (pdf/external/archivo), resuelve href para archivo
-  $fileHref = function($node) {
+  // Helper: resuelve href (url si existe, si no route menu.section)
+  $hrefFor = function(string $rootSlug, $node, array $pathParts = []) {
     $u = trim((string)($node->url ?? ''));
-    if ($u === '') return null;
-    if (Str::startsWith($u, ['http://','https://'])) return $u;
-    return asset(ltrim($u, '/'));
-  };
 
-  // ✅ URL normal del menú (/menu/...)
-  $menuHref = function(string $rootSlug, array $pathParts = []) {
+    // 1) Si hay URL explícita (pdf/external/archivo)
+    if ($u !== '') {
+      if (Str::startsWith($u, ['http://','https://'])) return $u;
+      return asset(ltrim($u, '/'));
+    }
+
+    // 2) Si no hay url, navega al menú (ruta dinámica)
     $path = implode('/', array_filter($pathParts));
     return $path !== ''
       ? route('menu.section', [$rootSlug, $path])
@@ -46,6 +48,8 @@
     --nav-ink: #0b1220;
     --nav-muted: rgba(15,23,42,.62);
     --nav-shadow: 0 14px 40px rgba(2,6,23,.08);
+    --nav-r: 18px;
+    --nav-primary: #2563eb;
   }
 
   .v-nav{
@@ -58,7 +62,7 @@
   }
 
   .v-nav-wrap{
-    max-width: 1280px;
+    max-width: 1580px;
     margin: 0 auto;
     padding: 10px 18px;
     display:flex;
@@ -67,6 +71,7 @@
     gap: 16px;
   }
 
+  /* ✅ Brand (sin <a> anidados) */
   .topbrand{
     display:flex;
     align-items:center;
@@ -75,16 +80,36 @@
     color: inherit;
     user-select:none;
   }
-  .topbrand-logo{ height: 26px; width: auto; display:block; object-fit: contain; }
-  .topbrand-text{ font-weight: 800; letter-spacing: -0.01em; color: var(--nav-ink); white-space: nowrap; }
+  .topbrand-logo{
+    height: 26px;
+    width: auto;
+    display:block;
+    object-fit: contain;
+  }
+  .topbrand-text{
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--nav-ink);
+    white-space: nowrap;
+  }
 
-  .v-menu{ display:flex; align-items:center; gap: 6px; flex-wrap: wrap; }
+  .v-menu{
+    display:flex;
+    align-items:center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
   .v-item{ position: relative; }
 
   .v-link{
-    display:inline-flex; align-items:center; gap:8px;
-    padding: 10px 12px; border-radius: 999px;
-    font-weight: 800; font-size: 14px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 10px 12px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 14px;
     color: var(--nav-ink);
     text-decoration:none;
     border: 1px solid transparent;
@@ -95,9 +120,14 @@
     border-color: rgba(15,23,42,.12);
     transform: translateY(-1px);
   }
-  .v-caret{ font-size: 12px; color: rgba(15,23,42,.55); margin-left: 2px; }
 
-  /* ✅ puente vertical bajo el root */
+  .v-caret{
+    font-size: 12px;
+    color: rgba(15,23,42,.55);
+    margin-left: 2px;
+  }
+
+  /* ✅ puente invisible para hover */
   .v-item::after{
     content:"";
     position:absolute;
@@ -105,9 +135,9 @@
     right:0;
     top:100%;
     height: 14px;
-    pointer-events: auto;
   }
 
+  /* Dropdown base (nivel 2) */
   .v-dd{
     position:absolute;
     left:0;
@@ -122,11 +152,13 @@
     display:none;
     z-index: 80;
   }
+
   .v-item:hover > .v-dd,
   .v-item:focus-within > .v-dd{
     display:block;
   }
 
+  /* Links dentro */
   .v-dd a{
     display:flex;
     align-items:center;
@@ -139,14 +171,28 @@
     text-decoration:none;
     color: var(--nav-ink);
     white-space: nowrap;
-    position: relative;
-    z-index: 5;
   }
   .v-dd a:hover{ background: rgba(248,250,252,.9); }
-  .v-dd small{ color: var(--nav-muted); font-weight: 700; }
 
-  /* Submenú Productos (nivel 3) */
+  .v-dd small{
+    color: var(--nav-muted);
+    font-weight: 700;
+  }
+
+  /* ✅ Para submenú (nivel 3) SOLO en Productos */
   .v-dd-item{ position: relative; }
+
+  /* ✅ Puente invisible horizontal para ir al submenú (nivel 3) sin que se cierre */
+  .v-dd-item.has-kids::after{
+    content:"";
+    position:absolute;
+    top: 0;
+    bottom: 0;
+    right: -12px;
+    width: 12px;
+  }
+
+  .v-dd-item.has-kids > .v-dd-sub{ display:none; }
 
   .v-dd-sub{
     position:absolute;
@@ -159,25 +205,11 @@
     box-shadow: var(--nav-shadow);
     padding: 8px;
     z-index: 90;
-    display:none;
   }
 
   .v-dd-item.has-kids:hover > .v-dd-sub,
   .v-dd-item.has-kids:focus-within > .v-dd-sub{
     display:block;
-  }
-
-  /* ✅ puente en el GAP (10px) para cruzar al submenú sin cerrarlo */
-  .v-dd-sub::before{
-    content:"";
-    position:absolute;
-    top: 0;
-    bottom: 0;
-    left: -10px;
-    width: 10px;
-    pointer-events: auto;
-    background: transparent;
-    z-index: 1;
   }
 
   .v-dd-arrow{
@@ -187,15 +219,16 @@
     margin-left: 8px;
   }
 
-  /* Engranes */
+  /* ✅ NUEVO: contenedor engranes abajo del dropdown */
   .v-dd-tools{
     display:flex;
     justify-content:flex-end;
-    gap: 10px;
-    padding-top: 6px;
-    margin-top: 6px;
+    gap: 8px;
+    padding-top: 8px;
+    margin-top: 8px;
     border-top: 1px solid rgba(15,23,42,.08);
   }
+
   .v-dd-gear{
     width: 34px;
     height: 34px;
@@ -217,7 +250,36 @@
     border-color: rgba(15,23,42,.18);
   }
 
-  .v-right{ display:flex; align-items:center; gap: 10px; }
+  .v-right{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+  }
+
+  /* ✅ Search */
+  .v-search{
+    width: 330px;
+    max-width: 42vw;
+  }
+  .v-search input{
+    width:100%;
+    border-radius: 999px;
+    border: 1px solid rgba(15,23,42,.12);
+    background: rgba(255,255,255,.92);
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--nav-ink);
+    outline: none;
+    transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .v-search input:focus{
+    border-color: rgba(37,99,235,.55);
+    box-shadow: 0 0 0 6px rgba(37,99,235,.14);
+    background: #fff;
+  }
+
+  /* User dropdown */
   .v-user{ position:relative; }
 
   .v-user-btn{
@@ -245,7 +307,9 @@
     box-shadow: var(--nav-shadow);
     padding: 8px;
     display:none;
+    z-index: 120;
   }
+
   .v-user.open .v-user-dd{ display:block; }
 
   .v-user-dd a, .v-user-dd button{
@@ -282,80 +346,64 @@
       @foreach($navRoots as $root)
         @php
           $rootSlug = Str::slug($root->label, '-');
-          $hasKids  = $root->children && $root->children->count() > 0;
+          $hasKids = $root->children && $root->children->count() > 0;
 
-          $rootFile = $fileHref($root);
+          // Root NO clickeable si tiene hijos
+          $rootHref = $hasKids
+            ? 'javascript:void(0)'
+            : $hrefFor($rootSlug, $root, []);
 
-          // ✅ REGLA:
-          // - si hay PDF/url: abre PDF
-          // - si NO hay PDF: navega a su página del menú (aunque tenga hijos)
-          $rootHref = $rootFile ?: $menuHref($rootSlug, []);
-          $rootBlank = (bool)$rootFile;
-
+          // Identificadores especiales
           $isPriceList = mb_strtolower(trim($root->label)) === mb_strtolower('Lista de precios');
           $isProducts  = mb_strtolower(trim($root->label)) === mb_strtolower('Productos');
 
-          $canEditPriceList = $isAdmin && $isPriceList;
-          $canEditMenuThis  = $isAdmin;
+          // ✅ engranes visibles si admin y hay dropdown
+          $canShowTools = $isAdmin && $hasKids;
+
+          // Rutas (proteger con Route::has para no romper si cambia el nombre)
+          $hasManageRoute = \Illuminate\Support\Facades\Route::has('admin.menu.manage');
+          $hasPricePdfsRoute = \Illuminate\Support\Facades\Route::has('admin.price-list-pdfs.index');
         @endphp
 
         <div class="v-item">
-          <a
-            class="v-link"
-            href="{{ $rootHref }}"
-            @if($rootBlank) target="_blank" rel="noopener noreferrer" @endif
-          >
+          <a class="v-link" href="{{ $rootHref }}" @if($hasKids) onclick="event.preventDefault();" @endif>
             {{ $root->label }}
             @if($hasKids)<span class="v-caret">▾</span>@endif
           </a>
 
           @if($hasKids)
             <div class="v-dd">
-
-              {{-- Root normal: solo nivel 2 --}}
+              {{-- ✅ Root normal: solo nivel 2 --}}
               @if(!$isProducts)
                 @foreach($root->children as $child)
                   @php
                     $childSlug = Str::slug($child->label, '-');
-                    $childFile = $fileHref($child);
-
-                    // ✅ si hay PDF: abre PDF; si no: navega a su nivel
-                    $childHref = $childFile ?: $menuHref($rootSlug, [$childSlug]);
-                    $childBlank = (bool)$childFile;
+                    $childHref = $hrefFor($rootSlug, $child, [$childSlug]);
                   @endphp
 
-                  <a
-                    href="{{ $childHref }}"
-                    @if($childBlank) target="_blank" rel="noopener noreferrer" @endif
-                  >
+                  <a href="{{ $childHref }}">
                     <span>{{ $child->label }}</span>
-                    <small>{{ $childFile ? 'PDF' : 'Ver' }}</small>
+                    <small>Ver</small>
                   </a>
                 @endforeach
               @else
-                {{-- SOLO en Productos: nivel 2 + nivel 3 --}}
+                {{-- ✅ SOLO en Productos: nivel 2 + nivel 3 (flyout) --}}
                 @foreach($root->children as $child)
                   @php
                     $childSlug = Str::slug($child->label, '-');
                     $childHasKids = $child->children && $child->children->count() > 0;
 
-                    $childFile = $fileHref($child);
-
-                    // ✅ CLAVE: aunque tenga hijos, si NO hay PDF debe navegar
-                    $childHref = $childFile ?: $menuHref($rootSlug, [$childSlug]);
-                    $childBlank = (bool)$childFile;
+                    // ✅ SIEMPRE clickeable (aunque tenga hijos) para ir a su página
+                    $childHref = $hrefFor($rootSlug, $child, [$childSlug]);
                   @endphp
 
                   <div class="v-dd-item {{ $childHasKids ? 'has-kids' : '' }}">
-                    <a
-                      href="{{ $childHref }}"
-                      @if($childBlank) target="_blank" rel="noopener noreferrer" @endif
-                    >
+                    <a href="{{ $childHref }}">
                       <span>{{ $child->label }}</span>
                       @if($childHasKids)
                         <span class="v-dd-arrow">▸</span>
                       @else
-                        <small>{{ $childFile ? 'PDF' : 'Ver' }}</small>
+                        <small>Ver</small>
                       @endif
                     </a>
 
@@ -364,21 +412,11 @@
                         @foreach($child->children as $g)
                           @php
                             $gSlug = Str::slug($g->label, '-');
-                            $gHasKids = $g->children && $g->children->count() > 0;
-
-                            $gFile = $fileHref($g);
-
-                            // ✅ si hay PDF: abre PDF; si no: navega al nivel
-                            $gHref = $gFile ?: $menuHref($rootSlug, [$childSlug, $gSlug]);
-                            $gBlank = (bool)$gFile;
+                            $gHref = $hrefFor($rootSlug, $g, [$childSlug, $gSlug]);
                           @endphp
-
-                          <a
-                            href="{{ $gHref }}"
-                            @if($gBlank) target="_blank" rel="noopener noreferrer" @endif
-                          >
+                          <a href="{{ $gHref }}">
                             <span>{{ $g->label }}</span>
-                            <small>{{ $gFile ? 'PDF' : 'Ver' }}</small>
+                            <small>Ver</small>
                           </a>
                         @endforeach
                       </div>
@@ -387,11 +425,11 @@
                 @endforeach
               @endif
 
-              {{-- ENGRANES (admin) --}}
-              @if($canEditMenuThis || $canEditPriceList)
+              {{-- ✅ Engranes abajo del dropdown (ADMIN) --}}
+              @if($canShowTools)
                 <div class="v-dd-tools">
-
-                  @if($canEditMenuThis)
+                  {{-- Editar este menú (manage del root) --}}
+                  @if($hasManageRoute)
                     <a
                       class="v-dd-gear"
                       href="{{ route('admin.menu.manage', $root) }}"
@@ -400,7 +438,8 @@
                     >⚙️</a>
                   @endif
 
-                  @if($canEditPriceList)
+                  {{-- Extra: PDFs lista de precios --}}
+                  @if($isPriceList && $hasPricePdfsRoute)
                     <a
                       class="v-dd-gear"
                       href="{{ route('admin.price-list-pdfs.index') }}"
@@ -408,7 +447,6 @@
                       aria-label="Editar PDFs de Lista de precios"
                     >📄</a>
                   @endif
-
                 </div>
               @endif
 
@@ -419,6 +457,19 @@
     </div>
 
     <div class="v-right">
+      {{-- ✅ buscador siempre visible --}}
+      <div class="v-search">
+        <form method="GET" action="{{ route('search.global') }}">
+          <input
+            type="text"
+            name="q"
+            value="{{ request('q') }}"
+            placeholder="Buscar en todo..."
+            autocomplete="off"
+          >
+        </form>
+      </div>
+
       <div class="v-user" id="vUser">
         <button class="v-user-btn" type="button" onclick="toggleUserDd()">
           {{ $user?->name ?? 'Usuario' }}

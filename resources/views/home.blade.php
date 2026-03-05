@@ -55,18 +55,7 @@
         <span><b>Entrega proyectos:</b> 4 días hábiles</span>
       </div>
 
-      <div class="hero-search">
-        <form method="GET" action="{{ route('search.global') }}" class="hero-search-form">
-          <input
-            type="text"
-            name="q"
-            value="{{ request('q') }}"
-            placeholder="Buscar en todo…"
-            class="hero-search-input"
-            autocomplete="off"
-          />
-        </form>
-      </div>
+
     </div>
   </div>
 
