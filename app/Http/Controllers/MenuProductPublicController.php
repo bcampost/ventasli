@@ -3,22 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\Models\MenuProduct;
-use App\Models\MenuProductDetail;
 use Illuminate\Http\Request;
 
 class MenuProductPublicController extends Controller
 {
     public function show(Request $request, MenuProduct $menu_product)
     {
-        $detail = MenuProductDetail::firstOrCreate(
-            ['menu_product_id' => $menu_product->id],
-            ['images' => [], 'acero_colors' => [], 'melamina_colors' => []]
-        );
+        $user = auth()->user();
+        $isAdmin = auth()->check() && method_exists($user, 'hasRole') && $user->hasRole('admin');
+
+        // Solo activos si no es admin
+        if (!$isAdmin && !$menu_product->is_active) {
+            abort(404);
+        }
+
+        // Asegura detail
+        $detail = $menu_product->detail()->firstOrCreate([]);
 
         return view('menu.product_show', [
-            'product' => $menu_product,
-            'detail'  => $detail,
-            'redirectTo' => url()->previous() ?: route('home'),
+            'product' => $menu_product,               // aquí vienen tech_pdf_path/manual_pdf_path
+            'detail' => $detail,
+            'redirectTo' => $request->get('redirect_to', url()->previous()),
         ]);
     }
 }

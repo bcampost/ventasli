@@ -14,6 +14,8 @@ class MenuProduct extends Model
         'sort',
         'is_active',
         'image_path',
+        'tech_pdf_path',
+        'manual_pdf_path',
 
         // ✅ ahora puede ser:
         // 1) array de strings (legacy): ["path1","path2"]

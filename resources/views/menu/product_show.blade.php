@@ -16,6 +16,10 @@
   $galleryArr = $detail->images_safe ?? [];
   $galleryArr = is_array($galleryArr) ? $galleryArr : [];
 
+  // ✅ PDFs desde menu_products (NO desde detail)
+  $techUrl   = $product->tech_pdf_path   ? asset('storage/'.ltrim($product->tech_pdf_path,'/'))   : null;
+  $manualUrl = $product->manual_pdf_path ? asset('storage/'.ltrim($product->manual_pdf_path,'/')) : null;
+
   $payload = [
     'id' => $product->id,
     'title' => $product->title,
@@ -51,9 +55,10 @@
   .pd-title{ font-weight:950; font-size:22px; color:var(--ink); letter-spacing:-.02em; }
   .pd-sub{ margin-top:4px; font-weight:750; color:rgba(15,23,42,.62); }
 
-  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.55rem; font-weight:900; border-radius:16px; padding:.72rem .92rem; font-size:.86rem; border:1px solid transparent; text-decoration:none; }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.55rem; font-weight:900; border-radius:16px; padding:.72rem .92rem; font-size:.86rem; border:1px solid transparent; text-decoration:none; cursor:pointer; }
   .btn-ghost{ background:#fff; border-color: var(--line); color: var(--ink); }
   .btn-primary{ background: linear-gradient(180deg, rgba(37,99,235,1), rgba(29,78,216,1)); color:#fff; box-shadow: 0 14px 30px rgba(37,99,235,.22); }
+  .btn:disabled, .btn[disabled]{ opacity:.45; cursor:not-allowed; }
 
   .layout{ display:grid; grid-template-columns: 1.9fr 1fr; gap:16px; align-items:start; }
   @media(max-width:980px){ .layout{ grid-template-columns:1fr; } }
@@ -82,13 +87,41 @@
   .chip.is-on{ border-color: rgba(37,99,235,.55); box-shadow: 0 0 0 6px rgba(37,99,235,.14); }
   .hint{ margin-top:10px; font-weight:750; color: rgba(15,23,42,.62); font-size:12.5px; line-height:1.35; }
 
-  .specbox{ padding:14px 16px; display:grid; gap:10px; }
-  .specgrid{ display:grid; grid-template-columns: repeat(3,1fr); gap:10px; }
-  @media(max-width:980px){ .specgrid{ grid-template-columns:1fr; } }
-  .spec{ border:1px solid rgba(15,23,42,.10); border-radius:14px; padding:12px; background: rgba(15,23,42,.02); }
-  .lab{ font-size:12px; font-weight:950; color:rgba(15,23,42,.55); }
-  .val{ margin-top:6px; font-weight:950; color:var(--ink); }
   .desc{ padding:14px 16px; color:rgba(15,23,42,.78); font-weight:650; line-height:1.35; }
+
+
+  .pdf-shell{
+    width: min(1100px, 100%);
+    background: #fff;
+    border-radius: 22px;
+    overflow:hidden;
+    border: 1px solid rgba(15,23,42,.14);
+    box-shadow: 0 30px 90px rgba(2,6,23,.22);
+  }
+  .pdf-head{
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(15,23,42,.10);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+    background: rgba(255,255,255,.92);
+  }
+  .pdf-title{
+    font-weight: 900;
+    color:#0b1220;
+  }
+  .pdf-close{
+    border:1px solid rgba(15,23,42,.14);
+    background:#fff;
+    border-radius: 14px;
+    padding: .55rem .8rem;
+    font-weight: 900;
+    cursor:pointer;
+  }
+  .pdf-close:hover{ background: rgba(248,250,252,.9); }
+
+  .no-scroll{ overflow:hidden !important; }
 </style>
 
 <div class="pd-wrap">
@@ -145,6 +178,15 @@
       </div>
 
       <div class="info">
+        <div class="k">Descripción</div>
+        <div class="hint" style="margin-top:6px;">
+          {{ $detail->description ?: ($product->description ?: 'Sin descripción.') }}
+        </div>
+      </div>
+
+      <div style="border-top:1px solid rgba(15,23,42,.08);"></div>
+
+      <div class="info">
         <div class="k">Acero</div>
         <div class="chips" id="chipsA"></div>
 
@@ -154,28 +196,28 @@
         <div class="hint">
           Si eliges <b>Acero</b> + <b>Melamina</b>, se mostrarán solo las imágenes asignadas a esa combinación.
         </div>
-      </div>
 
-      <div style="border-top:1px solid rgba(15,23,42,.08);"></div>
+        <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="button"
+                    class="btn btn-ghost"
+                    @if(!$techUrl) disabled @endif
+                    onclick="window.openPdfPreview(@js($techUrl), 'Ficha técnica')">
+              📄 Ficha técnica
+            </button>
 
-      <div class="specbox">
-        <div class="k">Ficha técnica</div>
-        <div class="specgrid">
-          <div class="spec"><div class="lab">Largo</div><div class="val">{{ $detail->length ?: '—' }}</div></div>
-          <div class="spec"><div class="lab">Ancho</div><div class="val">{{ $detail->width ?: '—' }}</div></div>
-          <div class="spec"><div class="lab">Alto</div><div class="val">{{ $detail->height ?: '—' }}</div></div>
+            <button type="button"
+                    class="btn btn-ghost"
+                    @if(!$manualUrl) disabled @endif
+                    onclick="window.openPdfPreview(@js($manualUrl), 'Instructivo')">
+              📘 Instructivo
+            </button>
         </div>
-      </div>
-
-      <div style="border-top:1px solid rgba(15,23,42,.08);"></div>
-
-      <div class="desc">
-        <div class="k" style="margin-bottom:6px;">Descripción</div>
-        {{ $detail->description ?: ($product->description ?: 'Sin descripción.') }}
       </div>
     </div>
   </div>
 </div>
+
+
 
 <script>
   window.PROD = @json($payload);
@@ -293,5 +335,7 @@
     renderChips();
     apply();
   })();
+
+
 </script>
 @endsection

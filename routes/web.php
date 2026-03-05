@@ -23,6 +23,9 @@ use App\Http\Controllers\Admin\MenuProductDetailController;
 
 use App\Http\Controllers\Admin\MenuProductVariantColorsController;
 
+// ✅ NUEVO: subir PDFs del producto (Ficha técnica / Instructivo)
+use App\Http\Controllers\Admin\MenuProductFilesController;
+
 /*
 |--------------------------------------------------------------------------
 | ROOT
@@ -127,6 +130,14 @@ Route::middleware(['auth'])->group(function () {
 
         Route::delete('/menu-products/{menu_product}', [MenuProductController::class, 'destroy'])
             ->name('menu-products.destroy');
+
+        /*
+        |--------------------------------------------------------------------------
+        | ✅ NUEVO: PDFs del producto (Ficha técnica / Instructivo)
+        |--------------------------------------------------------------------------
+        */
+        Route::post('/menu-products/{menu_product}/files', [MenuProductFilesController::class, 'update'])
+            ->name('menu-products.files.update');
 
         /*
         |--------------------------------------------------------------------------

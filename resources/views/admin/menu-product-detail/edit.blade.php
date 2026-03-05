@@ -2,220 +2,187 @@
 
 @section('content')
 @php
-  $acero = is_array($detail->acero_colors ?? null) ? $detail->acero_colors : (json_decode((string)($detail->acero_colors ?? ''), true) ?: []);
-  $mela  = is_array($detail->melamina_colors ?? null) ? $detail->melamina_colors : (json_decode((string)($detail->melamina_colors ?? ''), true) ?: []);
-  $acero = array_values(array_filter(array_map('trim', $acero)));
-  $mela  = array_values(array_filter(array_map('trim', $mela)));
-
-  $variant = $detail->images_safe ?? [];
+  // URLs de PDFs (si existen)
+  $techUrl   = $product->tech_pdf_path   ? asset('storage/'.ltrim($product->tech_pdf_path,'/'))   : null;
+  $manualUrl = $product->manual_pdf_path ? asset('storage/'.ltrim($product->manual_pdf_path,'/')) : null;
 @endphp
 
-<div style="max-width:1100px;margin:26px auto;padding:0 16px;">
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-    <div>
-      <div style="font-size:22px;font-weight:900;">Asignar imágenes (Acero/Melamina)</div>
-      <div style="opacity:.7;font-weight:700;margin-top:4px;">Producto: <b>{{ $product->title }}</b></div>
-    </div>
+<style>
+  @media (min-width: 1024px){
+    .pdf-edit-wrap{ padding-right: 110px; }
+  }
+</style>
 
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      <a href="{{ route('admin.product-variants.colors.edit', ['menu_product' => $product->id, 'redirect_to' => url()->current()]) }}"
-         style="text-decoration:none;font-weight:900;">🎨 Editar colores</a>
-      <a href="{{ $redirectTo }}" style="text-decoration:none;font-weight:900;">← Volver</a>
-    </div>
+<div class="max-w-3xl mx-auto px-4 py-6 pdf-edit-wrap">
+  <div class="mb-5">
+    <h1 class="text-2xl font-extrabold text-slate-900">Editar detalle del producto</h1>
+    <p class="text-sm text-slate-600 mt-1">
+      Producto: <span class="font-mono">{{ $product->title }}</span>
+    </p>
   </div>
 
+  @if(session('success'))
+    <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800 text-sm">
+      {{ session('success') }}
+    </div>
+  @endif
+
+  @if(session('status'))
+    <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800 text-sm">
+      {{ session('status') }}
+    </div>
+  @endif
+
+  @if($errors->any())
+    <div class="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-800 text-sm">
+      <ul class="list-disc pl-5">
+        @foreach($errors->all() as $e)
+          <li>{{ $e }}</li>
+        @endforeach
+      </ul>
+    </div>
+  @endif
+
   <form method="POST"
-        action="{{ route('admin.product-details.update', ['menu_product' => $product->id]) }}"
+        action="{{ route('admin.product-details.update', $product) }}"
         enctype="multipart/form-data"
-        style="margin-top:18px;background:#fff;border:1px solid rgba(15,23,42,.10);border-radius:16px;overflow:hidden;">
+        class="rounded-2xl border border-slate-200 bg-white p-5 space-y-4">
     @csrf
     @method('PUT')
 
     <input type="hidden" name="redirect_to" value="{{ $redirectTo }}">
 
-    <div style="padding:16px;border-bottom:1px solid rgba(15,23,42,.08);background:rgba(15,23,42,.02);font-weight:900;">
-      Datos del detalle
+    {{-- Datos base --}}
+    <div>
+      <label class="text-sm font-semibold text-slate-900">Título (opcional)</label>
+      <input name="title" value="{{ old('title', $detail->title) }}"
+             class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+      <p class="text-xs text-slate-500 mt-1">* Si no lo usas, el sistema muestra el título del producto.</p>
     </div>
 
-    <div style="padding:16px;display:grid;gap:14px;">
+    <div>
+      <label class="text-sm font-semibold text-slate-900">Descripción (opcional)</label>
+      <textarea name="description" rows="4"
+                class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm">{{ old('description', $detail->description) }}</textarea>
+    </div>
+
+    {{-- Medidas --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
       <div>
-        <label style="display:block;font-weight:900;margin-bottom:6px;">Título (opcional)</label>
-        <input name="title" value="{{ old('title', $detail->title) }}"
-               style="width:100%;height:42px;border-radius:12px;border:1px solid rgba(15,23,42,.16);padding:0 12px;font-weight:700;outline:none;">
+        <label class="text-sm font-semibold text-slate-900">Largo</label>
+        <input name="length" value="{{ old('length', $detail->length) }}"
+               class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
       </div>
-
       <div>
-        <label style="display:block;font-weight:900;margin-bottom:6px;">Descripción</label>
-        <textarea name="description" rows="4"
-                  style="width:100%;border-radius:12px;border:1px solid rgba(15,23,42,.16);padding:10px 12px;font-weight:700;outline:none;">{{ old('description', $detail->description) }}</textarea>
+        <label class="text-sm font-semibold text-slate-900">Ancho</label>
+        <input name="width" value="{{ old('width', $detail->width) }}"
+               class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
       </div>
-
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-        <div>
-          <label style="display:block;font-weight:900;margin-bottom:6px;">Largo</label>
-          <input name="length" value="{{ old('length', $detail->length) }}"
-                 style="width:100%;height:42px;border-radius:12px;border:1px solid rgba(15,23,42,.16);padding:0 12px;font-weight:800;outline:none;">
-        </div>
-        <div>
-          <label style="display:block;font-weight:900;margin-bottom:6px;">Ancho</label>
-          <input name="width" value="{{ old('width', $detail->width) }}"
-                 style="width:100%;height:42px;border-radius:12px;border:1px solid rgba(15,23,42,.16);padding:0 12px;font-weight:800;outline:none;">
-        </div>
-        <div>
-          <label style="display:block;font-weight:900;margin-bottom:6px;">Alto</label>
-          <input name="height" value="{{ old('height', $detail->height) }}"
-                 style="width:100%;height:42px;border-radius:12px;border:1px solid rgba(15,23,42,.16);padding:0 12px;font-weight:800;outline:none;">
-        </div>
+      <div>
+        <label class="text-sm font-semibold text-slate-900">Alto</label>
+        <input name="height" value="{{ old('height', $detail->height) }}"
+               class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
       </div>
     </div>
 
-    <div style="padding:16px;border-top:1px solid rgba(15,23,42,.08);background:rgba(15,23,42,.02);font-weight:900;">
-      Subir imágenes nuevas (con asignación)
-    </div>
-
-    <div style="padding:16px;">
-      @if(empty($acero) || empty($mela))
-        <div style="padding:12px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.08);border-radius:12px;font-weight:900;">
-          Primero define colores en “Editar colores”, luego podrás asignar imágenes.
+    {{-- ✅ PDFs --}}
+    <div class="border-t border-slate-200 pt-4">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div class="text-sm font-extrabold text-slate-900">PDFs del producto</div>
+          <div class="text-xs text-slate-500">Ficha técnica e Instructivo se guardan en BD.</div>
         </div>
-      @endif
 
-      <input type="file" name="gallery_images[]" id="gallery_input" accept="image/*" multiple
-             {{ (empty($acero) || empty($mela)) ? 'disabled' : '' }}>
+        <div class="flex gap-2 flex-wrap">
+          <button type="button"
+                  class="rounded-xl bg-slate-900 text-white text-sm px-4 py-2 hover:opacity-95 disabled:opacity-40"
+                  @if(!$techUrl) disabled @endif
+                  onclick="window.openPdfPreview(@js($techUrl), 'Ficha técnica')
+            Ficha técnica
+          </button>
 
-      <div id="upload_previews"
-           style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;"></div>
-    </div>
+          <button type="button"
+                  class="rounded-xl bg-slate-900 text-white text-sm px-4 py-2 hover:opacity-95 disabled:opacity-40"
+                  @if(!$manualUrl) disabled @endif
+                  onclick="window.openPdfPreview(@js($manualUrl), 'Instructivo')">
+            Instructivo
+          </button>
+        </div>
+      </div>
 
-    <div style="padding:16px;border-top:1px solid rgba(15,23,42,.08);background:rgba(15,23,42,.02);font-weight:900;">
-      Imágenes actuales
-    </div>
+      <div class="mt-3 grid grid-cols-1 gap-3">
 
-    <div style="padding:16px;">
-      @if(empty($variant))
-        <div style="opacity:.7;font-weight:800;">No hay imágenes todavía.</div>
-      @else
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;">
-          @foreach($variant as $i => $it)
-            @php
-              $p = ltrim((string)($it['path'] ?? ''), '/');
-              $u = $p ? asset('storage/'.$p) : null;
-              $a = trim((string)($it['acero'] ?? ''));
-              $m = trim((string)($it['melamina'] ?? ''));
-            @endphp
+        {{-- Ficha técnica --}}
+        <div class="rounded-2xl border border-slate-200 p-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="font-bold text-slate-900">Ficha técnica (PDF)</div>
 
-            <div style="border:1px solid rgba(15,23,42,.12);border-radius:16px;overflow:hidden;background:#fff;">
-              <div style="aspect-ratio:16/10;background:#f3f4f6;display:flex;align-items:center;justify-content:center;">
-                @if($u)
-                  <img src="{{ $u }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">
-                @else
-                  <div style="font-weight:900;color:#94a3b8;">Sin imagen</div>
-                @endif
-              </div>
+            <div class="flex items-center gap-3 flex-wrap">
+              @if($techUrl)
+                <button type="button"
+                        class="rounded-xl border border-slate-200 text-slate-900 text-sm px-4 py-2 hover:bg-slate-50"
+                        onclick="window.openPdfPreview(@js($techUrl), 'Ficha técnica')
+                  Ver preview
+                </button>
 
-              <div style="padding:10px;display:grid;gap:8px;">
-                <label style="display:flex;align-items:center;gap:8px;font-weight:900;">
-                  <input type="checkbox" name="remove_gallery[]" value="{{ $p }}"> Quitar
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                  <input type="checkbox" name="remove_tech_pdf" value="1" class="rounded border-slate-300">
+                  Quitar PDF
                 </label>
-
-                <select name="existing_meta[{{ $i }}][acero]"
-                        style="height:42px;border-radius:12px;border:1px solid rgba(15,23,42,.16);padding:0 12px;font-weight:800;outline:none;">
-                  <option value="">Acero (sin asignar)</option>
-                  @foreach($acero as $c)
-                    <option value="{{ $c }}" {{ $a===$c ? 'selected':'' }}>{{ $c }}</option>
-                  @endforeach
-                </select>
-
-                <select name="existing_meta[{{ $i }}][melamina]"
-                        style="height:42px;border-radius:12px;border:1px solid rgba(15,23,42,.16);padding:0 12px;font-weight:800;outline:none;">
-                  <option value="">Melamina (sin asignar)</option>
-                  @foreach($mela as $c)
-                    <option value="{{ $c }}" {{ $m===$c ? 'selected':'' }}>{{ $c }}</option>
-                  @endforeach
-                </select>
-              </div>
+              @else
+                <span class="text-sm text-slate-500 font-semibold">Sin PDF cargado</span>
+              @endif
             </div>
-          @endforeach
+          </div>
+
+          <input type="file" name="tech_pdf" accept="application/pdf"
+                 class="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+          <p class="text-xs text-slate-500 mt-2">Al guardar, si seleccionas archivo se reemplaza el anterior.</p>
         </div>
-      @endif
+
+        {{-- Instructivo --}}
+        <div class="rounded-2xl border border-slate-200 p-4">
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <div class="font-bold text-slate-900">Instructivo (PDF)</div>
+
+            <div class="flex items-center gap-3 flex-wrap">
+              @if($manualUrl)
+                <button type="button"
+                        class="rounded-xl border border-slate-200 text-slate-900 text-sm px-4 py-2 hover:bg-slate-50"
+                        onclick="window.openPdfPreview(@js($manualUrl), 'Instructivo')">
+                  Ver preview
+                </button>
+
+                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                  <input type="checkbox" name="remove_manual_pdf" value="1" class="rounded border-slate-300">
+                  Quitar PDF
+                </label>
+              @else
+                <span class="text-sm text-slate-500 font-semibold">Sin PDF cargado</span>
+              @endif
+            </div>
+          </div>
+
+          <input type="file" name="manual_pdf" accept="application/pdf"
+                 class="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+          <p class="text-xs text-slate-500 mt-2">Al guardar, si seleccionas archivo se reemplaza el anterior.</p>
+        </div>
+
+      </div>
     </div>
 
-    <div style="padding:16px;border-top:1px solid rgba(15,23,42,.08);display:flex;justify-content:flex-end;">
-      <button type="submit"
-              style="height:42px;padding:0 16px;border-radius:12px;border:1px solid rgba(15,23,42,.14);background:linear-gradient(180deg, rgba(37,99,235,1), rgba(29,78,216,1));color:#fff;font-weight:900;cursor:pointer;">
-        Guardar
+    {{-- Botones --}}
+    <div class="flex justify-end gap-2 pt-2">
+      <a href="{{ $redirectTo }}"
+         class="rounded-xl border border-slate-200 text-slate-900 text-sm px-4 py-2 hover:bg-slate-50">
+        Volver
+      </a>
+
+      <button class="rounded-xl bg-slate-900 text-white text-sm px-4 py-2 hover:opacity-95">
+        Guardar cambios
       </button>
     </div>
   </form>
+
 </div>
-
-<script>
-  const ACEROS = @json($acero);
-  const MELAS = @json($mela);
-
-  const previewState = { items: [] };
-
-  function esc(s){
-    return String(s).replace(/[&<>"']/g, (m)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-  }
-
-  (function(){
-    const input = document.getElementById('gallery_input');
-    const wrap = document.getElementById('upload_previews');
-    if(!input || !wrap) return;
-
-    input.addEventListener('change', ()=>{
-      wrap.innerHTML = '';
-      previewState.items = [];
-
-      const files = Array.from(input.files || []);
-      files.forEach((f, idx)=>{
-        const card = document.createElement('div');
-        card.style.cssText = "border:1px solid rgba(15,23,42,.12);border-radius:16px;overflow:hidden;background:#fff;";
-
-        const url = URL.createObjectURL(f);
-
-        const prev = document.createElement('div');
-        prev.style.cssText = "aspect-ratio:16/10;background:#f3f4f6;overflow:hidden;";
-        prev.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
-
-        const meta = document.createElement('div');
-        meta.style.cssText = "padding:10px;display:grid;gap:8px;";
-
-        const a = document.createElement('select');
-        a.name = `gallery_meta[${idx}][acero]`;
-        a.required = true;
-        a.style.cssText = "height:42px;border-radius:12px;border:1px solid rgba(15,23,42,.16);padding:0 12px;font-weight:800;outline:none;";
-        a.innerHTML = `<option value="">Selecciona Acero</option>` + ACEROS.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-
-        const m = document.createElement('select');
-        m.name = `gallery_meta[${idx}][melamina]`;
-        m.required = true;
-        m.style.cssText = "height:42px;border-radius:12px;border:1px solid rgba(15,23,42,.16);padding:0 12px;font-weight:800;outline:none;";
-        m.innerHTML = `<option value="">Selecciona Melamina</option>` + MELAS.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-
-        meta.appendChild(a);
-        meta.appendChild(m);
-
-        card.appendChild(prev);
-        card.appendChild(meta);
-        wrap.appendChild(card);
-
-        previewState.items.push({ aEl:a, mEl:m });
-      });
-    });
-  })();
-
-  (function(){
-    const form = document.querySelector('form');
-    if(!form) return;
-    form.addEventListener('submit', (e)=>{
-      const anyMissing = previewState.items.some(it => (it.aEl && !it.aEl.value) || (it.mEl && !it.mEl.value));
-      if(anyMissing){
-        e.preventDefault();
-        alert('Asigna Acero y Melamina a cada imagen antes de guardar.');
-      }
-    });
-  })();
-</script>
-@endsection 
+@endsection

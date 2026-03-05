@@ -14,13 +14,8 @@ class MenuController extends Controller
     public function product(MenuProduct $menu_product)
     {
         // ✅ defaults seguros
-        $gallery = is_array($menu_product->gallery_images)
-            ? $menu_product->gallery_images
-            : (json_decode((string)$menu_product->gallery_images, true) ?: []);
-
-        $specs = is_array($menu_product->specs)
-            ? $menu_product->specs
-            : (json_decode((string)$menu_product->specs, true) ?: []);
+        $gallery = is_array($menu_product->gallery_images) ? $menu_product->gallery_images : (json_decode((string)$menu_product->gallery_images, true) ?: []);
+        $specs   = is_array($menu_product->specs) ? $menu_product->specs : (json_decode((string)$menu_product->specs, true) ?: []);
 
         // Si no hay galería, usa image_path como primera imagen (si existe)
         if (empty($gallery) && !empty($menu_product->image_path)) {
@@ -37,7 +32,18 @@ class MenuController extends Controller
             'colors_acero'    => [],
             'colors_melamina' => [],
             'notes'           => '',
+            'files'           => [
+                'ficha_tecnica' => null,
+                'instructivo'   => null,
+            ],
         ], $specs);
+
+        // Asegura estructura files
+        if (!is_array($specs['files'] ?? null)) {
+            $specs['files'] = ['ficha_tecnica' => null, 'instructivo' => null];
+        }
+        $specs['files']['ficha_tecnica'] = $specs['files']['ficha_tecnica'] ?? null;
+        $specs['files']['instructivo']   = $specs['files']['instructivo'] ?? null;
 
         return view('menu.product', [
             'p'       => $menu_product,
@@ -54,23 +60,10 @@ class MenuController extends Controller
         // ✅ Ruta completa tipo: "productos/detalles-de-productos/escritorios"
         $fullPath = $this->buildMenuKey($sectionSlug, $path);
 
-        // Resolver el nodo actual por el path (using children por label)
+        // Resolver el nodo actual por el path (ususing children por label)
         [$currentNode, $currentChain] = $this->resolveCurrentNode($section, $path);
 
         $currentNodeId = $currentNode?->id; // para “Agregar submenú”
-
-        // ✅ PDF preview (si el nodo tiene url)
-        $pdfUrl = null;
-        if ($currentNode && !empty($currentNode->url)) {
-            $u = trim((string)$currentNode->url);
-
-            // Soporta url absoluta o path local
-            if (Str::startsWith($u, ['http://', 'https://'])) {
-                $pdfUrl = $u;
-            } else {
-                $pdfUrl = asset(ltrim($u, '/'));
-            }
-        }
 
         // Hijos del nodo actual (subopciones)
         $children = collect();
@@ -96,7 +89,7 @@ class MenuController extends Controller
             return [
                 'id'          => $n->id,
                 'title'       => $n->label,
-                'key'         => $this->buildMenuKey($sectionSlug, $newPath), // 👈 clave usada por menu_card_images
+                'key'         => $this->buildMenuKey($sectionSlug, $newPath),
                 'href'        => $href,
                 'hasChildren' => MenuNode::query()
                     ->when(method_exists(MenuNode::class, 'scopeActive'), fn($q) => $q->active(), fn($q) => $q->where('is_active', 1))
@@ -118,11 +111,11 @@ class MenuController extends Controller
         $productTargets = [];
 
         if ($children->count()) {
-            $basePath = trim((string)$path, '/'); // ej: "detalles-de-productos/escritorios"
+            $basePath = trim((string)$path, '/');
 
             $productTargets = $children->map(function ($n) use ($sectionSlug, $basePath) {
                 $nodeSlug  = Str::slug($n->label, '-');
-                $childPath = trim($basePath . '/' . $nodeSlug, '/'); // ej: "detalles-de-productos/escritorios/anzio"
+                $childPath = trim($basePath . '/' . $nodeSlug, '/');
 
                 return [
                     'label'    => $n->label,
@@ -144,9 +137,6 @@ class MenuController extends Controller
             ->get()
             ->keyBy('key');
 
-        /**
-         * ✅ DETECTAR NIVEL "DETALLE" (leaf) para mostrar HERO gigante + productos
-         */
         $trimPath = trim((string)$path, '/');
         $depth = $trimPath === '' ? 0 : (substr_count($trimPath, '/') + 1);
 
@@ -156,7 +146,6 @@ class MenuController extends Controller
             && Str::contains($fullPath, 'detalles-de-productos/');
 
         if ($isDetailLevel) {
-            // ✅ HERO: crea/obtiene por key=fullPath
             $hero = MenuProductHero::query()->firstOrCreate(
                 ['key' => $fullPath],
                 ['title' => null, 'description' => null, 'images' => []]
@@ -165,10 +154,6 @@ class MenuController extends Controller
             return view('menu.detail', [
                 'section'        => $section,
                 'current'        => ['label' => $currentNode?->label],
-
-                // ✅ IMPORTANTÍSIMO: para que NO truene show/detail si la vista usa $node
-                'node'           => $currentNode,
-
                 'cards'          => $cards,
                 'images'         => $images,
                 'currentNodeId'  => $currentNodeId,
@@ -176,22 +161,13 @@ class MenuController extends Controller
                 'products'       => $products,
                 'productTargets' => $productTargets,
                 'redirectTo'     => url()->current(),
-
-                // ✅ PDF Preview (si tiene url)
-                'pdfUrl'         => $pdfUrl,
-
                 'hero'           => $hero,
             ]);
         }
 
-        // ✅ NIVEL NORMAL (como lo tienes hoy)
         return view('menu.show', [
             'section'        => $section,
             'current'        => ['label' => $currentNode?->label],
-
-            // ✅ FIX: ya existe $node en vista
-            'node'           => $currentNode,
-
             'cards'          => $cards,
             'images'         => $images,
             'currentNodeId'  => $currentNodeId,
@@ -199,9 +175,6 @@ class MenuController extends Controller
             'products'       => $products,
             'productTargets' => $productTargets,
             'redirectTo'     => url()->current(),
-
-            // ✅ PDF Preview (si tiene url)
-            'pdfUrl'         => $pdfUrl,
         ]);
     }
 
