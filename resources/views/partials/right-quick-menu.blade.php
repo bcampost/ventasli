@@ -57,8 +57,7 @@
     --rq-label-pad-x: 9px;
 
     /* ✅ color de fondo del icono (aquí lo cambias) */
-    --rq-bg: rgba(255,255,255,.35);
-
+    --rq-bg: rgba(17,24,39,.22);
     /* borde/sombras del icono */
     --rq-border: rgba(255,255,255,.38);
     --rq-shadow: 0 10px 22px rgba(0,0,0,.10);
