@@ -11,7 +11,6 @@ class MenuNodeController extends Controller
 {
     /**
      * GET /admin/menu
-     * Pantalla para administrar el menú
      */
     public function index()
     {
@@ -32,8 +31,7 @@ class MenuNodeController extends Controller
     }
 
     /**
-     * GET /admin/menu/children/{menu_node}
-     * Devuelve hijos (JSON) por si lo usas con AJAX
+     * GET /admin/menu/children/{menu_node} (JSON)
      */
     public function children(MenuNode $menu_node)
     {
@@ -47,8 +45,26 @@ class MenuNodeController extends Controller
     }
 
     /**
+     * ✅ GET /admin/menu/{menu_node}/manage
+     * Pantalla para crear hijos + asignar PDF
+     */
+    public function manage(MenuNode $menu_node)
+    {
+        $children = MenuNode::query()
+            ->where('parent_id', $menu_node->id)
+            ->orderBy('sort')
+            ->orderBy('label')
+            ->get();
+
+        return view('admin.menu.manage', [
+            'node' => $menu_node,
+            'children' => $children,
+        ]);
+    }
+
+    /**
      * POST /admin/menu
-     * Crea un nodo (root o hijo)
+     * Crea nodo (root o hijo, usado por tu modal general)
      */
     public function store(Request $request)
     {
@@ -58,6 +74,7 @@ class MenuNodeController extends Controller
             'url'       => ['nullable', 'string', 'max:2048'],
             'sort'      => ['nullable', 'integer'],
             'is_active' => ['nullable'],
+            'redirect_to' => ['nullable', 'string', 'max:2048'],
         ]);
 
         $label = trim($data['label']);
@@ -66,7 +83,7 @@ class MenuNodeController extends Controller
         $parentId = $data['parent_id'] ?? null;
         if ($parentId === '' || $parentId === '0') $parentId = null;
 
-        // Calcula key requerido por tu DB
+        // ✅ key requerido por tu DB
         $key = $slug;
         if ($parentId) {
             $parent = MenuNode::find($parentId);
@@ -85,14 +102,79 @@ class MenuNodeController extends Controller
             'is_active' => isset($data['is_active']) ? (bool)$data['is_active'] : true,
         ]);
 
-        return redirect()
-            ->route('admin.menu.index')
-            ->with('status', 'Nodo creado.');
+        $to = $data['redirect_to'] ?? null;
+
+        return $to
+            ? redirect($to)->with('status', 'Nodo creado.')
+            : redirect()->route('admin.menu.index')->with('status', 'Nodo creado.');
+    }
+
+    /**
+     * ✅ POST /admin/menu/{menu_node}/children
+     * Crea un hijo bajo ese nodo (usado por manage.blade.php)
+     */
+    public function storeChild(Request $request, MenuNode $menu_node)
+    {
+        $data = $request->validate([
+            'label' => ['required', 'string', 'max:255'],
+        ]);
+
+        $label = trim($data['label']);
+        $slug  = Str::slug($label, '-');
+
+        // evita duplicado por slug dentro del mismo padre
+        $exists = MenuNode::query()
+            ->where('parent_id', $menu_node->id)
+            ->where('slug', $slug)
+            ->exists();
+
+        if ($exists) {
+            return back()->with('status', "Ya existe una opción con nombre similar: {$label}");
+        }
+
+        $key = rtrim((string)$menu_node->key, '/') . '/' . $slug;
+
+        $maxSort = (int) MenuNode::query()
+            ->where('parent_id', $menu_node->id)
+            ->max('sort');
+
+        MenuNode::create([
+            'label'     => $label,
+            'slug'      => $slug,
+            'key'       => $key,
+            'parent_id' => $menu_node->id,
+            'url'       => null,
+            'sort'      => $maxSort + 1,
+            'is_active' => 1,
+        ]);
+
+        return back()->with('status', "Opción creada: {$label}");
+    }
+
+    /**
+     * ✅ POST /admin/menu/{menu_node}/upload
+     * Sube PDF y lo asigna en url del nodo
+     */
+    public function uploadPdf(Request $request, MenuNode $menu_node)
+    {
+        $request->validate([
+            'pdf' => ['required', 'file', 'mimes:pdf', 'max:20480'],
+        ]);
+
+        $slug = $menu_node->slug ?: Str::slug($menu_node->label, '-');
+        $filename = "menu-{$slug}-{$menu_node->id}.pdf";
+
+        $request->file('pdf')->move(public_path('pdfs'), $filename);
+
+        $menu_node->update([
+            'url' => "pdfs/{$filename}",
+        ]);
+
+        return back()->with('status', "PDF actualizado para: {$menu_node->label}");
     }
 
     /**
      * PUT /admin/menu/{menu_node}
-     * Actualiza un nodo
      */
     public function update(Request $request, MenuNode $menu_node)
     {
@@ -101,6 +183,7 @@ class MenuNodeController extends Controller
             'url'       => ['nullable', 'string', 'max:2048'],
             'sort'      => ['nullable', 'integer'],
             'is_active' => ['nullable'],
+            'redirect_to' => ['nullable', 'string', 'max:2048'],
         ]);
 
         $label = trim($data['label']);
@@ -124,17 +207,17 @@ class MenuNodeController extends Controller
 
         $menu_node->save();
 
-        // También actualiza keys de hijos (por si cambiaste label/slug)
         $this->refreshChildrenKeys($menu_node);
 
-        return redirect()
-            ->route('admin.menu.index')
-            ->with('status', 'Nodo actualizado.');
+        $to = $data['redirect_to'] ?? null;
+
+        return $to
+            ? redirect($to)->with('status', 'Nodo actualizado.')
+            : redirect()->route('admin.menu.index')->with('status', 'Nodo actualizado.');
     }
 
     /**
      * DELETE /admin/menu/{menu_node}
-     * Elimina un nodo (recursivo)
      */
     public function destroy(MenuNode $menu_node)
     {

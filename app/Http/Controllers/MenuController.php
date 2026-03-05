@@ -8,17 +8,19 @@ use App\Models\MenuCardImage;
 use App\Models\MenuProductHero;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
-
 
 class MenuController extends Controller
 {
-
-        public function product(MenuProduct $menu_product)
+    public function product(MenuProduct $menu_product)
     {
         // ✅ defaults seguros
-        $gallery = is_array($menu_product->gallery_images) ? $menu_product->gallery_images : (json_decode((string)$menu_product->gallery_images, true) ?: []);
-        $specs   = is_array($menu_product->specs) ? $menu_product->specs : (json_decode((string)$menu_product->specs, true) ?: []);
+        $gallery = is_array($menu_product->gallery_images)
+            ? $menu_product->gallery_images
+            : (json_decode((string)$menu_product->gallery_images, true) ?: []);
+
+        $specs = is_array($menu_product->specs)
+            ? $menu_product->specs
+            : (json_decode((string)$menu_product->specs, true) ?: []);
 
         // Si no hay galería, usa image_path como primera imagen (si existe)
         if (empty($gallery) && !empty($menu_product->image_path)) {
@@ -45,8 +47,6 @@ class MenuController extends Controller
         ]);
     }
 
-
-
     public function show(Request $request, string $sectionSlug, ?string $path = null)
     {
         $section = $this->resolveSectionRoot($sectionSlug);
@@ -54,10 +54,23 @@ class MenuController extends Controller
         // ✅ Ruta completa tipo: "productos/detalles-de-productos/escritorios"
         $fullPath = $this->buildMenuKey($sectionSlug, $path);
 
-        // Resolver el nodo actual por el path (ususing children por label)
+        // Resolver el nodo actual por el path (using children por label)
         [$currentNode, $currentChain] = $this->resolveCurrentNode($section, $path);
 
         $currentNodeId = $currentNode?->id; // para “Agregar submenú”
+
+        // ✅ PDF preview (si el nodo tiene url)
+        $pdfUrl = null;
+        if ($currentNode && !empty($currentNode->url)) {
+            $u = trim((string)$currentNode->url);
+
+            // Soporta url absoluta o path local
+            if (Str::startsWith($u, ['http://', 'https://'])) {
+                $pdfUrl = $u;
+            } else {
+                $pdfUrl = asset(ltrim($u, '/'));
+            }
+        }
 
         // Hijos del nodo actual (subopciones)
         $children = collect();
@@ -133,9 +146,6 @@ class MenuController extends Controller
 
         /**
          * ✅ DETECTAR NIVEL "DETALLE" (leaf) para mostrar HERO gigante + productos
-         * - Debe ser leaf (sin children)
-         * - Debe tener path con profundidad (ej: detalles-de-productos/escritorios/anzio => 2 slashes o más)
-         * - Y normalmente vive bajo "detalles-de-productos"
          */
         $trimPath = trim((string)$path, '/');
         $depth = $trimPath === '' ? 0 : (substr_count($trimPath, '/') + 1);
@@ -155,13 +165,21 @@ class MenuController extends Controller
             return view('menu.detail', [
                 'section'        => $section,
                 'current'        => ['label' => $currentNode?->label],
-                'cards'          => $cards,          // en detalle normalmente vendrá vacío, pero lo pasamos
-                'images'         => $images,         // idem
+
+                // ✅ IMPORTANTÍSIMO: para que NO truene show/detail si la vista usa $node
+                'node'           => $currentNode,
+
+                'cards'          => $cards,
+                'images'         => $images,
                 'currentNodeId'  => $currentNodeId,
                 'fullPath'       => $fullPath,
                 'products'       => $products,
-                'productTargets' => $productTargets, // en detalle: solo nivel actual
+                'productTargets' => $productTargets,
                 'redirectTo'     => url()->current(),
+
+                // ✅ PDF Preview (si tiene url)
+                'pdfUrl'         => $pdfUrl,
+
                 'hero'           => $hero,
             ]);
         }
@@ -170,6 +188,10 @@ class MenuController extends Controller
         return view('menu.show', [
             'section'        => $section,
             'current'        => ['label' => $currentNode?->label],
+
+            // ✅ FIX: ya existe $node en vista
+            'node'           => $currentNode,
+
             'cards'          => $cards,
             'images'         => $images,
             'currentNodeId'  => $currentNodeId,
@@ -177,6 +199,9 @@ class MenuController extends Controller
             'products'       => $products,
             'productTargets' => $productTargets,
             'redirectTo'     => url()->current(),
+
+            // ✅ PDF Preview (si tiene url)
+            'pdfUrl'         => $pdfUrl,
         ]);
     }
 

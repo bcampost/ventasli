@@ -18,11 +18,9 @@ use App\Http\Controllers\Admin\TrainingMediaController;
 
 use App\Http\Controllers\Admin\MenuHeroController;
 
-// ✅ NUEVO (detalle público + editor admin)
 use App\Http\Controllers\MenuProductPublicController;
 use App\Http\Controllers\Admin\MenuProductDetailController;
 
-// ✅ NUEVO: editor SOLO de colores
 use App\Http\Controllers\Admin\MenuProductVariantColorsController;
 
 /*
@@ -100,6 +98,18 @@ Route::middleware(['auth'])->group(function () {
 
         Route::delete('/menu/{menu_node}', [MenuNodeController::class, 'destroy'])
             ->name('menu.destroy');
+
+        // ✅ NUEVO: pantalla para administrar un nodo (crear hijos + asignar PDF)
+        Route::get('/menu/{menu_node}/manage', [MenuNodeController::class, 'manage'])
+            ->name('menu.manage');
+
+        // ✅ NUEVO: crear hijo dentro de un nodo específico
+        Route::post('/menu/{menu_node}/children', [MenuNodeController::class, 'storeChild'])
+            ->name('menu.children.store');
+
+        // ✅ NUEVO: subir PDF a un nodo (y deja url en el nodo)
+        Route::post('/menu/{menu_node}/upload', [MenuNodeController::class, 'uploadPdf'])
+            ->name('menu.upload');
 
         /*
         |--------------------------------------------------------------------------
@@ -219,7 +229,6 @@ Route::middleware(['auth'])->group(function () {
         | PDFs Lista de precios (dinámico)
         |--------------------------------------------------------------------------
         */
-        // PDFs Lista de precios (dinámico)
         Route::get('/price-list-pdfs', [PriceListPdfController::class, 'index'])
             ->name('price-list-pdfs.index');
 
@@ -229,7 +238,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/price-list-pdfs/{menu_node}/upload', [PriceListPdfController::class, 'upload'])
             ->name('price-list-pdfs.upload');
 
-        // ✅ Opcionales (si los implementas)
         Route::post('/price-list-pdfs/{item}/toggle', [PriceListPdfController::class, 'toggle'])
             ->name('price-list-pdfs.toggle');
 

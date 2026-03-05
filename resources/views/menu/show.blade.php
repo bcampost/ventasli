@@ -911,4 +911,36 @@
   </script>
 @endif
 
+@role('admin')
+  @php
+    // ✅ usa el nodo si viene; si no, usa currentNodeId
+    $manageId = $node->id ?? ($currentNodeId ?? null);
+  @endphp
+
+  @if($manageId)
+    <a
+      href="{{ route('admin.menu.manage', $manageId) }}"
+      title="Editar este menú"
+      style="
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        width: 54px;
+        height: 54px;
+        border-radius: 999px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background: #111827;
+        color: #fff;
+        box-shadow: 0 16px 28px rgba(0,0,0,.22);
+        z-index: 9999;
+        text-decoration: none;
+      "
+    >
+      ⚙️
+    </a>
+  @endif
+@endrole
+
 @endsection
