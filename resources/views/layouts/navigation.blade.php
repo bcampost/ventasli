@@ -311,7 +311,7 @@
 
     <a href="{{ route('home') }}" class="topbrand">
       <img src="{{ asset('images/linea-italia.png') }}" alt="Línea Italia" class="topbrand-logo">
-      <span class="topbrand-text">Ventas Línea Italia</span>
+      <span class="topbrand-text">Ventas</span>
     </a>
 
     <div class="v-menu">

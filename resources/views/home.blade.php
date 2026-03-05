@@ -28,12 +28,14 @@
 
 <div class="hero-wrap">
   <div class="hero-top">
+
+    {{-- ✅ OCULTO: Título "Comunicados" + botón admin (NO borrar) --}}
+    {{--
     <div class="hero-brand">
       <div class="hero-title">
         <div class="hero-title-row">
           <div class="hero-h1">Comunicados</div>
 
-          {{-- ✅ Botón solo para admin --}}
           @role('admin')
             <a href="{{ route('admin.slides.index') }}" class="hero-admin-btn">
               <svg xmlns="http://www.w3.org/2000/svg" class="hero-admin-ico" viewBox="0 0 20 20" fill="currentColor">
@@ -45,6 +47,7 @@
         </div>
       </div>
     </div>
+    --}}
 
     <div class="hero-tools">
       <div class="hero-pill">
@@ -67,6 +70,8 @@
     </div>
   </div>
 
+  {{-- ✅ OCULTO: Slider de comunicados (NO borrar) --}}
+  {{--
   <div class="hero-stage">
     <div class="hero-card">
       <div class="swiper hero3d-swiper">
@@ -80,7 +85,6 @@
             <div class="swiper-slide hero3d-slide">
               <div class="hero3d-card">
 
-                {{-- ✅ Click “preview” (solo abre si el slide es el activo) --}}
                 <a
                   href="{{ $imgUrl ?: '#' }}"
                   data-preview="media"
@@ -92,7 +96,6 @@
                   @include('partials.slide-image-hero', ['slide' => $slide])
                 </a>
 
-                {{-- (opcional) link externo --}}
                 @if(!empty($slide->link))
                   <a
                     class="hero-slide-linkout swiper-no-swiping"
@@ -118,8 +121,10 @@
       </div>
     </div>
   </div>
+  --}}
 </div>
 
+{{-- ✅ Ranking sube automáticamente al ocultar comunicados --}}
 @include('partials.rankings-dashboard')
 
 <style>
@@ -133,7 +138,7 @@
   .hero-wrap{ background: transparent; border: none; border-radius: 0; padding: 18px 0; }
 
   .hero-top{
-    display:flex; align-items:center; justify-content:space-between;
+    display:flex; align-items:center; justify-content:flex-end;
     gap: 16px; padding: 6px 6px 14px;
     max-width: 1180px; margin: 0 auto;
   }
@@ -245,9 +250,11 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    window.initHomeSlider?.();
+    // ✅ OCULTO: slider (se deja inicialización por si lo reactivas luego)
+    // window.initHomeSlider?.();
 
-    // ✅ Solo el slide activo puede abrir modal
+    // ✅ OCULTO: lógica de click “preview” (se deja por si lo reactivas)
+    /*
     document.addEventListener('click', function(e){
       const a = e.target.closest('a.hero-slide-preview');
       if(!a) return;
@@ -260,7 +267,6 @@
         return;
       }
 
-      // si falta data-src/href, toma el src real del <img>
       const hasHref = (a.getAttribute('href') || '').trim() && a.getAttribute('href') !== '#';
       const hasData = (a.getAttribute('data-src') || '').trim();
 
@@ -270,6 +276,7 @@
         if(src) a.setAttribute('data-src', src);
       }
     }, true);
+    */
   });
 </script>
 
