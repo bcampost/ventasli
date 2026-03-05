@@ -9,17 +9,11 @@ use Illuminate\Support\Str;
 
 class PriceListPdfController extends Controller
 {
-    /**
-     * Pantalla: lista hijos de "Lista de precios" y permite subir PDF por cada opción
-     */
     public function index()
     {
-        // Busca el root por label. (Si cambia el label, ajusta aquí.)
         $root = MenuNode::query()
-            ->where('label', 'Lista de precios')
-            ->where(function ($q) {
-                $q->whereNull('parent_id')->orWhere('parent_id', 0);
-            })
+            ->where('is_active', 1)
+            ->whereRaw('LOWER(label) = ?', ['lista de precios'])
             ->first();
 
         $children = collect();
@@ -27,48 +21,81 @@ class PriceListPdfController extends Controller
         if ($root) {
             $children = MenuNode::query()
                 ->where('parent_id', $root->id)
+                ->where('is_active', 1)
                 ->orderBy('sort')
                 ->orderBy('label')
                 ->get();
         }
 
-        return view('admin.price-list-pdfs.index', [
-            'root' => $root,
-            'children' => $children,
-        ]);
+        return view('admin.price-list-pdfs.index', compact('root', 'children'));
     }
 
     /**
-     * Sube/Reemplaza PDF para un nodo hijo (Mobiliario/Silleria/Comercialización)
-     * Guarda en public/pdfs y actualiza menu_nodes.url = "pdfs/<archivo>.pdf"
+     * ✅ Crear una nueva opción bajo "Lista de precios"
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'label' => ['required', 'string', 'max:80'],
+        ]);
+
+        $root = MenuNode::query()
+            ->where('is_active', 1)
+            ->whereRaw('LOWER(label) = ?', ['lista de precios'])
+            ->firstOrFail();
+
+        $label = trim($request->input('label'));
+        $slug  = Str::slug($label);
+
+        // evitar duplicados por slug/key dentro de ese root
+        $exists = MenuNode::query()
+            ->where('parent_id', $root->id)
+            ->where(function ($q) use ($slug) {
+                $q->where('slug', $slug)
+                ->orWhere('key', $slug);
+            })
+            ->exists();
+
+        if ($exists) {
+            return back()->with('status', "Ya existe una opción con nombre similar: {$label}");
+        }
+
+        $maxSort = (int) MenuNode::query()
+            ->where('parent_id', $root->id)
+            ->max('sort');
+
+        MenuNode::create([
+            'label'     => $label,
+            'slug'      => $slug,
+            'key'       => $slug,      // ✅ IMPORTANTÍSIMO para tu BD (NOT NULL)
+            'url'       => null,       // se llenará al subir PDF
+            'parent_id' => $root->id,
+            'is_active' => 1,
+            'sort'      => $maxSort + 1,
+        ]);
+        return back()->with('status', "Opción creada: {$label}");
+    }
+
+    /**
+     * ✅ Subir / reemplazar PDF para un hijo
      */
     public function upload(Request $request, MenuNode $menu_node)
     {
-        $data = $request->validate([
-            'pdf' => ['required', 'file', 'mimes:pdf', 'max:25600'], // 25MB
+        $request->validate([
+            'pdf' => ['required', 'file', 'mimes:pdf', 'max:20480'], // 20MB
         ]);
 
-        // Nombre del archivo: lista-precios-<slug>.pdf
-        // Ej: "Silleria" -> lista-precios-silleria.pdf
-        $safeSlug = $menu_node->slug ?: Str::slug($menu_node->label, '-');
-        $filename = "lista-precios-{$safeSlug}.pdf";
+        $slug = $menu_node->slug ?: Str::slug($menu_node->label);
+        $filename = "lista-precios-{$slug}.pdf";
 
-        // Asegura carpeta public/pdfs
-        $dir = public_path('pdfs');
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0755, true);
-        }
+        // guarda en public/pdfs
+        $request->file('pdf')->move(public_path('pdfs'), $filename);
 
-        // Mueve el archivo (reemplaza si existe)
-        $file = $data['pdf'];
-        $file->move($dir, $filename);
+        // actualiza url del nodo: eso hace que MenuTree lo muestre en el menú
+        $menu_node->update([
+            'url' => "pdfs/{$filename}",
+        ]);
 
-        // Actualiza URL del nodo (esto es lo que usa tu navbar)
-        $menu_node->url = "pdfs/{$filename}";
-        $menu_node->save();
-
-        return redirect()
-            ->route('admin.price-list-pdfs.index')
-            ->with('status', "PDF actualizado para '{$menu_node->label}' → {$filename}");
+        return back()->with('status', "PDF actualizado para: {$menu_node->label}");
     }
 }

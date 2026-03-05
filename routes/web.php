@@ -216,14 +216,25 @@ Route::middleware(['auth'])->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | PDFs Lista de precios
+        | PDFs Lista de precios (dinámico)
         |--------------------------------------------------------------------------
         */
+        // PDFs Lista de precios (dinámico)
         Route::get('/price-list-pdfs', [PriceListPdfController::class, 'index'])
             ->name('price-list-pdfs.index');
 
-        Route::post('/price-list-pdfs/{menu_node}', [PriceListPdfController::class, 'upload'])
+        Route::post('/price-list-pdfs', [PriceListPdfController::class, 'store'])
+            ->name('price-list-pdfs.store');
+
+        Route::post('/price-list-pdfs/{menu_node}/upload', [PriceListPdfController::class, 'upload'])
             ->name('price-list-pdfs.upload');
+
+        // ✅ Opcionales (si los implementas)
+        Route::post('/price-list-pdfs/{item}/toggle', [PriceListPdfController::class, 'toggle'])
+            ->name('price-list-pdfs.toggle');
+
+        Route::delete('/price-list-pdfs/{item}', [PriceListPdfController::class, 'destroy'])
+            ->name('price-list-pdfs.destroy');
 
         /*
         |--------------------------------------------------------------------------
@@ -233,12 +244,16 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/training-media/upload', [TrainingMediaController::class, 'upload'])
             ->name('training-media.upload');
 
+        /*
+        |--------------------------------------------------------------------------
+        | Users admin
+        |--------------------------------------------------------------------------
+        */
         Route::get('/users', [\App\Http\Controllers\Admin\UserAdminController::class, 'index'])
             ->name('users.index');
 
         Route::put('/users/{user}/role', [\App\Http\Controllers\Admin\UserAdminController::class, 'updateRole'])
             ->name('users.role');
-
     });
 });
 

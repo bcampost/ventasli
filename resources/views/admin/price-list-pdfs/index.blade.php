@@ -51,6 +51,31 @@
           </div>
         </div>
       @else
+
+        {{-- ✅ NUEVA OPCIÓN --}}
+        <div class="mt-6 p-4 rounded-2xl border bg-gray-50">
+          <div class="font-semibold mb-2">Agregar nueva opción</div>
+
+          <form method="POST" action="{{ route('admin.price-list-pdfs.store') }}" class="flex items-center gap-2 flex-wrap">
+            @csrf
+            <input
+              type="text"
+              name="label"
+              placeholder="Ej. Accesorios"
+              class="w-full max-w-sm rounded-xl border-gray-300 text-sm"
+              required
+            >
+            <button class="px-4 py-2 rounded-xl bg-gray-900 text-white text-sm font-semibold">
+              Crear
+            </button>
+          </form>
+
+          @error('label')
+            <div class="text-sm text-red-600 mt-2">{{ $message }}</div>
+          @enderror
+        </div>
+
+        {{-- ✅ LISTADO --}}
         <div class="mt-6 space-y-4">
           @forelse($children as $child)
             @php
@@ -59,7 +84,7 @@
             @endphp
 
             <div class="border rounded-2xl p-4">
-              <div class="flex items-start justify-between gap-4">
+              <div class="flex items-start justify-between gap-4 flex-wrap">
                 <div class="min-w-0">
                   <div class="text-lg font-semibold truncate">{{ $child->label }}</div>
                   <div class="text-sm text-gray-600 mt-1">
@@ -83,7 +108,7 @@
                     method="POST"
                     action="{{ route('admin.price-list-pdfs.upload', $child) }}"
                     enctype="multipart/form-data"
-                    class="flex items-center gap-2"
+                    class="flex items-center gap-2 flex-wrap"
                   >
                     @csrf
                     <input
@@ -117,6 +142,7 @@
       <h2 class="font-semibold">Cómo usarlo</h2>
       <ol class="list-decimal pl-6 mt-2 text-gray-700 space-y-1">
         <li>Entra a <code>/admin/price-list-pdfs</code></li>
+        <li>Agrega opciones nuevas con “Crear”</li>
         <li>En cada opción, selecciona el PDF y presiona <b>Subir</b></li>
         <li>Se guardará como <code>public/pdfs/lista-precios-&lt;slug&gt;.pdf</code></li>
         <li>El menú se actualiza solo (porque el <code>url</code> del nodo queda en <code>pdfs/...</code>)</li>
