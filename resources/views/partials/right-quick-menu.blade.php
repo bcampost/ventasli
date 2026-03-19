@@ -1,5 +1,3 @@
-{{-- resources/views/components/right-quick-menu.blade.php --}}
-
 @php
   use App\Models\QuickLink;
 
@@ -40,32 +38,9 @@
 <style>
   html, body { overflow-x: hidden; }
 
-  /* =========================================================
-     ✅ CONTROLES RÁPIDOS (CAMBIA AQUÍ)
-     ========================================================= */
-  :root{
-    --rq-right: 18px;      /* distancia a la derecha */
-    --rq-gap: 10px;        /* separación entre items */
-
-    --rq-item-w: 64px;     /* ancho de cada item (icono + label) */
-    --rq-icon: 40px;       /* tamaño del círculo del icono */
-    --rq-svg: 20px;        /* tamaño del svg */
-    --rq-img: 20px;        /* tamaño de imagen subida */
-
-    --rq-label-font: 11px; /* tamaño del texto */
-    --rq-label-pad-y: 5px; /* padding label */
-    --rq-label-pad-x: 9px;
-
-    /* ✅ color de fondo del icono (aquí lo cambias) */
-    --rq-bg: rgba(17,24,39,.22);
-    /* borde/sombras del icono */
-    --rq-border: rgba(255,255,255,.38);
-    --rq-shadow: 0 10px 22px rgba(0,0,0,.10);
-  }
-
   .rq-wrap{
     position: fixed;
-    right: var(--rq-right);
+    right: 22px;
     top: 50%;
     transform: translateY(-50%);
     z-index: 9999;
@@ -76,46 +51,47 @@
     pointer-events: auto;
     display:flex;
     flex-direction:column;
-    gap: var(--rq-gap);
+    gap: 14px;
     align-items:center;
   }
 
   .rq-item{
-    width: var(--rq-item-w);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap: 7px;
+    position: relative;
+    width: 58px;
+    height: 58px;
+    display:grid;
+    place-items:center;
     text-decoration:none;
     outline:none;
+    border-radius: 999px;
+    background: transparent;
+    border: none;
     transition: transform .18s ease, filter .18s ease;
+    transform-style: preserve-3d;
   }
 
   .rq-item:hover{
-    transform: translateX(-2px) scale(1.04);
-    filter: drop-shadow(0 16px 24px rgba(0,0,0,.10));
+    transform: translateX(-2px) translateZ(18px) scale(1.06);
+    filter: drop-shadow(0 18px 30px rgba(0,0,0,.12));
   }
 
   .rq-icon{
-    width: var(--rq-icon);
-    height: var(--rq-icon);
+    width: 44px;
+    height: 44px;
     border-radius: 999px;
     display:grid;
     place-items:center;
-
-    background: var(--rq-bg);
-    border: 1px solid var(--rq-border);
+    background: rgba(255,255,255,.22);
+    border: 1px solid rgba(255,255,255,.38);
     box-shadow:
-      var(--rq-shadow),
+      0 10px 26px rgba(0,0,0,.12),
       inset 0 1px 0 rgba(255,255,255,.55),
-      inset 0 -10px 20px rgba(255,255,255,.08);
-
+      inset 0 -10px 24px rgba(255,255,255,.10);
     backdrop-filter: blur(10px) saturate(140%);
     -webkit-backdrop-filter: blur(10px) saturate(140%);
-
+    transform: translateZ(0);
     position: relative;
     overflow: hidden;
-
     transition: transform .18s ease, background .18s ease, border-color .18s ease;
   }
 
@@ -138,7 +114,7 @@
     inset:0;
     background: linear-gradient(115deg,
       rgba(255,255,255,0) 0%,
-      rgba(255,255,255,.30) 45%,
+      rgba(255,255,255,.35) 45%,
       rgba(255,255,255,0) 70%);
     transform: translateX(-120%);
     opacity: 0;
@@ -147,47 +123,59 @@
   }
 
   .rq-item:hover .rq-icon{
-    background: color-mix(in srgb, var(--rq-bg) 90%, rgba(255,255,255,.18));
-    border-color: color-mix(in srgb, var(--rq-border) 80%, rgba(255,255,255,.25));
-    transform: translateZ(0);
+    background: rgba(255,255,255,.28);
+    border-color: rgba(255,255,255,.55);
+    transform: translateZ(10px);
   }
+
   .rq-item:hover .rq-icon::after{
     transform: translateX(120%);
     opacity: .35;
   }
 
   .rq-icon svg{
-    width: var(--rq-svg);
-    height: var(--rq-svg);
+    width: 22px;
+    height: 22px;
     color: rgba(15,23,42,.92);
     filter: drop-shadow(0 1px 0 rgba(255,255,255,.55));
   }
 
   .rq-img{
-    width: var(--rq-img);
-    height: var(--rq-img);
+    width: 22px;
+    height: 22px;
     object-fit: contain;
     display:block;
     filter: drop-shadow(0 1px 0 rgba(255,255,255,.45));
   }
 
+  /* ✅ nombre SOLO al hover */
   .rq-label{
+    position:absolute;
+    right: 68px;
+    top: 50%;
+    transform: translateY(-50%) translateX(10px);
+    opacity: 0;
     pointer-events: none;
     white-space: nowrap;
-    font-size: var(--rq-label-font);
+    font-size: 13px;
     font-weight: 900;
     letter-spacing: .2px;
     color: #0f172a;
-
     background: rgba(255,255,255,.92);
     border: 1px solid rgba(2,6,23,.08);
-    border-radius: 999px;
-    padding: var(--rq-label-pad-y) var(--rq-label-pad-x);
-    box-shadow: 0 10px 22px rgba(0,0,0,.08);
+    border-radius: 14px;
+    padding: 9px 12px;
+    box-shadow: 0 18px 45px rgba(0,0,0,.14);
+    transition: opacity .18s ease, transform .18s ease;
+  }
+
+  .rq-item:hover .rq-label{
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
   }
 
   .rq-sep{
-    width: 30px;
+    width: 34px;
     height: 1px;
     background: rgba(2,6,23,.12);
     border-radius: 999px;
@@ -205,6 +193,7 @@
 
       <a class="rq-item"
          href="{{ $href }}"
+         title="{{ $l->name }}"
          @if($ext) target="_blank" rel="noopener" @endif
       >
         <span class="rq-icon">
@@ -221,10 +210,12 @@
 
     @if($isAdmin)
       <div class="rq-sep"></div>
-      <a class="rq-item" href="{{ route('admin.quick-links.index') }}">
+
+      <a class="rq-item" href="{{ route('admin.quick-links.index') }}" title="Editar panel">
         <span class="rq-icon">
           {!! $icon('settings') !!}
         </span>
+
         <span class="rq-label">Editar panel</span>
       </a>
     @endif
