@@ -42,242 +42,284 @@
 @endphp
 
 <style>
-  :root{
-    --nav-bg: rgba(255,255,255,.88);
-    --nav-line: rgba(15,23,42,.10);
-    --nav-ink: #0b1220;
-    --nav-muted: rgba(15,23,42,.62);
-    --nav-shadow: 0 14px 40px rgba(2,6,23,.08);
-    --nav-r: 18px;
-    --nav-primary: #2563eb;
-  }
+:root{
+  --nav-bg: rgba(255,255,255,.96);
+  --nav-line: rgba(15,23,42,.08);
+  --nav-ink: #111827;
+  --nav-muted: rgba(17,24,39,.55);
+  --nav-shadow: 0 18px 46px rgba(2,6,23,.08);
+  --nav-r: 18px;
+  --nav-primary: #2563eb;
+}
 
-  .v-nav{
-    position: sticky;
-    top: 0;
-    z-index: 60;
-    background: var(--nav-bg);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--nav-line);
-  }
+.v-nav{
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: var(--nav-bg);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--nav-line);
+}
 
-  .v-nav-wrap{
-    max-width: 1580px;
-    margin: 0 auto;
-    padding: 10px 18px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap: 16px;
-  }
+.v-nav-wrap{
+  max-width: 1580px;
+  margin: 0 auto;
+  padding: 10px 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 22px;
+  min-height: 72px;
+}
 
-  /* ✅ Brand (sin <a> anidados) */
-  .topbrand{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    text-decoration:none;
-    color: inherit;
-    user-select:none;
-  }
-  .topbrand-logo{
-    height: 26px;
-    width: auto;
-    display:block;
-    object-fit: contain;
-  }
-  .topbrand-text{
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    color: var(--nav-ink);
-    white-space: nowrap;
-  }
+/* ✅ Brand */
+.topbrand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-decoration:none;
+  color: inherit;
+  user-select:none;
+  flex: 0 0 auto;
+}
+.topbrand-logo{
+  height: 34px;
+  width: auto;
+  display:block;
+  object-fit: contain;
+}
+.topbrand-text{
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -.01em;
+  color: var(--nav-ink);
+  white-space: nowrap;
+}
 
-  .v-menu{
-    display:flex;
-    align-items:center;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
+/* ✅ Menú superior más premium */
+.v-menu{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 18px;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
 
-  .v-item{ position: relative; }
+.v-item{
+  position: relative;
+  flex: 0 0 auto;
+}
 
-  .v-link{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding: 10px 12px;
-    border-radius: 999px;
-    font-weight: 800;
-    font-size: 14px;
-    color: var(--nav-ink);
-    text-decoration:none;
-    border: 1px solid transparent;
-    transition: background .15s ease, border-color .15s ease, transform .15s ease;
-  }
-  .v-link:hover{
-    background: rgba(248,250,252,.85);
-    border-color: rgba(15,23,42,.12);
-    transform: translateY(-1px);
-  }
+.v-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding: 8px 2px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -.01em;
+  color: var(--nav-ink);
+  text-decoration:none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  position: relative;
+  transition: color .18s ease, opacity .18s ease;
+}
 
-  .v-caret{
-    font-size: 12px;
-    color: rgba(15,23,42,.55);
-    margin-left: 2px;
-  }
+.v-link:hover{
+  background: transparent;
+  border-color: transparent;
+  transform: none;
+  color: #000;
+}
 
-  /* ✅ puente invisible para hover */
-  .v-item::after{
-    content:"";
-    position:absolute;
-    left:0;
-    right:0;
-    top:100%;
-    height: 14px;
-  }
+.v-link::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-10px;
+  height:2px;
+  border-radius:999px;
+  background: #111827;
+  transform: scaleX(0);
+  transform-origin:center;
+  transition: transform .2s ease;
+  opacity:.9;
+}
 
-  /* Dropdown base (nivel 2) */
-  .v-dd{
-    position:absolute;
-    left:0;
-    top: 100%;
-    margin-top: 10px;
-    min-width: 240px;
-    background: #fff;
-    border: 1px solid rgba(15,23,42,.12);
-    border-radius: 16px;
-    box-shadow: var(--nav-shadow);
-    padding: 8px;
-    display:none;
-    z-index: 80;
-  }
+.v-item:hover > .v-link::after,
+.v-item:focus-within > .v-link::after{
+  transform: scaleX(1);
+}
 
-  .v-item:hover > .v-dd,
-  .v-item:focus-within > .v-dd{
-    display:block;
-  }
+.v-caret{
+  font-size: 10px;
+  color: rgba(15,23,42,.48);
+  margin-left: 2px;
+  transform: translateY(1px);
+}
 
-  /* Links dentro */
-  .v-dd a{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    padding: 10px 10px;
-    border-radius: 12px;
-    font-weight: 800;
-    font-size: 14px;
-    text-decoration:none;
-    color: var(--nav-ink);
-    white-space: nowrap;
-  }
-  .v-dd a:hover{ background: rgba(248,250,252,.9); }
+/* ✅ puente invisible para hover */
+.v-item::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:100%;
+  height: 14px;
+}
 
-  .v-dd small{
-    color: var(--nav-muted);
-    font-weight: 700;
-  }
+/* Dropdown base (nivel 2) */
+.v-dd{
+  position:absolute;
+  left:0;
+  top: 100%;
+  margin-top: 14px;
+  min-width: 260px;
+  background: #fff;
+  border: 1px solid rgba(15,23,42,.08);
+  border-radius: 18px;
+  box-shadow: var(--nav-shadow);
+  padding: 10px;
+  display:none;
+  z-index: 80;
+}
 
-  /* ✅ Para submenú (nivel 3) SOLO en Productos */
-  .v-dd-item{ position: relative; }
+.v-item:hover > .v-dd,
+.v-item:focus-within > .v-dd{
+  display:block;
+}
 
-  /* ✅ Puente invisible horizontal para ir al submenú (nivel 3) sin que se cierre */
-  .v-dd-item.has-kids::after{
-    content:"";
-    position:absolute;
-    top: 0;
-    bottom: 0;
-    right: -12px;
-    width: 12px;
-  }
+/* Links dentro */
+.v-dd a{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration:none;
+  color: var(--nav-ink);
+  white-space: nowrap;
+}
+.v-dd a:hover{
+  background: rgba(248,250,252,.92);
+}
 
-  .v-dd-item.has-kids > .v-dd-sub{ display:none; }
+.v-dd small{
+  color: var(--nav-muted);
+  font-weight: 600;
+}
 
-  .v-dd-sub{
-    position:absolute;
-    top: -8px;
-    left: calc(100% + 10px);
-    min-width: 240px;
-    background: #fff;
-    border: 1px solid rgba(15,23,42,.12);
-    border-radius: 16px;
-    box-shadow: var(--nav-shadow);
-    padding: 8px;
-    z-index: 90;
-  }
+/* ✅ Para submenú (nivel 3) SOLO en Productos */
+.v-dd-item{ position: relative; }
 
-  .v-dd-item.has-kids:hover > .v-dd-sub,
-  .v-dd-item.has-kids:focus-within > .v-dd-sub{
-    display:block;
-  }
+.v-dd-item.has-kids::after{
+  content:"";
+  position:absolute;
+  top: 0;
+  bottom: 0;
+  right: -12px;
+  width: 12px;
+}
 
-  .v-dd-arrow{
-    font-size: 12px;
-    color: rgba(15,23,42,.55);
-    font-weight: 900;
-    margin-left: 8px;
-  }
+.v-dd-item.has-kids > .v-dd-sub{ display:none; }
 
-  /* ✅ NUEVO: contenedor engranes abajo del dropdown */
-  .v-dd-tools{
-    display:flex;
-    justify-content:flex-end;
-    gap: 8px;
-    padding-top: 8px;
-    margin-top: 8px;
-    border-top: 1px solid rgba(15,23,42,.08);
-  }
+.v-dd-sub{
+  position:absolute;
+  top: -10px;
+  left: calc(100% + 10px);
+  min-width: 250px;
+  background: #fff;
+  border: 1px solid rgba(15,23,42,.08);
+  border-radius: 18px;
+  box-shadow: var(--nav-shadow);
+  padding: 10px;
+  z-index: 90;
+}
 
-  .v-dd-gear{
-    width: 34px;
-    height: 34px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    border-radius: 10px;
-    border: 1px solid rgba(15,23,42,.10);
-    background: rgba(248,250,252,.85);
-    color: rgba(15,23,42,.85);
-    text-decoration:none;
-    font-size: 16px;
-    line-height: 1;
-    transition: transform .15s ease, background .15s ease, border-color .15s ease;
-  }
-  .v-dd-gear:hover{
-    transform: translateY(-1px);
-    background: rgba(241,245,249,.95);
-    border-color: rgba(15,23,42,.18);
-  }
+.v-dd-item.has-kids:hover > .v-dd-sub,
+.v-dd-item.has-kids:focus-within > .v-dd-sub{
+  display:block;
+}
 
-  .v-right{
-    display:flex;
-    align-items:center;
-    gap: 10px;
-  }
+.v-dd-arrow{
+  font-size: 11px;
+  color: rgba(15,23,42,.55);
+  font-weight: 900;
+  margin-left: 8px;
+}
 
-  /* ✅ Search */
-  .v-search{
-    width: 330px;
-    max-width: 42vw;
-  }
-  .v-search input{
-    width:100%;
-    border-radius: 999px;
-    border: 1px solid rgba(15,23,42,.12);
-    background: rgba(255,255,255,.92);
-    padding: 10px 14px;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--nav-ink);
-    outline: none;
-    transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
-  }
-  .v-search input:focus{
-    border-color: rgba(37,99,235,.55);
-    box-shadow: 0 0 0 6px rgba(37,99,235,.14);
-    background: #fff;
-  }
+/* ✅ contenedor engranes abajo del dropdown */
+.v-dd-tools{
+  display:flex;
+  justify-content:flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px solid rgba(15,23,42,.06);
+}
+
+.v-dd-gear{
+  width: 34px;
+  height: 34px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius: 10px;
+  border: 1px solid rgba(15,23,42,.10);
+  background: rgba(248,250,252,.85);
+  color: rgba(15,23,42,.85);
+  text-decoration:none;
+  font-size: 16px;
+  line-height: 1;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+.v-dd-gear:hover{
+  transform: translateY(-1px);
+  background: rgba(241,245,249,.95);
+  border-color: rgba(15,23,42,.18);
+}
+
+.v-right{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+/* ✅ Search */
+.v-search{
+  width: 300px;
+  max-width: 28vw;
+}
+.v-search input{
+  width:100%;
+  border-radius: 999px;
+  border: 1px solid rgba(15,23,42,.10);
+  background: #fff;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--nav-ink);
+  outline: none;
+  transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+}
+.v-search input::placeholder{
+  color: rgba(15,23,42,.45);
+  font-weight: 500;
+}
+.v-search input:focus{
+  border-color: rgba(17,24,39,.18);
+  box-shadow: 0 0 0 5px rgba(15,23,42,.06);
+  background: #fff;
+}
 
   /* User dropdown */
   .v-user{ position:relative; }
@@ -286,26 +328,28 @@
     display:inline-flex;
     align-items:center;
     gap:8px;
-    padding: 10px 12px;
+    padding: 10px 16px;
     border-radius: 999px;
-    font-weight: 900;
+    font-weight: 700;
     font-size: 14px;
     color: var(--nav-ink);
-    border: 1px solid rgba(15,23,42,.12);
+    border: 1px solid rgba(15,23,42,.10);
     background:#fff;
     cursor:pointer;
+    letter-spacing: -.01em;
+    box-shadow: 0 2px 10px rgba(15,23,42,.04);
   }
 
   .v-user-dd{
     position:absolute;
     right:0;
-    top: calc(100% + 10px);
+    top: calc(100% + 12px);
     min-width: 220px;
     background: #fff;
-    border: 1px solid rgba(15,23,42,.12);
-    border-radius: 16px;
+    border: 1px solid rgba(15,23,42,.08);
+    border-radius: 18px;
     box-shadow: var(--nav-shadow);
-    padding: 8px;
+    padding: 10px;
     display:none;
     z-index: 120;
   }
@@ -337,10 +381,10 @@
 <nav class="v-nav">
   <div class="v-nav-wrap">
 
-    <a href="{{ route('home') }}" class="topbrand">
-      <img src="{{ asset('images/linea-italia.png') }}" alt="Línea Italia" class="topbrand-logo">
-      <span class="topbrand-text">Ventas</span>
-    </a>
+  <a href="{{ route('home') }}" class="topbrand">
+    <img src="{{ asset('images/linea-italia.png') }}" alt="Línea Italia" class="topbrand-logo">
+    <span class="topbrand-text">Ventas</span>
+  </a>
 
     <div class="v-menu">
       @foreach($navRoots as $root)

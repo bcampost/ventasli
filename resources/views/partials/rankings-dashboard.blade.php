@@ -107,13 +107,12 @@
     color:#fff;
   }
   .rk-brand{ line-height:1.05; min-width:220px; }
-  .rk-brand small{ display:block; font-size:18px; opacity:.92; font-weight:600; }
-  .rk-brand span{ display:block; font-size:22px; font-weight:750; letter-spacing:-.01em; }
+  .rk-brand small{ display:block; font-size:18px; opacity:.92; font-weight:500; }
+  .rk-brand span{ display:block; font-size:22px; font-weight:600; letter-spacing:-.01em; }
 
   .rk-kpis{ display:flex; gap:28px; flex-wrap:wrap; justify-content:flex-end; align-items:flex-start; }
-  .rk-kpi .k-label{ font-size:12px; opacity:.9; white-space:nowrap; }
-  .rk-kpi .k-value{ font-size:26px; font-weight:750; margin-top:2px; letter-spacing:-.01em; }
-
+  .rk-kpi .k-label{ font-size:12px; opacity:.82; white-space:nowrap; font-weight:400; }
+  .rk-kpi .k-value{ font-size:26px; font-weight:600; margin-top:2px; letter-spacing:-.01em; }
   .rk-body{
     border: 1px solid var(--rk-line);
     border-top: none;
@@ -155,44 +154,45 @@
     background: rgba(255,255,255,.80);
   }
   .rk-mini-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-  .rk-mini-head .title{ font-size: 18px; font-weight: 850; color: var(--rk-text); }
-  .rk-mini-head .month{ font-size: 18px; font-weight: 700; color: rgba(15,23,42,.92); }
-  .rk-card-head .sub{ margin-top: 2px; font-size: 13px; color: rgba(15,23,42,.78); }
-  .rk-card-head .title{ font-size: 18px; font-weight: 800; letter-spacing: -.01em; color: var(--rk-text); }
+  .rk-mini-head .title{ font-size: 18px; font-weight: 600; color: var(--rk-text); letter-spacing:-.01em; }
+  .rk-mini-head .month{ font-size: 18px; font-weight: 500; color: rgba(15,23,42,.82); }
+  .rk-card-head .sub{ margin-top: 2px; font-size: 13px; color: rgba(15,23,42,.62); font-weight:400; }
+  .rk-card-head .title{ font-size: 18px; font-weight: 600; letter-spacing: -.01em; color: var(--rk-text); }
 
   .rk-scroll{ flex: 1; min-height: 0; overflow: auto; }
 
   .rk-table{ width:100%; border-collapse:collapse; font-size:13px; color:var(--rk-text); }
   .rk-table thead th{
-    font-weight: 750; font-size: 12.5px;
+    font-weight: 500; font-size: 12.5px;
     padding: 12px 14px;
     background: rgba(15,23,42,.035);
-    color: rgba(15,23,42,.92);
+    color: rgba(15,23,42,.72);
   }
   .rk-table tbody td{
     padding: 12px 14px;
     border-top: 1px solid rgba(15,23,42,.07);
     vertical-align: middle;
-    color: rgba(15,23,42,.92);
+    color: rgba(15,23,42,.76);
+    font-weight: 400;
   }
   .rk-table tbody tr:hover{ background: rgba(15,23,42,.02); }
 
-  .rk-num{ width: 34px; font-weight: 800; color: rgba(15,23,42,.92); }
-
+  .rk-num{ width: 34px; font-weight: 500; color: rgba(15,23,42,.78); }
   .rk-avatar{
     width: 34px; height: 34px;
     border-radius: 999px;
-    background: rgba(15,23,42,.92);
+    background: rgba(15,23,42,.88);
     color: #fff;
     display:flex; align-items:center; justify-content:center;
-    font-weight: 850; font-size: 12px;
-    box-shadow: 0 10px 16px rgba(15,23,42,.18);
+    font-weight: 600; font-size: 12px;
+    box-shadow: 0 10px 16px rgba(15,23,42,.14);
   }
+
   .rk-person{ display:flex; align-items:center; gap:10px; }
-  .rk-name{ font-weight: 850; letter-spacing: -.01em; font-size: 12.5px; line-height:1.1; }
-  .rk-sucursal{ font-weight: 800; color: rgba(15,23,42,.92); }
-  .rk-money{ text-align:right; font-weight: 850; color: rgba(15,23,42,.98); white-space:nowrap; }
-  .rk-ital{ font-style: italic; color: rgba(15,23,42,.92); }
+  .rk-name{ font-weight: 500; letter-spacing: -.01em; font-size: 12.5px; line-height:1.1; }
+  .rk-sucursal{ font-weight: 500; color: rgba(15,23,42,.72); }
+  .rk-money{ text-align:right; font-weight: 600; color: rgba(15,23,42,.88); white-space:nowrap; }
+  .rk-ital{ font-style: italic; color: rgba(15,23,42,.68); font-weight:400; }
   .rk-icon{ width: 24px; display:inline-flex; justify-content:center; }
 
   .rk-footer{
@@ -203,8 +203,8 @@
     justify-content:space-between;
     gap: 10px;
     font-size: 13px;
-    color: rgba(15,23,42,.88);
-    font-weight: 650;
+    color: rgba(15,23,42,.62);
+    font-weight: 400;
   }
 
   /* ===========================
@@ -231,20 +231,20 @@
   }
   .rk-top5-head .left{
     display:flex; align-items:center; gap: 10px;
-    font-weight: 950;
-    letter-spacing: .10em;
+    font-weight: 500;
+    letter-spacing: .08em;
     text-transform: uppercase;
-    font-size: 12px;
-    color: rgba(15,23,42,.78);
+    font-size: 11.5px;
+    color: rgba(15,23,42,.64);
   }
   .rk-top5-head .monthPill{
-    font-weight: 900;
+    font-weight: 500;
     font-size: 12px;
     padding: 7px 12px;
     border-radius: 999px;
     border: 1px solid rgba(15,23,42,.12);
     background: rgba(15,23,42,.02);
-    color: rgba(15,23,42,.88);
+    color: rgba(15,23,42,.72);
     white-space: nowrap;
   }
 
@@ -275,10 +275,10 @@
   .rk-rankCircle{
     width: 34px; height: 34px; border-radius: 999px;
     display:flex; align-items:center; justify-content:center;
-    font-weight: 950; font-size: 12px;
+    font-weight: 600; font-size: 12px;
     border: 1px solid rgba(15,23,42,.12);
     background: rgba(15,23,42,.02);
-    color: rgba(15,23,42,.92);
+    color: rgba(15,23,42,.82);
   }
 
   .rk-tagCapsule{
@@ -288,13 +288,13 @@
     justify-content:center;
     padding: 0 10px;
     border-radius: 999px;
-    font-weight: 950;
+    font-weight: 500;
     font-size: 10px;
-    letter-spacing: .12em;
+    letter-spacing: .10em;
     text-transform: uppercase;
     border: 1px solid rgba(15,23,42,.12);
     background: rgba(15,23,42,.02);
-    color: rgba(15,23,42,.82);
+    color: rgba(15,23,42,.68);
     white-space: nowrap;
   }
 
@@ -302,37 +302,37 @@
   .rk-avatarRound{
     width: 34px; height: 34px; border-radius: 999px;
     display:flex; align-items:center; justify-content:center;
-    font-weight: 950; font-size: 12px;
+    font-weight: 600; font-size: 12px;
     border: 1px solid rgba(15,23,42,.10);
     background: rgba(15,23,42,.06);
-    color: rgba(15,23,42,.90);
+    color: rgba(15,23,42,.84);
     flex: 0 0 auto;
   }
   .rk-top5-meta{ min-width:0; }
   .rk-top5-name{
-    font-weight: 950;
+    font-weight: 500;
     font-size: 13px;
     line-height: 1.1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 210px;
-    color: rgba(15,23,42,.95);
+    color: rgba(15,23,42,.86);
   }
   .rk-top5-sub{
     margin-top: 3px;
     font-size: 10.5px;
-    letter-spacing: .12em;
+    letter-spacing: .10em;
     text-transform: uppercase;
-    opacity: .82;
-    font-weight: 900;
-    color: rgba(15,23,42,.70);
+    opacity: .72;
+    font-weight: 500;
+    color: rgba(15,23,42,.60);
   }
   .rk-top5-money{
-    font-weight: 950;
+    font-weight: 600;
     font-size: 13px;
     white-space: nowrap;
-    color: rgba(15,23,42,.92);
+    color: rgba(15,23,42,.84);
   }
 
   /* ✅ SOLO P1,P2,P3 con color */
@@ -345,6 +345,36 @@
   .rk-top5-row.pos3 .rk-rankCircle{ background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.14); }
 
   /* P4 / P5 SIN color: se quedan en blanco (default) */
+
+  /* ✅ Override tipografía más delgada */
+.rk .title,
+.rk .month,
+.rk .k-value,
+.rk .rk-money,
+.rk .rk-name,
+.rk .rk-sucursal,
+.rk .rk-top5-name,
+.rk .rk-top5-money,
+.rk .rk-tagCapsule,
+.rk .rk-rankCircle,
+.rk .rk-avatar,
+.rk .rk-avatarRound{
+  letter-spacing: -0.01em;
+}
+
+.rk .title{ font-weight: 600 !important; }
+.rk .month{ font-weight: 500 !important; }
+.rk .k-value{ font-weight: 600 !important; }
+.rk .rk-money,
+.rk .rk-top5-money{ font-weight: 600 !important; }
+.rk .rk-name,
+.rk .rk-top5-name{ font-weight: 500 !important; }
+.rk .rk-sucursal,
+.rk .rk-top5-sub{ font-weight: 500 !important; }
+.rk .rk-tagCapsule,
+.rk .rk-rankCircle,
+.rk .rk-avatar,
+.rk .rk-avatarRound{ font-weight: 600 !important; }
 </style>
 
 <div class="rk">
