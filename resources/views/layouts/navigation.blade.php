@@ -39,6 +39,12 @@
       ? route('menu.section', [$rootSlug, $path])
       : route('menu.section', $rootSlug);
   };
+
+  // ✅ Detecta si la URL final apunta a PDF
+  $isPdfUrl = function(?string $url) {
+    $u = trim((string) $url);
+    return $u !== '' && \Illuminate\Support\Str::endsWith(mb_strtolower($u), '.pdf');
+  };
 @endphp
 
 <style>
@@ -321,70 +327,70 @@
   background: #fff;
 }
 
-  /* User dropdown */
-  .v-user{ position:relative; }
+/* User dropdown */
+.v-user{ position:relative; }
 
-  .v-user-btn{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding: 10px 16px;
-    border-radius: 999px;
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--nav-ink);
-    border: 1px solid rgba(15,23,42,.10);
-    background:#fff;
-    cursor:pointer;
-    letter-spacing: -.01em;
-    box-shadow: 0 2px 10px rgba(15,23,42,.04);
-  }
+.v-user-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--nav-ink);
+  border: 1px solid rgba(15,23,42,.10);
+  background:#fff;
+  cursor:pointer;
+  letter-spacing: -.01em;
+  box-shadow: 0 2px 10px rgba(15,23,42,.04);
+}
 
-  .v-user-dd{
-    position:absolute;
-    right:0;
-    top: calc(100% + 12px);
-    min-width: 220px;
-    background: #fff;
-    border: 1px solid rgba(15,23,42,.08);
-    border-radius: 18px;
-    box-shadow: var(--nav-shadow);
-    padding: 10px;
-    display:none;
-    z-index: 120;
-  }
+.v-user-dd{
+  position:absolute;
+  right:0;
+  top: calc(100% + 12px);
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid rgba(15,23,42,.08);
+  border-radius: 18px;
+  box-shadow: var(--nav-shadow);
+  padding: 10px;
+  display:none;
+  z-index: 120;
+}
 
-  .v-user.open .v-user-dd{ display:block; }
+.v-user.open .v-user-dd{ display:block; }
 
-  .v-user-dd a, .v-user-dd button{
-    width:100%;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    padding: 10px 10px;
-    border-radius: 12px;
-    font-weight: 850;
-    font-size: 14px;
-    text-decoration:none;
-    color: var(--nav-ink);
-    background: transparent;
-    border:0;
-    cursor:pointer;
-    text-align:left;
-  }
-  .v-user-dd a:hover, .v-user-dd button:hover{
-    background: rgba(248,250,252,.9);
-  }
+.v-user-dd a, .v-user-dd button{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  font-weight: 850;
+  font-size: 14px;
+  text-decoration:none;
+  color: var(--nav-ink);
+  background: transparent;
+  border:0;
+  cursor:pointer;
+  text-align:left;
+}
+.v-user-dd a:hover, .v-user-dd button:hover{
+  background: rgba(248,250,252,.9);
+}
 </style>
 
 <nav class="v-nav">
   <div class="v-nav-wrap">
 
-  <a href="{{ route('home') }}" class="topbrand">
-    <img src="{{ asset('images/linea-italia.png') }}" alt="Línea Italia" class="topbrand-logo">
-    <span class="topbrand-text">Ventas</span>
-  </a>
+    <a href="{{ route('home') }}" class="topbrand">
+      <img src="{{ asset('images/linea-italia.png') }}" alt="Línea Italia" class="topbrand-logo">
+      <span class="topbrand-text">Ventas</span>
+    </a>
 
     <div class="v-menu">
       @foreach($navRoots as $root)
@@ -425,9 +431,14 @@
                     $childHref = $hrefFor($rootSlug, $child, [$childSlug]);
                   @endphp
 
-                  <a href="{{ $childHref }}">
+                  <a
+                    href="{{ $childHref }}"
+                    @if($isPdfUrl($childHref))
+                      onclick="event.preventDefault(); window.openPdfPreview(@js($childHref), @js($child->label));"
+                    @endif
+                  >
                     <span>{{ $child->label }}</span>
-                    <small>Ver</small>
+                    <small>{{ $isPdfUrl($childHref) ? 'Preview' : 'Ver' }}</small>
                   </a>
                 @endforeach
               @else
@@ -442,12 +453,17 @@
                   @endphp
 
                   <div class="v-dd-item {{ $childHasKids ? 'has-kids' : '' }}">
-                    <a href="{{ $childHref }}">
+                    <a
+                      href="{{ $childHref }}"
+                      @if($isPdfUrl($childHref))
+                        onclick="event.preventDefault(); window.openPdfPreview(@js($childHref), @js($child->label));"
+                      @endif
+                    >
                       <span>{{ $child->label }}</span>
                       @if($childHasKids)
                         <span class="v-dd-arrow">▸</span>
                       @else
-                        <small>Ver</small>
+                        <small>{{ $isPdfUrl($childHref) ? 'Preview' : 'Ver' }}</small>
                       @endif
                     </a>
 
@@ -458,9 +474,14 @@
                             $gSlug = Str::slug($g->label, '-');
                             $gHref = $hrefFor($rootSlug, $g, [$childSlug, $gSlug]);
                           @endphp
-                          <a href="{{ $gHref }}">
+                          <a
+                            href="{{ $gHref }}"
+                            @if($isPdfUrl($gHref))
+                              onclick="event.preventDefault(); window.openPdfPreview(@js($gHref), @js($g->label));"
+                            @endif
+                          >
                             <span>{{ $g->label }}</span>
-                            <small>Ver</small>
+                            <small>{{ $isPdfUrl($gHref) ? 'Preview' : 'Ver' }}</small>
                           </a>
                         @endforeach
                       </div>
@@ -472,7 +493,6 @@
               {{-- ✅ Engranes abajo del dropdown (ADMIN) --}}
               @if($canShowTools)
                 <div class="v-dd-tools">
-                  {{-- Editar este menú (manage del root) --}}
                   @if($hasManageRoute)
                     <a
                       class="v-dd-gear"
@@ -482,7 +502,6 @@
                     >⚙️</a>
                   @endif
 
-                  {{-- Extra: PDFs lista de precios --}}
                   @if($isPriceList && $hasPricePdfsRoute)
                     <a
                       class="v-dd-gear"
@@ -501,7 +520,6 @@
     </div>
 
     <div class="v-right">
-      {{-- ✅ buscador siempre visible --}}
       <div class="v-search">
         <form method="GET" action="{{ route('search.global') }}">
           <input
@@ -539,6 +557,7 @@
     const wrap = document.getElementById('vUser');
     wrap.classList.toggle('open');
   }
+
   document.addEventListener('click', (e) => {
     const wrap = document.getElementById('vUser');
     if (!wrap) return;
