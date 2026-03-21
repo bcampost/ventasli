@@ -95,7 +95,7 @@
   object-fit: contain;
 }
 .topbrand-text{
-  font-weight: 700;
+  font-weight: 500;
   font-size: 15px;
   letter-spacing: -.01em;
   color: var(--nav-ink);
@@ -123,7 +123,7 @@
   align-items:center;
   gap:6px;
   padding: 8px 2px;
-  font-weight: 600;
+  font-weight: 400;
   font-size: 14px;
   letter-spacing: -.01em;
   color: var(--nav-ink);
@@ -200,7 +200,6 @@
   display:block;
 }
 
-/* Links dentro */
 .v-dd a{
   display:flex;
   align-items:center;
@@ -208,7 +207,7 @@
   gap:10px;
   padding: 11px 12px;
   border-radius: 12px;
-  font-weight: 600;
+  font-weight: 400;
   font-size: 14px;
   text-decoration:none;
   color: var(--nav-ink);
@@ -220,7 +219,7 @@
 
 .v-dd small{
   color: var(--nav-muted);
-  font-weight: 600;
+  font-weight: 400;
 }
 
 /* ✅ Para submenú (nivel 3) SOLO en Productos */
@@ -336,7 +335,7 @@
   gap:8px;
   padding: 10px 16px;
   border-radius: 999px;
-  font-weight: 700;
+  font-weight: 400;
   font-size: 14px;
   color: var(--nav-ink);
   border: 1px solid rgba(15,23,42,.10);
@@ -370,7 +369,7 @@
   gap:10px;
   padding: 10px 10px;
   border-radius: 12px;
-  font-weight: 850;
+  font-weight: 400;
   font-size: 14px;
   text-decoration:none;
   color: var(--nav-ink);

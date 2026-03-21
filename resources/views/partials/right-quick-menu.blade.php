@@ -148,26 +148,25 @@
     filter: drop-shadow(0 1px 0 rgba(255,255,255,.45));
   }
 
-  /* ✅ nombre SOLO al hover */
-  .rq-label{
-    position:absolute;
-    right: 68px;
-    top: 50%;
-    transform: translateY(-50%) translateX(10px);
-    opacity: 0;
-    pointer-events: none;
-    white-space: nowrap;
-    font-size: 13px;
-    font-weight: 900;
-    letter-spacing: .2px;
-    color: #0f172a;
-    background: rgba(255,255,255,.92);
-    border: 1px solid rgba(2,6,23,.08);
-    border-radius: 14px;
-    padding: 9px 12px;
-    box-shadow: 0 18px 45px rgba(0,0,0,.14);
-    transition: opacity .18s ease, transform .18s ease;
-  }
+    .rq-label{
+      position:absolute;
+      right: 68px;
+      top: 50%;
+      transform: translateY(-50%) translateX(10px);
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0;
+      color: #0f172a;
+      background: rgba(255,255,255,.92);
+      border: 1px solid rgba(2,6,23,.08);
+      border-radius: 14px;
+      padding: 8px 11px;
+      box-shadow: 0 18px 45px rgba(0,0,0,.14);
+      transition: opacity .18s ease, transform .18s ease;
+    }
 
   .rq-item:hover .rq-label{
     opacity: 1;
