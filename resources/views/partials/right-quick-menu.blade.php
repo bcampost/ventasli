@@ -1,12 +1,15 @@
 @php
   use App\Models\QuickLink;
 
-  $quickLinks = QuickLink::where('is_active', true)
-    ->orderBy('sort_order')
-    ->orderBy('id')
-    ->get();
+$isAdmin = auth()->check() && auth()->user()->hasRole('admin');
 
-  $isAdmin = auth()->check() && auth()->user()->hasRole('admin');
+$quickLinks = QuickLink::where('is_active', true)
+  ->when(!$isAdmin, function ($q) {
+    $q->whereRaw('TRIM(LOWER(name)) != ?', ['permisos']);
+  })
+  ->orderBy('sort_order')
+  ->orderBy('id')
+  ->get();
 
   $icon = function(string $name) {
     return match($name) {
