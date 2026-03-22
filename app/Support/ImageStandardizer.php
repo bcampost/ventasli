@@ -11,7 +11,7 @@ use Intervention\Image\Drivers\Gd\Driver;
 class ImageStandardizer
 {
     /**
-     * Guarda una imagen "cover" (recorta para llenar exacto WxH) y la normaliza.
+     * Guarda una imagen "cover" (recorta para llenar exacto WxH) y la normaliza
      * Ideal si quieres tiles uniformes sin franjas, PERO recorta.
      *
      * @return string ruta relativa (ej. "menu/cards/abc.webp" o "menu/cards/abc.jpg")
@@ -68,6 +68,12 @@ class ImageStandardizer
     private static function encodeAndStore($img, string $diskDir, int $quality = 85): string
     {
         $diskDir = trim($diskDir, '/');
+        $disk = Storage::disk('public');
+
+        // Asegura carpeta
+        if (!$disk->exists($diskDir)) {
+            $disk->makeDirectory($diskDir);
+        }
 
         $canWebp = function_exists('imagewebp');
 
@@ -76,17 +82,25 @@ class ImageStandardizer
             $path = $diskDir . '/' . $name;
 
             $binary = (string) $img->toWebp($quality);
-            Storage::disk('public')->put($path, $binary);
+            $saved = $disk->put($path, $binary);
+
+            if (!$saved || !$disk->exists($path)) {
+                throw new \RuntimeException("No se pudo guardar la imagen WEBP en: {$path}");
+            }
 
             return $path;
         }
 
-        // Fallback robusto: JPG (no requiere imagewebp)
+        // Fallback robusto: JPG
         $name = uniqid('img_', true) . '.jpg';
         $path = $diskDir . '/' . $name;
 
         $binary = (string) $img->toJpeg($quality);
-        Storage::disk('public')->put($path, $binary);
+        $saved = $disk->put($path, $binary);
+
+        if (!$saved || !$disk->exists($path)) {
+            throw new \RuntimeException("No se pudo guardar la imagen JPG en: {$path}");
+        }
 
         return $path;
     }
