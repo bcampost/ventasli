@@ -13,7 +13,8 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'Portal de Ventas'),
+    'title' => env('APP_TITLE', 'Venta Directa | Línea Italia'),
 
     /*
     |--------------------------------------------------------------------------
