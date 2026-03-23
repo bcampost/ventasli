@@ -7,9 +7,21 @@ use App\Models\FooterLink;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class FooterLinkController extends Controller
 {
+
+private function footerLinksColumns(): array
+{
+    static $cols = null;
+
+    if ($cols === null) {
+        $cols = Schema::getColumnListing('footer_links');
+    }
+
+    return $cols;
+}
     /**
      * Update de un solo link (pantallas clásicas).
      * Soporta menu|external|file (file NO sube archivo aquí; eso lo hace bulkUpdate o upload()).
@@ -90,7 +102,17 @@ class FooterLinkController extends Controller
             if ($label === '') continue;
 
             $mode = (string) ($row['link_mode'] ?? 'menu');
-            if (!in_array($mode, ['menu', 'external', 'file'], true)) $mode = 'menu';
+            if (!in_array($mode, ['menu', 'external', 'file'], true)) {
+                $mode = 'menu';
+            }
+
+            $fileKey = 'file_' . $link->id;
+            $hasUploadedFile = $request->hasFile($fileKey) && $request->file($fileKey)->isValid();
+
+            // Si llegó archivo nuevo, forzamos modo file aunque el front mande otra cosa
+            if ($hasUploadedFile) {
+                $mode = 'file';
+            }
 
             $menuPath = trim((string) ($row['menu_path'] ?? ''), '/');
             $extUrl   = trim((string) ($row['external_url'] ?? ''));
@@ -119,10 +141,8 @@ class FooterLinkController extends Controller
 
                 // no borramos file_path
             } else { // file
-                // Guarda archivo nuevo si viene
-                $fileKey = 'file_' . $link->id;
 
-                if ($request->hasFile($fileKey) && $request->file($fileKey)->isValid()) {
+                if ($hasUploadedFile) {
                     $f = $request->file($fileKey);
 
                     // borra anterior si existe
@@ -140,21 +160,23 @@ class FooterLinkController extends Controller
 
                     // IMPORTANTE: en tu migración tú pusiste file_original/file_mime/file_size
                     // pero en tu código usas file_name. Ajusto a lo más común:
-                    if (property_exists($link, 'file_original') || in_array('file_original', $link->getFillable(), true)) {
+                    $cols = $this->footerLinksColumns();
+
+                    if (in_array('file_original', $cols, true)) {
                         $link->file_original = $f->getClientOriginalName();
-                    } elseif (property_exists($link, 'file_name') || in_array('file_name', $link->getFillable(), true)) {
+                    } elseif (in_array('file_name', $cols, true)) {
                         $link->file_name = $f->getClientOriginalName();
                     }
 
-                    if (property_exists($link, 'file_mime') || in_array('file_mime', $link->getFillable(), true)) {
+                    if (in_array('file_mime', $cols, true)) {
                         $link->file_mime = $f->getClientMimeType();
                     }
 
-                    if (property_exists($link, 'file_size') || in_array('file_size', $link->getFillable(), true)) {
+                    if (in_array('file_size', $cols, true)) {
                         $link->file_size = $f->getSize();
                     }
 
-                    if (property_exists($link, 'file_disk') || in_array('file_disk', $link->getFillable(), true)) {
+                    if (in_array('file_disk', $cols, true)) {
                         $link->file_disk = 'public';
                     }
                 }
@@ -199,21 +221,23 @@ class FooterLinkController extends Controller
         $footer_link->external_url = null;
         $footer_link->file_path    = $path;
 
-        if (property_exists($footer_link, 'file_original') || in_array('file_original', $footer_link->getFillable(), true)) {
+        $cols = $this->footerLinksColumns();
+
+        if (in_array('file_original', $cols, true)) {
             $footer_link->file_original = $f->getClientOriginalName();
-        } elseif (property_exists($footer_link, 'file_name') || in_array('file_name', $footer_link->getFillable(), true)) {
+        } elseif (in_array('file_name', $cols, true)) {
             $footer_link->file_name = $f->getClientOriginalName();
         }
 
-        if (property_exists($footer_link, 'file_mime') || in_array('file_mime', $footer_link->getFillable(), true)) {
+        if (in_array('file_mime', $cols, true)) {
             $footer_link->file_mime = $f->getClientMimeType();
         }
 
-        if (property_exists($footer_link, 'file_size') || in_array('file_size', $footer_link->getFillable(), true)) {
+        if (in_array('file_size', $cols, true)) {
             $footer_link->file_size = $f->getSize();
         }
 
-        if (property_exists($footer_link, 'file_disk') || in_array('file_disk', $footer_link->getFillable(), true)) {
+        if (in_array('file_disk', $cols, true)) {
             $footer_link->file_disk = 'public';
         }
 

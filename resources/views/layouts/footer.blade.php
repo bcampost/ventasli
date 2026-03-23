@@ -48,22 +48,27 @@
       ->orderBy('sort')
       ->get();
 
-  $capacitaciones = $capLinksDb->map(function($l){
-      $fileUrl = $l->file_path ? Storage::url($l->file_path) : '';
-      return [
-        'id' => $l->id,                 // id BD (para guardar)
-        'key' => $l->key,               // key lógico (videos, etc)
-        'label' => $l->label,
-        'link_mode' => $l->link_mode ?? 'menu', // menu|external|file
-        'menu_path' => $l->menu_path ?? '',
-        'external_url' => $l->external_url ?? '',
-        'file_url' => $fileUrl,
-        'file_name' => $l->file_name ?? '',
-        'file_mime' => $l->file_mime ?? '',
-        'sort' => (int)($l->sort ?? 0),
-        'is_active' => (bool)($l->is_active ?? true),
-      ];
-  })->values()->all();
+    $publicStorageBase = rtrim(url('/storage'), '/');
+
+    $capacitaciones = $capLinksDb->map(function($l) use ($publicStorageBase){
+        $fileUrl = $l->file_path
+            ? $publicStorageBase . '/' . ltrim($l->file_path, '/')
+            : '';
+
+        return [
+          'id' => $l->id,
+          'key' => $l->key,
+          'label' => $l->label,
+          'link_mode' => $l->link_mode ?? 'menu',
+          'menu_path' => $l->menu_path ?? '',
+          'external_url' => $l->external_url ?? '',
+          'file_url' => $fileUrl,
+          'file_name' => $l->file_name ?? '',
+          'file_mime' => $l->file_mime ?? '',
+          'sort' => (int)($l->sort ?? 0),
+          'is_active' => (bool)($l->is_active ?? true),
+        ];
+    })->values()->all();
 
   $socials = [
     ['id'=>'fb', 'label'=>'Facebook', 'href'=>'https://www.facebook.com/lineaitaliamx/?locale=es_LA'],
@@ -892,7 +897,7 @@
 
               <div class="li-field" style="grid-column:1/-1;">
                 <label>Subir archivo (pdf / png / jpg / mp4 / webm)</label>
-                <input type="file" class="li-input" data-file="file_${this.escapeAttr(c.id)}" />
+                <input type="file" class="li-input" data-file="file_${this.escapeAttr(c.id)}" onchange="LI_FOOT.handleCapFileChange(this)" />
                 ${currentFileLine}
               </div>
 
@@ -919,19 +924,85 @@
     },
 
     previewFromRow(idx){
-      const c = this.caps[idx];
-      if(!c) return;
+      const wrap = document.getElementById('liCapsEditor');
+      if (!wrap) return;
 
-      const mode = c.link_mode || 'menu';
-      let url = '';
-      if (mode === 'external') url = (c.external_url||'').trim();
-      if (mode === 'file') url = (c.file_url||'').trim();
+      const row = wrap.querySelector(`.li-row[data-idx="${idx}"]`);
+      if (!row) return;
 
-      if (!url) {
-        alert('No hay URL/archivo para vista previa en este registro.');
+      const base = this.caps[idx] || {};
+
+      const label = (row.querySelector('[data-k="label"]')?.value || base.label || 'Vista previa').trim();
+      const mode = (row.querySelector('[data-k="link_mode"]')?.value || base.link_mode || 'menu').trim();
+      const externalUrl = (row.querySelector('[data-k="external_url"]')?.value || '').trim();
+      const menuPath = (row.querySelector('[data-k="menu_path"]')?.value || '').trim();
+      const fileInput = row.querySelector('[data-file]');
+      const selectedFile = fileInput && fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+
+      // Si el usuario acaba de seleccionar un archivo en esta sesión, úsalo para preview local
+      if (mode === 'file' && selectedFile) {
+        const tempUrl = URL.createObjectURL(selectedFile);
+        this.openPreview(tempUrl, label);
         return;
       }
-      this.openPreview(url, c.label || 'Vista previa');
+
+      // Si ya existe guardado en BD
+      if (mode === 'file' && (base.file_url || '').trim() !== '') {
+        this.openPreview(base.file_url, label);
+        return;
+      }
+
+      if (mode === 'external' && externalUrl !== '') {
+        this.openPreview(externalUrl, label);
+        return;
+      }
+
+      if (mode === 'menu') {
+        const fallback = this.capsFallbackBase + '/' + (base.key || '');
+        const finalUrl = menuPath !== '' ? `${window.location.origin}/${menuPath.replace(/^\/+/, '')}` : fallback;
+        alert(`Este registro está en modo "Menú".\nAbriría esta ruta:\n${finalUrl}`);
+        return;
+      }
+
+      alert('No hay URL o archivo disponible para vista previa en este registro.');
+    },
+
+    handleCapFileChange(input){
+      if (!input) return;
+
+      const row = input.closest('.li-row');
+      if (!row) return;
+
+      const file = input.files && input.files[0] ? input.files[0] : null;
+      if (!file) return;
+
+      // cambia automáticamente el modo a "file"
+      const modeSelect = row.querySelector('[data-k="link_mode"]');
+      if (modeSelect) {
+        modeSelect.value = 'file';
+      }
+
+      // opcional: limpia menú y externo para evitar confusión
+      const menuPath = row.querySelector('[data-k="menu_path"]');
+      const external = row.querySelector('[data-k="external_url"]');
+
+      if (menuPath) menuPath.value = '';
+      if (external) external.value = '';
+
+      // feedback visual del archivo elegido
+      let info = row.querySelector('.li-file-picked');
+      if (!info) {
+        info = document.createElement('div');
+        info.className = 'li-file-picked';
+        info.style.marginTop = '8px';
+        info.style.opacity = '.9';
+        info.style.fontWeight = '800';
+        info.style.fontSize = '12px';
+        info.style.color = 'rgba(255,255,255,.82)';
+        input.insertAdjacentElement('afterend', info);
+      }
+
+      info.textContent = `Archivo seleccionado: ${file.name}`;
     },
 
     saveLocations(){
@@ -986,11 +1057,16 @@
           item[k] = v;
         });
 
-        const fileInput = row.querySelector('[data-file]');
-        if (fileInput && fileInput.files && fileInput.files[0]) {
-          const fileKey = fileInput.getAttribute('data-file'); // file_ID
-          fd.append(fileKey, fileInput.files[0]);
-        }
+      const fileInput = row.querySelector('[data-file]');
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const fileKey = fileInput.getAttribute('data-file'); // file_ID
+        fd.append(fileKey, fileInput.files[0]);
+
+        // si hay archivo nuevo, forzamos modo "file"
+        item.link_mode = 'file';
+        item.menu_path = '';
+        item.external_url = '';
+      }
 
         items.push(item);
       });
