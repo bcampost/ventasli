@@ -12,47 +12,49 @@
 
   // ✅ 25 asesores simulados
   $ranking = [
-    ['name' => 'Carolina Reyes', 'sucursal' => 'QRO',  'promedio' => '$1,783,274', 'status' => 'Redefiniendo expectativas', 'icon' => '🏆'],
-    ['name' => 'Fabiola Partida', 'sucursal' => 'CDMX', 'promedio' => '$1,656,796', 'status' => 'Redefiniendo expectativas', 'icon' => '🏆'],
-    ['name' => 'Liz Cervantes', 'sucursal' => 'CDMX', 'promedio' => '$1,536,040', 'status' => 'Redefiniendo expectativas', 'icon' => '🏆'],
-    ['name' => 'Adriana Ruiz', 'sucursal' => 'CDMX', 'promedio' => '$1,058,495', 'status' => 'Superando expectativas', 'icon' => '✅'],
-    ['name' => 'Yazmin Cantú', 'sucursal' => 'MTY',  'promedio' => '$1,056,319', 'status' => 'Superando expectativas', 'icon' => '✅'],
-    ['name' => 'Mayra Trujillo', 'sucursal' => 'AGS',  'promedio' => '$951,874',  'status' => 'Superando expectativas', 'icon' => '✅'],
-    ['name' => 'Tania Gallegos', 'sucursal' => 'CDMX', 'promedio' => '$789,730',  'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
-    ['name' => 'Ignacio del Toro', 'sucursal' => 'QRO', 'promedio' => '$666,696',  'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
-    ['name' => 'Jessica Villafaña', 'sucursal' => 'MTY', 'promedio' => '$559,383',  'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
-    ['name' => 'Marisol Maldonado', 'sucursal' => 'MTY', 'promedio' => '$499,510',  'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
-    ['name' => 'Emiliano Veliz', 'sucursal' => 'MTY', 'promedio' => '$474,144',  'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
-    ['name' => 'Cristina Medina', 'sucursal' => 'AGS', 'promedio' => '$463,059',  'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
-    ['name' => 'Kathia Ramírez', 'sucursal' => 'AGS', 'promedio' => '$327,701',  'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
-    ['name' => 'Rodrigo Bustillo', 'sucursal' => 'CDMX', 'promedio' => '$318,683',  'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
-    ['name' => 'Susana Chavez', 'sucursal' => 'AGS', 'promedio' => '$313,991',  'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
-    ['name' => 'Daniel Sanchez', 'sucursal' => 'CDMX', 'promedio' => '$288,599',  'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
-    ['name' => 'Elizabeth Duran', 'sucursal' => 'QRO', 'promedio' => '$281,183',  'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
-    ['name' => 'Aurora Mac', 'sucursal' => 'MTY', 'promedio' => '$264,462',  'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
-    ['name' => 'Eduardo Herrera', 'sucursal' => 'CDMX', 'promedio' => '$261,666',  'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
-    ['name' => 'Lorena Paredes', 'sucursal' => 'AGS', 'promedio' => '$258,042',  'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
-    ['name' => 'Sharon Garcia', 'sucursal' => 'QRO', 'promedio' => '$222,191',  'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
-    ['name' => 'Ariadna Pilvoras', 'sucursal' => 'QRO', 'promedio' => '$144,425',  'status' => 'Fuera de expectativas', 'icon' => '❌'],
-    ['name' => 'Xcaret Fuentes', 'sucursal' => 'QRO', 'promedio' => '$99,905',  'status' => 'Fuera de expectativas', 'icon' => '❌'],
-    ['name' => 'Mireya de Leon', 'sucursal' => 'AGS', 'promedio' => '$75,917',  'status' => 'Fuera de expectativas', 'icon' => '❌'],
-    ['name' => 'Enrique Buck', 'sucursal' => 'QRO', 'promedio' => '$66,373',  'status' => 'Fuera de expectativas', 'icon' => '❌'],
+    ['name' => 'LIZ', 'sucursal' => 'CDMX', 'promedio' => '$1,744,005', 'status' => 'Redefiniendo expectativas', 'icon' => '🏆'],
+    ['name' => 'FABIOLA', 'sucursal' => 'CDMX', 'promedio' => '$1,679,690', 'status' => 'Redefiniendo expectativas', 'icon' => '🏆'],
+    ['name' => 'CAROLINA', 'sucursal' => 'QRO', 'promedio' => '$1,675,266', 'status' => 'Redefiniendo expectativas', 'icon' => '🏆'],
+    ['name' => 'ADRIANA', 'sucursal' => 'CDMX', 'promedio' => '$1,325,650', 'status' => 'Superando expectativas', 'icon' => '✅'],
+    ['name' => 'YAZMIN', 'sucursal' => 'MTY', 'promedio' => '$1,122,540', 'status' => 'Superando expectativas', 'icon' => '✅'],
+    ['name' => 'MAYRA', 'sucursal' => 'AGS', 'promedio' => '$1,030,384', 'status' => 'Superando expectativas', 'icon' => '✅'],
+    ['name' => 'TANIA', 'sucursal' => 'CDMX', 'promedio' => '$854,850', 'status' => 'Superando expectativas', 'icon' => '✅'],
+    ['name' => 'IGNACIO', 'sucursal' => 'QRO', 'promedio' => '$842,204', 'status' => 'Superando expectativas', 'icon' => '✅'],
+    ['name' => 'JESSICA', 'sucursal' => 'MTY', 'promedio' => '$625,640', 'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
+    ['name' => 'CRISTINA', 'sucursal' => 'AGS', 'promedio' => '$581,981', 'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
+    ['name' => 'MARISOL', 'sucursal' => 'MTY', 'promedio' => '$530,527', 'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
+    ['name' => 'AURORA', 'sucursal' => 'MTY', 'promedio' => '$443,620', 'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
+    ['name' => 'EDUARDO', 'sucursal' => 'CDMX', 'promedio' => '$441,565', 'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
+    ['name' => 'DANIEL', 'sucursal' => 'CDMX', 'promedio' => '$421,306', 'status' => 'Cumpliendo expectativas', 'icon' => '☑️'],
+    ['name' => 'KAHTIA', 'sucursal' => 'AGS', 'promedio' => '$344,108', 'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
+    ['name' => 'ELIZABETH', 'sucursal' => 'QRO', 'promedio' => '$325,040', 'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
+    ['name' => 'LORENA', 'sucursal' => 'AGS', 'promedio' => '$279,053', 'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
+    ['name' => 'SHARON', 'sucursal' => 'QRO', 'promedio' => '$270,408', 'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
+    ['name' => 'SUSANA', 'sucursal' => 'AGS', 'promedio' => '$259,850', 'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
+    ['name' => 'ARIADNA', 'sucursal' => 'QRO', 'promedio' => '$201,093', 'status' => 'Abajo de expectativas', 'icon' => '⚠️'],
+    ['name' => 'EMILIANO', 'sucursal' => 'MTY', 'promedio' => '$175,975', 'status' => 'Fuera de expectativas', 'icon' => '❌'],
+    ['name' => 'XCARET', 'sucursal' => 'QRO', 'promedio' => '$114,835', 'status' => 'Fuera de expectativas', 'icon' => '❌'],
+    ['name' => 'ENRIQUE', 'sucursal' => 'QRO', 'promedio' => '$79,130', 'status' => 'Fuera de expectativas', 'icon' => '❌'],
+    ['name' => 'MIREYA', 'sucursal' => 'AGS', 'promedio' => '$38,764', 'status' => 'Fuera de expectativas', 'icon' => '❌'],
+    ['name' => 'GIOVANNA', 'sucursal' => 'CDMX', 'promedio' => '$0', 'status' => 'Periodo de Gracia', 'icon' => '🟡'],
+    ['name' => 'JESUS', 'sucursal' => 'QRO', 'promedio' => '$0', 'status' => 'Periodo de Gracia', 'icon' => '🟡'],
+    ['name' => 'ROBERTO', 'sucursal' => 'AGS', 'promedio' => '$0', 'status' => 'Periodo de Gracia', 'icon' => '🟡'],
   ];
 
   $mejoresFeb = [
-    ['name' => 'Aurora Mac', 'sucursal' => 'MTY', 'monto' => '$281,181'],
-    ['name' => 'Adriana Ruiz', 'sucursal' => 'CDMX', 'monto' => '$22,014'],
-    ['name' => 'Lorena Paredes', 'sucursal' => 'AGS', 'monto' => '$0'],
-    ['name' => 'Cristina Medina', 'sucursal' => 'AGS', 'monto' => '$0'],
-    ['name' => 'Tania Gallegos', 'sucursal' => 'CDMX', 'monto' => '$0'],
+    ['name' => 'LIZ', 'sucursal' => 'CDMX', 'monto' => '$1,744,005'],
+    ['name' => 'FABIOLA', 'sucursal' => 'CDMX', 'monto' => '$1,679,690'],
+    ['name' => 'CAROLINA', 'sucursal' => 'QRO', 'monto' => '$1,675,266'],
+    ['name' => 'ADRIANA', 'sucursal' => 'CDMX', 'monto' => '$1,325,650'],
+    ['name' => 'YAZMIN', 'sucursal' => 'MTY', 'monto' => '$1,122,540'],
   ];
 
   $mejoresEne = [
-    ['name' => 'Tania Gallegos', 'sucursal' => 'CDMX', 'monto' => '$2,317,632'],
-    ['name' => 'Carolina Reyes', 'sucursal' => 'QRO',  'monto' => '$2,090,028'],
-    ['name' => 'Mayra Trujillo', 'sucursal' => 'AGS',  'monto' => '$1,644,594'],
-    ['name' => 'Adriana Ruiz', 'sucursal' => 'CDMX', 'monto' => '$1,175,490'],
-    ['name' => 'Ariadna Pilvoras', 'sucursal' => 'QRO', 'monto' => '$773,208'],
+    ['name' => 'ADRIANA', 'sucursal' => 'CDMX', 'monto' => '$3,946,648'],
+    ['name' => 'LIZ', 'sucursal' => 'CDMX', 'monto' => '$2,147,042'],
+    ['name' => 'FABIOLA', 'sucursal' => 'CDMX', 'monto' => '$1,701,610'],
+    ['name' => 'IGNACIO', 'sucursal' => 'QRO', 'monto' => '$1,271,552'],
+    ['name' => 'EDUARDO', 'sucursal' => 'CDMX', 'monto' => '$1,129,772'],
   ];
 
   $rangos = [
@@ -407,14 +409,14 @@
           <div class="rk-card-head">
             <div class="rk-mini-head">
               <div class="title">Mejores Asesores</div>
-              <div class="month">Febrero</div>
+              <div class="month">Marzo</div>
             </div>
           </div>
 
           <div class="rk-top5-wrap">
             <div class="rk-top5-head">
               <div class="left"><span class="flag">🏁</span> TOP 5 DEL MES</div>
-              <div class="monthPill">Febrero</div>
+              <div class="monthPill">Marzo</div>
             </div>
 
             <div class="rk-top5-list">
@@ -450,14 +452,14 @@
           <div class="rk-card-head">
             <div class="rk-mini-head">
               <div class="title">Mejores Asesores</div>
-              <div class="month">Enero</div>
+              <div class="month">Febrero</div>
             </div>
           </div>
 
           <div class="rk-top5-wrap">
             <div class="rk-top5-head">
               <div class="left"><span class="flag">🏁</span> TOP 5 DEL MES</div>
-              <div class="monthPill">Enero</div>
+              <div class="monthPill">Febrero</div>
             </div>
 
             <div class="rk-top5-list">

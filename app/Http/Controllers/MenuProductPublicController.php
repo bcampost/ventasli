@@ -20,10 +20,16 @@ class MenuProductPublicController extends Controller
         // Asegura detail
         $detail = $menu_product->detail()->firstOrCreate([]);
 
+        $redirectTo = $request->get('redirect_to');
+
+        if (!$redirectTo) {
+            $redirectTo = route('home');
+        }
+
         return view('menu.product_show', [
-            'product' => $menu_product,               // aquí vienen tech_pdf_path/manual_pdf_path
+            'product' => $menu_product,
             'detail' => $detail,
-            'redirectTo' => $request->get('redirect_to', url()->previous()),
+            'redirectTo' => $redirectTo,
         ]);
     }
 }

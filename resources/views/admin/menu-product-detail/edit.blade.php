@@ -623,10 +623,9 @@
               Revisa los cambios antes de guardar. Esta acción actualizará la información visible del producto y sus archivos asociados.
             </div>
 
-            <div class="ep-sticky-actions">
-              <a href="{{ $redirectTo }}" class="ep-btn ep-btn-ghost">
-                Volver
-              </a>
+                <a href="{{ route('menu.product.show', ['menu_product' => $product->id, 'redirect_to' => $redirectTo]) }}" class="ep-btn ep-btn-ghost">
+                  Volver
+                </a>
 
               <button type="submit" class="ep-btn ep-btn-primary">
                 Guardar cambios

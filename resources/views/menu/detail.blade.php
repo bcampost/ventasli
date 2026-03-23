@@ -105,7 +105,10 @@
             <div class="pd-grid">
               @foreach($products as $prod)
                 <a class="pd-tile"
-                  href="{{ route('menu.product.show', $prod) }}"
+                    href="{{ route('menu.product.show', [
+                        'menu_product' => $prod->id,
+                        'redirect_to' => url()->current()
+                    ]) }}"
                   style="text-decoration:none; color:inherit;">
                   <div class="pd-img">
                     @if($prod->image_path)

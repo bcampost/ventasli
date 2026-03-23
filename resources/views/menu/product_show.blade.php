@@ -136,12 +136,12 @@
 
       @if($isAdmin)
         <a class="btn btn-ghost"
-           href="{{ route('admin.product-variants.colors.edit', ['menu_product' => $product->id, 'redirect_to' => url()->current()]) }}">
+          href="{{ route('admin.product-variants.colors.edit', ['menu_product' => $product->id, 'redirect_to' => $redirectTo]) }}">
           🎨 Editar colores
         </a>
 
         <a class="btn btn-primary"
-           href="{{ route('admin.product-details.edit', ['menu_product' => $product->id, 'redirect_to' => url()->current()]) }}">
+          href="{{ route('admin.product-details.edit', ['menu_product' => $product->id, 'redirect_to' => $redirectTo]) }}">
           ✎ Asignar imágenes
         </a>
       @endif
