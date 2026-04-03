@@ -14,10 +14,23 @@ class MenuProductDetailController extends Controller
         $detail = $menu_product->detail()->firstOrCreate([]);
         $redirectTo = $request->get('redirect_to', url()->previous());
 
+        $aceroColors = is_array($detail->acero_colors ?? null)
+            ? $detail->acero_colors
+            : (json_decode((string)($detail->acero_colors ?? ''), true) ?: []);
+
+        $melaminaColors = is_array($detail->melamina_colors ?? null)
+            ? $detail->melamina_colors
+            : (json_decode((string)($detail->melamina_colors ?? ''), true) ?: []);
+
+        $aceroColors = array_values(array_unique(array_filter(array_map('trim', $aceroColors))));
+        $melaminaColors = array_values(array_unique(array_filter(array_map('trim', $melaminaColors))));
+
         return view('admin.menu-product-detail.edit', [
-            'product'    => $menu_product,
-            'detail'     => $detail,
-            'redirectTo' => $redirectTo,
+            'product'         => $menu_product,
+            'detail'          => $detail,
+            'redirectTo'      => $redirectTo,
+            'aceroColors'     => $aceroColors,
+            'melaminaColors'  => $melaminaColors,
         ]);
     }
 
@@ -56,6 +69,8 @@ class MenuProductDetailController extends Controller
             'remove_tech_pdf'  => ['nullable'],
             'remove_manual_pdf'=> ['nullable'],
 
+            'acero_colors_json'    => ['nullable','string'],
+            'melamina_colors_json' => ['nullable','string'],
             'redirect_to' => ['nullable','string'],
         ]);
 
@@ -99,10 +114,13 @@ class MenuProductDetailController extends Controller
                 if (!$file) continue;
                 $path = $file->store('products', 'public');
 
+                $newAcero = trim((string)($meta[$idx]['acero'] ?? ''));
+                $newMela  = trim((string)($meta[$idx]['melamina'] ?? ''));
+
                 $imgs[] = [
                     'path'     => $path,
-                    'acero'    => trim((string)($meta[$idx]['acero'] ?? '')),
-                    'melamina' => trim((string)($meta[$idx]['melamina'] ?? '')),
+                    'acero'    => $newAcero !== '' ? $newAcero : ($acero[0] ?? ''),
+                    'melamina' => $newMela !== '' ? $newMela : ($mela[0] ?? ''),
                 ];
             }
         }
@@ -149,16 +167,27 @@ class MenuProductDetailController extends Controller
             $menu_product->manual_pdf_path = $path;
         }
 
+
+        $acero = json_decode((string)($data['acero_colors_json'] ?? '[]'), true);
+        $mela  = json_decode((string)($data['melamina_colors_json'] ?? '[]'), true);
+
+        $acero = is_array($acero) ? $acero : [];
+        $mela  = is_array($mela) ? $mela : [];
+
+        $acero = array_values(array_unique(array_filter(array_map('trim', $acero))));
+        $mela  = array_values(array_unique(array_filter(array_map('trim', $mela))));
         // =========================
         // ✅ Guardar todo
         // =========================
         $detail->fill([
-            'title'       => $data['title'] ?? null,
-            'description' => $data['description'] ?? null,
-            'length'      => $data['length'] ?? null,
-            'width'       => $data['width'] ?? null,
-            'height'      => $data['height'] ?? null,
-            'images'      => $imgs,
+            'title'            => $data['title'] ?? null,
+            'description'      => $data['description'] ?? null,
+            'length'           => $data['length'] ?? null,
+            'width'            => $data['width'] ?? null,
+            'height'           => $data['height'] ?? null,
+            'acero_colors'     => $acero,
+            'melamina_colors'  => $mela,
+            'images'           => $imgs,
         ])->save();
 
         // Guarda rutas de PDFs en el producto

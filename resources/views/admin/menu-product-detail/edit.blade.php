@@ -432,6 +432,9 @@
 
       <input type="hidden" name="redirect_to" value="{{ $redirectTo }}">
 
+      <input type="hidden" name="acero_colors_json" id="acero_colors_json" value='@json($aceroColors ?? [])'>
+      <input type="hidden" name="melamina_colors_json" id="melamina_colors_json" value='@json($melaminaColors ?? [])'>
+
       <div class="ep-body">
 
         @if($errors->any())
@@ -509,6 +512,45 @@
 
               <div class="ep-note" style="margin-top:16px;">
                 Mantén el mismo formato de captura en todas las medidas para que la lectura sea consistente en la plataforma.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ep-card">
+          <div class="ep-card-head">
+            <h2 class="ep-card-title">Colores base del producto</h2>
+            <div class="ep-card-sub">
+              Estos colores se usarán como referencia general y se aplicarán por default al agregar nuevas imágenes.
+            </div>
+          </div>
+
+          <div class="ep-card-body">
+            <div class="ep-grid-2">
+              <div class="ep-field">
+                <label class="ep-label">Acero / Estructura</label>
+                <div id="aceroWrap" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+
+                <div style="margin-top:10px;display:flex;gap:10px;">
+                  <input id="aceroAdd" type="text" placeholder="Ej. Negro"
+                        class="ep-input">
+                  <button type="button" onclick="addColor('acero')" class="ep-btn ep-btn-dark">
+                    + Agregar
+                  </button>
+                </div>
+              </div>
+
+              <div class="ep-field">
+                <label class="ep-label">Melamina / Laminado</label>
+                <div id="melaWrap" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+
+                <div style="margin-top:10px;display:flex;gap:10px;">
+                  <input id="melaAdd" type="text" placeholder="Ej. Encino"
+                        class="ep-input">
+                  <button type="button" onclick="addColor('mela')" class="ep-btn ep-btn-dark">
+                    + Agregar
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -638,4 +680,91 @@
     </form>
   </div>
 </div>
+
+<script>
+  const colorsState = {
+    acero: safeParseJson(document.getElementById('acero_colors_json')?.value, []),
+    mela: safeParseJson(document.getElementById('melamina_colors_json')?.value, []),
+  };
+
+  function safeParseJson(v, fallback){
+    try { return JSON.parse(v || '[]'); } catch(e){ return fallback; }
+  }
+
+  function syncColorHidden(){
+    const aceroInput = document.getElementById('acero_colors_json');
+    const melaInput  = document.getElementById('melamina_colors_json');
+
+    if (aceroInput) aceroInput.value = JSON.stringify(colorsState.acero);
+    if (melaInput)  melaInput.value  = JSON.stringify(colorsState.mela);
+  }
+
+  function makePill(text, onRemove){
+    const el = document.createElement('div');
+    el.style.cssText = "display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:999px;border:1px solid rgba(15,23,42,.14);background:rgba(15,23,42,.02);font-weight:800;font-size:12.5px;";
+    el.innerHTML = `<span>${String(text).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}</span>`;
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = '×';
+    btn.style.cssText = "width:22px;height:22px;border-radius:999px;border:1px solid rgba(225,29,72,.25);background:rgba(225,29,72,.08);cursor:pointer;font-weight:900;line-height:1;";
+    btn.onclick = onRemove;
+
+    el.appendChild(btn);
+    return el;
+  }
+
+  function renderColorPills(){
+    const aw = document.getElementById('aceroWrap');
+    const mw = document.getElementById('melaWrap');
+
+    if (!aw || !mw) return;
+
+    aw.innerHTML = '';
+    mw.innerHTML = '';
+
+    colorsState.acero.forEach((c, i) => {
+      aw.appendChild(makePill(c, () => {
+        colorsState.acero.splice(i, 1);
+        syncColorHidden();
+        renderColorPills();
+      }));
+    });
+
+    colorsState.mela.forEach((c, i) => {
+      mw.appendChild(makePill(c, () => {
+        colorsState.mela.splice(i, 1);
+        syncColorHidden();
+        renderColorPills();
+      }));
+    });
+  }
+
+  function addColor(type){
+    if(type === 'acero'){
+      const el = document.getElementById('aceroAdd');
+      const v = (el?.value || '').trim();
+      if(!v) return;
+      if(!colorsState.acero.includes(v)) colorsState.acero.push(v);
+      if(el) el.value = '';
+    } else {
+      const el = document.getElementById('melaAdd');
+      const v = (el?.value || '').trim();
+      if(!v) return;
+      if(!colorsState.mela.includes(v)) colorsState.mela.push(v);
+      if(el) el.value = '';
+    }
+
+    syncColorHidden();
+    renderColorPills();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    syncColorHidden();
+    renderColorPills();
+  });
+
+  window.addColor = addColor;
+</script>
+
 @endsection
