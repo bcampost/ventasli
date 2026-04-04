@@ -6,6 +6,17 @@
   $manualUrl = $product->manual_pdf_path ? asset('storage/'.ltrim($product->manual_pdf_path,'/')) : null;
 @endphp
 
+@php
+  $gallerySafe = $detail->images_safe ?? [];
+  $gallerySafe = is_array($gallerySafe) ? $gallerySafe : [];
+
+  $aceroSafe = $aceroColors ?? [];
+  $aceroSafe = is_array($aceroSafe) ? $aceroSafe : [];
+
+  $laminadoSafe = $melaminaColors ?? [];
+  $laminadoSafe = is_array($laminadoSafe) ? $laminadoSafe : [];
+@endphp
+
 <style>
   :root{
     --ep-ink:#0f172a;
@@ -391,6 +402,80 @@
       padding-right:18px;
     }
   }
+  .ep-upload-grid{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap:16px;
+  }
+
+  .ep-u-card{
+    border:1px solid var(--ep-line);
+    border-radius:20px;
+    overflow:hidden;
+    background:#fff;
+    box-shadow: 0 8px 22px rgba(15,23,42,.04);
+  }
+
+  .ep-u-prev{
+    aspect-ratio: 16 / 10;
+    background:#f8fafc;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    border-bottom:1px solid rgba(15,23,42,.06);
+  }
+
+  .ep-u-prev img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+    background:#fff;
+  }
+
+  .ep-u-meta{
+    padding:14px;
+    display:grid;
+    gap:10px;
+  }
+
+  .ep-pillrow{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:8px;
+  }
+
+  .ep-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 10px;
+    border-radius:999px;
+    border:1px solid rgba(15,23,42,.14);
+    background:rgba(15,23,42,.02);
+    font-weight:800;
+    font-size:12.5px;
+  }
+
+  .ep-pill button{
+    width:22px;
+    height:22px;
+    border-radius:999px;
+    border:1px solid rgba(225,29,72,.25);
+    background:rgba(225,29,72,.08);
+    cursor:pointer;
+    font-weight:900;
+    line-height:1;
+  }
+
+  @media (max-width: 980px){
+    .ep-upload-grid{
+      grid-template-columns: 1fr;
+    }
+  }
+
 </style>
 
 <div class="ep-page ep-wrap">
@@ -541,7 +626,7 @@
               </div>
 
               <div class="ep-field">
-                <label class="ep-label">Melamina / Laminado</label>
+                <label class="ep-label">Laminado</label>
                 <div id="melaWrap" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
 
                 <div style="margin-top:10px;display:flex;gap:10px;">
@@ -555,6 +640,85 @@
             </div>
           </div>
         </div>
+
+        <div class="ep-card">
+  <div class="ep-card-head">
+    <h2 class="ep-card-title">Galería del producto</h2>
+    <div class="ep-card-sub">
+      Sube nuevas imágenes, asigna sus colores y administra las imágenes actuales del producto.
+    </div>
+  </div>
+
+  <div class="ep-card-body">
+    <div class="ep-field">
+      <label class="ep-label">Subir nuevas imágenes</label>
+      <input type="file"
+             name="gallery_images[]"
+             id="gallery_input"
+             accept="image/*"
+             multiple
+             class="ep-file">
+      <div class="ep-help">
+        Puedes seleccionar varias imágenes al mismo tiempo. Si no eliges color manualmente, se usarán por default los colores base actuales del producto.
+      </div>
+    </div>
+
+    <div id="upload_previews" class="ep-upload-grid" style="margin-top:16px;"></div>
+
+    <div style="margin-top:20px; border-top:1px solid rgba(15,23,42,.08); padding-top:18px;">
+      <div class="ep-label" style="margin-bottom:10px;">Imágenes actuales</div>
+
+      @if(empty($gallerySafe))
+        <div class="ep-note">
+          No hay imágenes cargadas todavía.
+        </div>
+      @else
+        <div class="ep-upload-grid">
+          @foreach($gallerySafe as $i => $it)
+            @php $u = asset('storage/'.ltrim($it['path'],'/')); @endphp
+
+            <div class="ep-u-card">
+              <div class="ep-u-prev">
+                <img src="{{ $u }}" alt="">
+              </div>
+
+              <div class="ep-u-meta">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                  <label class="ep-check">
+                    <input type="checkbox" name="remove_gallery[]" value="{{ $it['path'] }}">
+                    Quitar imagen
+                  </label>
+
+                  <a href="{{ $u }}" target="_blank" class="ep-btn ep-btn-soft">Ver ↗</a>
+                </div>
+
+                <div class="ep-field">
+                  <label class="ep-label">Acero</label>
+                  <select class="ep-input" name="existing_meta[{{ $i }}][acero]">
+                    <option value="">Acero (sin asignar)</option>
+                    @foreach($aceroSafe as $c)
+                      <option value="{{ $c }}" {{ ($it['acero'] ?? '') === $c ? 'selected' : '' }}>{{ $c }}</option>
+                    @endforeach
+                  </select>
+                </div>
+
+                <div class="ep-field">
+                  <label class="ep-label">Laminado</label>
+                  <select class="ep-input" name="existing_meta[{{ $i }}][melamina]">
+                    <option value="">Laminado (sin asignar)</option>
+                    @foreach($laminadoSafe as $c)
+                      <option value="{{ $c }}" {{ ($it['melamina'] ?? '') === $c ? 'selected' : '' }}>{{ $c }}</option>
+                    @endforeach
+                  </select>
+                </div>
+              </div>
+            </div>
+          @endforeach
+        </div>
+      @endif
+    </div>
+  </div>
+</div>
 
         {{-- PDFs --}}
         <div class="ep-card">
@@ -680,6 +844,7 @@
     </form>
   </div>
 </div>
+  $techUrl   = $product->tech_pdf_path   ? asset('storage/'.ltrim($product->tech_pdf_path,'/'))   : null;
 
 <script>
   const colorsState = {
@@ -765,6 +930,93 @@
   });
 
   window.addColor = addColor;
+</script>
+
+<script>
+  function escapeHtml(text){
+    return String(text || '').replace(/[&<>"']/g, function(m){
+      return ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      })[m];
+    });
+  }
+
+  function getCurrentAceroColors(){
+    try {
+      return JSON.parse(document.getElementById('acero_colors_json')?.value || '[]');
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function getCurrentLaminadoColors(){
+    try {
+      return JSON.parse(document.getElementById('melamina_colors_json')?.value || '[]');
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function buildSelect(name, options, placeholder){
+    const safeOptions = Array.isArray(options) ? options : [];
+    return `
+      <select class="ep-input" name="${name}">
+        <option value="">${placeholder}</option>
+        ${safeOptions.map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')}
+      </select>
+    `;
+  }
+
+  function renderUploadPreviews(){
+    const input = document.getElementById('gallery_input');
+    const wrap = document.getElementById('upload_previews');
+    if (!input || !wrap) return;
+
+    wrap.innerHTML = '';
+
+    const files = Array.from(input.files || []);
+    const acero = getCurrentAceroColors();
+    const laminado = getCurrentLaminadoColors();
+
+    files.forEach((file, idx) => {
+      const url = URL.createObjectURL(file);
+
+      const card = document.createElement('div');
+      card.className = 'ep-u-card';
+      card.innerHTML = `
+        <div class="ep-u-prev">
+          <img src="${url}" alt="${escapeHtml(file.name)}">
+        </div>
+
+        <div class="ep-u-meta">
+          <div style="font-weight:700;color:#334155;">${escapeHtml(file.name)}</div>
+
+          <div class="ep-field">
+            <label class="ep-label">Acero</label>
+            ${buildSelect(`gallery_meta[${idx}][acero]`, acero, 'Acero por default')}
+          </div>
+
+          <div class="ep-field">
+            <label class="ep-label">Laminado</label>
+            ${buildSelect(`gallery_meta[${idx}][melamina]`, laminado, 'Laminado por default')}
+          </div>
+        </div>
+      `;
+
+      wrap.appendChild(card);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const galleryInput = document.getElementById('gallery_input');
+    if (galleryInput) {
+      galleryInput.addEventListener('change', renderUploadPreviews);
+    }
+  });
 </script>
 
 @endsection

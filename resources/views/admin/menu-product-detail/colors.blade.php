@@ -11,7 +11,7 @@
 <div style="max-width:980px;margin:26px auto;padding:0 16px;">
   <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
     <div>
-      <div style="font-size:22px;font-weight:900;">Editar colores (Acero / Melamina)</div>
+      <div style="font-size:22px;font-weight:900;">Editar colores (Acero / Laminado)</div>
       <div style="opacity:.7;font-weight:700;margin-top:4px;">Producto: <b>{{ $product->title }}</b></div>
     </div>
     <a href="{{ $redirectTo }}" style="text-decoration:none;font-weight:900;">← Volver</a>
@@ -62,7 +62,7 @@
       </div>
 
       <div style="border-top:1px dashed rgba(15,23,42,.14);padding-top:14px;">
-        <div style="font-weight:900;margin-bottom:8px;">Melamina</div>
+        <div style="font-weight:900;margin-bottom:8px;">Laminado</div>
         <div id="melaWrap" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
 
         <div style="margin-top:10px;display:flex;gap:10px;">

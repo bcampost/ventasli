@@ -169,7 +169,7 @@
     <div class="card">
       <div class="card-head">
         <div class="h">Variantes</div>
-        <div class="muted">Acero + Melamina</div>
+        <div class="muted">Acero + Laminado</div>
       </div>
 
       <div class="info">
@@ -185,11 +185,11 @@
         <div class="k">Acero</div>
         <div class="chips" id="chipsA"></div>
 
-        <div class="k" style="margin-top:14px;">Melamina</div>
+        <div class="k" style="margin-top:14px;">Laminado</div>
         <div class="chips" id="chipsM"></div>
 
         <div class="hint">
-          Si eliges <b>Acero</b> + <b>Melamina</b>, se mostrarán solo las imágenes asignadas a esa combinación.
+          Si eliges <b>Acero</b> + <b>Laminado</b>, se mostrarán solo las imágenes asignadas a esa combinación.
         </div>
 
         <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
@@ -279,7 +279,7 @@
       idx = 0;
 
       const a = selA ? `Acero: ${selA}` : '';
-      const m = selM ? `Melamina: ${selM}` : '';
+      const m = selM ? `Laminado: ${selM}` : '';
       filterLabel.textContent = (a||m) ? [a,m].filter(Boolean).join(' · ') : 'Sin filtros';
 
       renderGallery();
