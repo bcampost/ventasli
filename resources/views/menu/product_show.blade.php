@@ -7,16 +7,17 @@
 
   $mainImg = $product->image_path ? asset('storage/'.ltrim($product->image_path,'/')) : null;
 
-  $aceroColors = is_array($detail->acero_colors ?? null) ? $detail->acero_colors : (json_decode((string)($detail->acero_colors ?? ''), true) ?: []);
-  $melaColors  = is_array($detail->melamina_colors ?? null) ? $detail->melamina_colors : (json_decode((string)($detail->melamina_colors ?? ''), true) ?: []);
+  $aceroColors = isset($aceroColors) && is_array($aceroColors)
+      ? array_values(array_filter(array_map('trim', $aceroColors)))
+      : [];
 
-  $aceroColors = array_values(array_filter(array_map('trim', $aceroColors)));
-  $melaColors  = array_values(array_filter(array_map('trim', $melaColors)));
+  $laminadoColors = isset($laminadoColors) && is_array($laminadoColors)
+      ? array_values(array_filter(array_map('trim', $laminadoColors)))
+      : [];
 
   $galleryArr = $detail->images_safe ?? [];
   $galleryArr = is_array($galleryArr) ? $galleryArr : [];
 
-  // ✅ PDFs desde menu_products (NO desde detail)
   $techUrl   = $product->tech_pdf_path   ? asset('storage/'.ltrim($product->tech_pdf_path,'/'))   : null;
   $manualUrl = $product->manual_pdf_path ? asset('storage/'.ltrim($product->manual_pdf_path,'/')) : null;
 
@@ -25,7 +26,7 @@
     'title' => $product->title,
     'main' => $mainImg,
     'acero' => $aceroColors,
-    'melamina' => $melaColors,
+    'melamina' => $laminadoColors,
     'gallery' => array_values(array_filter(array_map(function($it){
       if(!is_array($it)) return null;
       $p = trim((string)($it['path'] ?? ''));
