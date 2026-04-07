@@ -720,6 +720,72 @@
   </div>
 </div>
 
+<div class="ep-card">
+  <div class="ep-card-head">
+    <h2 class="ep-card-title">Colores globales y selección del producto</h2>
+    <div class="ep-card-sub">
+      Los colores se administran globalmente y aquí decides cuáles se muestran en este producto.
+    </div>
+  </div>
+
+  <div class="ep-card-body">
+    <div class="ep-grid-2">
+      <div>
+        <div class="ep-label" style="margin-bottom:10px;">Acero global</div>
+
+        <div style="display:flex;gap:10px;margin-bottom:12px;">
+          <input type="text" id="new_global_acero" class="ep-input" placeholder="Ej. Negro">
+          <button type="button" class="ep-btn ep-btn-dark" onclick="addGlobalColor('acero')">+ Agregar</button>
+        </div>
+
+        <div id="global_acero_list" style="display:grid;gap:10px;">
+          @foreach($globalAcero as $color)
+            <label class="ep-check" style="justify-content:space-between;border:1px solid rgba(15,23,42,.08);padding:10px 12px;border-radius:14px;">
+              <span>
+                <input type="checkbox"
+                       name="selected_color_ids[]"
+                       value="{{ $color->id }}"
+                       {{ in_array((int)$color->id, $selectedColorIds ?? [], true) ? 'checked' : '' }}>
+                {{ $color->name }}
+              </span>
+              <span style="font-size:.8rem;color:#64748b;">Global</span>
+            </label>
+          @endforeach
+        </div>
+      </div>
+
+      <div>
+        <div class="ep-label" style="margin-bottom:10px;">Laminado global</div>
+
+        <div style="display:flex;gap:10px;margin-bottom:12px;">
+          <input type="text" id="new_global_laminado" class="ep-input" placeholder="Ej. Encino">
+          <button type="button" class="ep-btn ep-btn-dark" onclick="addGlobalColor('laminado')">+ Agregar</button>
+        </div>
+
+        <div id="global_laminado_list" style="display:grid;gap:10px;">
+          @foreach($globalLaminado as $color)
+            <label class="ep-check" style="justify-content:space-between;border:1px solid rgba(15,23,42,.08);padding:10px 12px;border-radius:14px;">
+              <span>
+                <input type="checkbox"
+                       name="selected_color_ids[]"
+                       value="{{ $color->id }}"
+                       {{ in_array((int)$color->id, $selectedColorIds ?? [], true) ? 'checked' : '' }}>
+                {{ $color->name }}
+              </span>
+              <span style="font-size:.8rem;color:#64748b;">Global</span>
+            </label>
+          @endforeach
+        </div>
+      </div>
+    </div>
+
+    <div class="ep-note" style="margin-top:16px;">
+      Agregar un color aquí lo hace disponible para todos los productos. Marcarlo o desmarcarlo define si este producto lo muestra.
+    </div>
+  </div>
+</div>
+
+
         {{-- PDFs --}}
         <div class="ep-card">
           <div class="ep-card-head">
@@ -1017,6 +1083,36 @@
       galleryInput.addEventListener('change', renderUploadPreviews);
     }
   });
+</script>
+
+<script>
+  async function addGlobalColor(type){
+    const input = document.getElementById(type === 'acero' ? 'new_global_acero' : 'new_global_laminado');
+    if (!input) return;
+
+    const name = (input.value || '').trim();
+    if (!name) return;
+
+    const fd = new FormData();
+    fd.append('_token', document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '');
+    fd.append('type', type);
+    fd.append('name', name);
+
+    const res = await fetch(@json(route('admin.material-colors.store')), {
+      method: 'POST',
+      body: fd,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+      }
+    });
+
+    if (!res.ok) {
+      alert('No se pudo agregar el color global.');
+      return;
+    }
+
+    window.location.reload();
+  }
 </script>
 
 @endsection

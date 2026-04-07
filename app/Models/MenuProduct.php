@@ -112,6 +112,12 @@ class MenuProduct extends Model
         return array_values($out);
     }
 
+    public function materialColors()
+        {
+            return $this->belongsToMany(\App\Models\MaterialColor::class, 'menu_product_material_color')
+                ->withTimestamps();
+        }
+
     /**
      * ✅ URLs de galería (storage)
      * (si usas thumbs sin filtrar)

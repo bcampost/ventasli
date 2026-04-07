@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MenuProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\MaterialColor;
 
 class MenuProductDetailController extends Controller
 {
@@ -14,23 +15,32 @@ class MenuProductDetailController extends Controller
         $detail = $menu_product->detail()->firstOrCreate([]);
         $redirectTo = $request->get('redirect_to', url()->previous());
 
-        $aceroColors = is_array($detail->acero_colors ?? null)
-            ? $detail->acero_colors
-            : (json_decode((string)($detail->acero_colors ?? ''), true) ?: []);
+        $globalAcero = MaterialColor::query()
+            ->where('type', 'acero')
+            ->where('is_active', true)
+            ->orderBy('sort')
+            ->orderBy('name')
+            ->get();
 
-        $melaminaColors = is_array($detail->melamina_colors ?? null)
-            ? $detail->melamina_colors
-            : (json_decode((string)($detail->melamina_colors ?? ''), true) ?: []);
+        $globalLaminado = MaterialColor::query()
+            ->where('type', 'laminado')
+            ->where('is_active', true)
+            ->orderBy('sort')
+            ->orderBy('name')
+            ->get();
 
-        $aceroColors = array_values(array_unique(array_filter(array_map('trim', $aceroColors))));
-        $melaminaColors = array_values(array_unique(array_filter(array_map('trim', $melaminaColors))));
+        $selectedColorIds = $menu_product->materialColors()
+            ->pluck('material_colors.id')
+            ->map(fn($id) => (int) $id)
+            ->all();
 
         return view('admin.menu-product-detail.edit', [
-            'product'         => $menu_product,
-            'detail'          => $detail,
-            'redirectTo'      => $redirectTo,
-            'aceroColors'     => $aceroColors,
-            'melaminaColors'  => $melaminaColors,
+            'product'          => $menu_product,
+            'detail'           => $detail,
+            'redirectTo'       => $redirectTo,
+            'globalAcero'      => $globalAcero,
+            'globalLaminado'   => $globalLaminado,
+            'selectedColorIds' => $selectedColorIds,
         ]);
     }
 
@@ -39,6 +49,9 @@ class MenuProductDetailController extends Controller
         $detail = $menu_product->detail()->firstOrCreate([]);
 
         $data = $request->validate([
+
+            'selected_color_ids'   => ['nullable', 'array'],
+            'selected_color_ids.*' => ['nullable', 'integer', 'exists:material_colors,id'],
             'title'       => ['nullable','string','max:255'],
             'description' => ['nullable','string'],
 
@@ -192,6 +205,15 @@ class MenuProductDetailController extends Controller
 
         // Guarda rutas de PDFs en el producto
         $menu_product->save();
+
+        $selectedIds = collect((array)($data['selected_color_ids'] ?? []))
+            ->map(fn($id) => (int)$id)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $menu_product->materialColors()->sync($selectedIds);
 
         return redirect($data['redirect_to'] ?? url()->previous())
             ->with('success', 'Detalle actualizado.');

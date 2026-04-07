@@ -273,6 +273,9 @@ Route::middleware(['auth'])->group(function () {
 
         Route::put('/users/{user}/role', [\App\Http\Controllers\Admin\UserAdminController::class, 'updateRole'])
             ->name('users.role');
+
+        Route::post('/material-colors', [\App\Http\Controllers\Admin\MaterialColorController::class, 'store'])
+            ->name('material-colors.store');
     });
 });
 
