@@ -29,18 +29,42 @@ class MenuProductDetailController extends Controller
             ->orderBy('name')
             ->get();
 
-        $selectedColorIds = $menu_product->materialColors()
-            ->pluck('material_colors.id')
+        $selectedColors = $menu_product->materialColors()
+            ->where('is_active', true)
+            ->orderBy('sort')
+            ->orderBy('name')
+            ->get();
+
+        $selectedColorIds = $selectedColors
+            ->pluck('id')
             ->map(fn($id) => (int) $id)
             ->all();
 
+        $productAceroColors = $selectedColors
+            ->filter(fn($c) => $c->type === 'acero')
+            ->pluck('name')
+            ->map(fn($v) => trim((string) $v))
+            ->filter()
+            ->values()
+            ->all();
+
+        $productLaminadoColors = $selectedColors
+            ->filter(fn($c) => $c->type === 'laminado')
+            ->pluck('name')
+            ->map(fn($v) => trim((string) $v))
+            ->filter()
+            ->values()
+            ->all();
+
         return view('admin.menu-product-detail.edit', [
-            'product'          => $menu_product,
-            'detail'           => $detail,
-            'redirectTo'       => $redirectTo,
-            'globalAcero'      => $globalAcero,
-            'globalLaminado'   => $globalLaminado,
-            'selectedColorIds' => $selectedColorIds,
+            'product'               => $menu_product,
+            'detail'                => $detail,
+            'redirectTo'            => $redirectTo,
+            'globalAcero'           => $globalAcero,
+            'globalLaminado'        => $globalLaminado,
+            'selectedColorIds'      => $selectedColorIds,
+            'productAceroColors'    => $productAceroColors,
+            'productLaminadoColors' => $productLaminadoColors,
         ]);
     }
 
