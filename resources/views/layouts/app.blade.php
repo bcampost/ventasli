@@ -212,10 +212,10 @@
             <button type="button" class="zoomBtn" onclick="window.mediaZoomReset && window.mediaZoomReset()">Reset</button>
           </div>
 
-          <a id="pdfOpenNewTab" href="#" target="_blank" rel="noopener" class="pdfBtn"
-             onclick="event.stopPropagation();">
-            Abrir aparte ↗
-          </a>
+<button type="button" class="pdfBtn"
+  onclick="window.printCurrentMedia && window.printCurrentMedia(); event.stopPropagation();">
+  Imprimir 🖨️
+</button>
 
           <button type="button" class="pdfBtn" onclick="window.closePdfPreview && window.closePdfPreview()">
             Cerrar ✕
@@ -251,7 +251,7 @@
       let currentZoom = 1;
       const MIN_ZOOM = 0.5;
       const MAX_ZOOM = 3;
-      const STEP_ZOOM = 0.25;
+      const STEP_ZOOM =0.10;
 
       function updateZoomUI() {
         if (zoomLabel()) {
@@ -378,6 +378,58 @@
 
         openModal(url, title || 'Vista previa');
       };
+
+window.printCurrentMedia = function () {
+  const frame = document.getElementById('pdfFrame');
+  const img = document.getElementById('mediaImage');
+  const video = document.getElementById('mediaVideo');
+
+  // 📄 PDF
+  if (frame && frame.style.display !== 'none') {
+    try {
+      frame.contentWindow.focus();
+      frame.contentWindow.print();
+    } catch (e) {
+      window.open(frame.src, '_blank')?.print();
+    }
+    return;
+  }
+
+  // 🖼️ Imagen
+  if (img && img.style.display !== 'none') {
+    const w = window.open('', '_blank');
+    if (!w) return;
+
+    w.document.write(`
+      <html>
+        <head>
+          <title>Imprimir</title>
+          <style>
+            body { margin:0; display:flex; justify-content:center; align-items:center; height:100vh; background:#fff; }
+            img { max-width:100%; max-height:100%; }
+          </style>
+        </head>
+        <body>
+          <img src="${img.src}" />
+          <script>
+            window.onload = function(){
+              window.print();
+              window.close();
+            }
+          <\/script>
+        </body>
+      </html>
+    `);
+    w.document.close();
+    return;
+  }
+
+  // 🎥 Video (opcional)
+  if (video && video.style.display !== 'none') {
+    alert('La impresión de video no está soportada.');
+  }
+};
+
 
       window.closePdfPreview = function () {
         resetMedia();
