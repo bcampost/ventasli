@@ -64,11 +64,37 @@
   left: 0;
   right: 0;
   z-index: 9999;
+
   background: rgba(255,255,255,.96);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+
   border-bottom: 1px solid var(--nav-line);
   box-shadow: 0 10px 24px rgba(15,23,42,.06);
+
+  transition: all .25s ease;
+}
+
+/* Estado al hacer scroll */
+.v-nav.scrolled{
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 18px 40px rgba(15,23,42,.12);
+}
+
+/* 🔽 hace el navbar más compacto */
+.v-nav.scrolled .v-nav-wrap{
+  min-height: 58px;
+  padding: 6px 22px;
+}
+
+/* 🔽 logo más chico */
+.v-nav.scrolled .topbrand-logo{
+  height: 28px;
+}
+
+/* 🔽 texto ligeramente más compacto */
+.v-nav.scrolled .v-link{
+  font-size: 13px;
 }
 
 .v-nav-wrap{
@@ -565,5 +591,18 @@
     const wrap = document.getElementById('vUser');
     if (!wrap) return;
     if (!wrap.contains(e.target)) wrap.classList.remove('open');
+  });
+</script>
+
+<script>
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('.v-nav');
+    if (!nav) return;
+
+    if (window.scrollY > 40) {
+      nav.classList.add('scrolled');
+    } else {
+      nav.classList.remove('scrolled');
+    }
   });
 </script>
