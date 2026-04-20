@@ -116,22 +116,26 @@
       --card: #ffffff;
     }
 
-    .hero-wrap {
-      background: transparent;
-      border: none;
-      border-radius: 0;
-      padding: 18px 0;
-    }
+.hero-wrap {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 18px 0 28px;
+  min-height: calc(100vh - 82px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
 
-    .hero-top {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 16px;
-      padding: 6px 6px 14px;
-      max-width: 1180px;
-      margin: 0 auto;
-    }
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 6px 6px 6px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
 
     .hero-title-row {
       display: flex;
@@ -228,21 +232,23 @@
       }
     }
 
-    .hero-stage {
-      display: flex;
-      justify-content: center;
-      padding: 8px 0 2px;
-    }
+.hero-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  padding: 8px 0 18px;
+}
 
-    .hero-card {
-      width: 70vw;
-      max-width: 70vw;
-      margin: 0 auto;
-      background: transparent;
-      border-radius: 20px;
-      position: relative;
-      overflow: visible;
-    }
+.hero-card {
+  width: 78vw;
+  max-width: 78vw;
+  margin: 0 auto;
+  background: transparent;
+  border-radius: 20px;
+  position: relative;
+  overflow: visible;
+}
 
     @media (max-width: 1100px) {
       .hero-card {
@@ -258,17 +264,17 @@
       }
     }
 
-    .hero3d-swiper {
-      overflow: visible;
-      padding: 22px 0 48px;
-      perspective: 1800px;
-    }
+.hero3d-swiper {
+  overflow: visible;
+  padding: 22px 0 64px;
+  perspective: 1800px;
+}
 
-    .hero3d-slide {
-      width: 920px;
-      display: flex;
-      justify-content: center;
-    }
+.hero3d-slide {
+  width: 980px;
+  display: flex;
+  justify-content: center;
+}
 
     @media (max-width: 1100px) {
       .hero3d-slide {
