@@ -406,39 +406,93 @@
         <div class="mm-chip">URL <code>{{ $node->url ?: '(vacío)' }}</code></div>
       </div>
     </div>
+@php
+  $nodeCurrentUrl = $node->url ? asset(ltrim($node->url, '/')) : null;
+@endphp
+
 
     <div class="mm-body">
 
-      {{-- ✅ Crear hijo --}}
-      <div class="mm-card">
-        <div class="mm-card-head">
-          <div>
-            <h2 class="mm-card-title">Agregar nueva opción</h2>
-            <div class="mm-card-sub">Crea una sub-opción que después podrás editar, activar o asociar a un PDF.</div>
-          </div>
-        </div>
-
-        <div class="mm-card-body">
-          <form method="POST" action="{{ route('admin.menu.children.store', $node) }}" class="mm-create">
-            @csrf
-            <input
-              type="text"
-              name="label"
-              value="{{ old('label') }}"
-              placeholder="Ej. Accesorios"
-              class="mm-input"
-              required
-            >
-            <button class="mm-btn mm-btn-dark">
-              Crear
-            </button>
-          </form>
-
-          @error('label')
-            <div class="mm-error">{{ $message }}</div>
-          @enderror
-        </div>
+{{-- ✅ Configuración del nodo actual --}}
+<div class="mm-card">
+  <div class="mm-card-head">
+    <div>
+      <h2 class="mm-card-title">Configurar esta opción</h2>
+      <div class="mm-card-sub">
+        Puedes cambiar el nombre, orden, activación y asignar un PDF directamente a este nodo.
       </div>
+    </div>
+  </div>
+
+  <div class="mm-card-body" style="display:grid; gap:18px;">
+    <div class="mm-section">
+      <div class="mm-section-title">Subir / reemplazar PDF del nodo actual</div>
+
+      <form
+        method="POST"
+        action="{{ route('admin.menu.upload', $node) }}"
+        enctype="multipart/form-data"
+        class="mm-upload-row"
+      >
+        @csrf
+        <input type="file" name="pdf" accept="application/pdf" class="mm-file" required>
+        <button class="mm-btn mm-btn-dark">
+          Subir PDF
+        </button>
+      </form>
+
+      @if($nodeCurrentUrl)
+        <a href="{{ $nodeCurrentUrl }}" target="_blank" class="mm-link">
+          Ver archivo actual
+        </a>
+      @endif
+
+      @error('pdf')
+        <div class="mm-error">{{ $message }}</div>
+      @enderror
+    </div>
+
+    <div class="mm-section">
+      <div class="mm-section-title">Configuración rápida del nodo actual</div>
+
+      <form method="POST" action="{{ route('admin.menu.update', $node) }}" class="mm-edit-grid">
+        @csrf
+        @method('PUT')
+
+        <input
+          name="label"
+          value="{{ $node->label }}"
+          class="mm-input"
+          placeholder="Label"
+          required
+        />
+
+        <input
+          name="sort"
+          value="{{ (int)$node->sort }}"
+          class="mm-input"
+          placeholder="Sort"
+        />
+
+        <input
+          name="url"
+          value="{{ $node->url }}"
+          class="mm-input"
+          placeholder="url (opcional)"
+        />
+
+        <label class="mm-check">
+          <input type="checkbox" name="is_active" value="1" {{ $node->is_active ? 'checked' : '' }}>
+          Activo
+        </label>
+
+        <button class="mm-btn mm-btn-soft">
+          Guardar
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
 
       {{-- ✅ Hijos existentes --}}
       <div class="mt-5">

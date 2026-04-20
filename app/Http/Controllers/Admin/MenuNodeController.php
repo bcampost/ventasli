@@ -155,23 +155,29 @@ class MenuNodeController extends Controller
      * ✅ POST /admin/menu/{menu_node}/upload
      * Sube PDF y lo asigna en url del nodo
      */
-    public function uploadPdf(Request $request, MenuNode $menu_node)
-    {
-        $request->validate([
-            'pdf' => ['required', 'file', 'mimes:pdf', 'max:20480'],
-        ]);
+public function uploadPdf(Request $request, MenuNode $menu_node)
+{
+    $request->validate([
+        'pdf' => ['required', 'file', 'mimes:pdf', 'max:20480'],
+    ]);
 
-        $slug = $menu_node->slug ?: Str::slug($menu_node->label, '-');
-        $filename = "menu-{$slug}-{$menu_node->id}.pdf";
+    $slug = $menu_node->slug ?: Str::slug($menu_node->label, '-');
+    $filename = "menu-{$slug}-{$menu_node->id}.pdf";
+    $relativePath = "pdfs/{$filename}";
+    $absolutePath = public_path($relativePath);
 
-        $request->file('pdf')->move(public_path('pdfs'), $filename);
-
-        $menu_node->update([
-            'url' => "pdfs/{$filename}",
-        ]);
-
-        return back()->with('status', "PDF actualizado para: {$menu_node->label}");
+    if ($menu_node->url && file_exists(public_path(ltrim($menu_node->url, '/')))) {
+        @unlink(public_path(ltrim($menu_node->url, '/')));
     }
+
+    $request->file('pdf')->move(public_path('pdfs'), $filename);
+
+    $menu_node->update([
+        'url' => $relativePath,
+    ]);
+
+    return back()->with('status', "PDF actualizado para: {$menu_node->label}");
+}
 
     /**
      * PUT /admin/menu/{menu_node}

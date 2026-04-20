@@ -76,29 +76,45 @@ class MenuController extends Controller
                 ->get();
         }
 
-        // Cards (submenús)
-        $cards = $children->map(function ($n) use ($sectionSlug, $path) {
-            $nodeSlug = Str::slug($n->label, '-');
-            $newPath  = trim(($path ? trim($path, '/') . '/' : '') . $nodeSlug, '/');
+$cards = $children->map(function ($n) use ($sectionSlug, $path) {
+    $nodeSlug = Str::slug($n->label, '-');
+    $newPath  = trim(($path ? trim($path, '/') . '/' : '') . $nodeSlug, '/');
 
-            $href = route('menu.section', [
-                'sectionSlug' => $sectionSlug,
-                'path'        => $newPath
-            ]);
+    $defaultHref = route('menu.section', [
+        'sectionSlug' => $sectionSlug,
+        'path'        => $newPath
+    ]);
 
-            return [
-                'id'          => $n->id,
-                'title'       => $n->label,
-                'key'         => $this->buildMenuKey($sectionSlug, $newPath),
-                'href'        => $href,
-                'hasChildren' => MenuNode::query()
-                    ->when(method_exists(MenuNode::class, 'scopeActive'), fn($q) => $q->active(), fn($q) => $q->where('is_active', 1))
-                    ->where('parent_id', $n->id)
-                    ->exists(),
-                'description' => '',
-                'customTitle' => null,
-            ];
-        })->values();
+    $nodeUrl = trim((string)($n->url ?? ''));
+    $nodeUrlLower = Str::lower($nodeUrl);
+
+    $isPdf = $nodeUrl !== '' && (
+        Str::endsWith($nodeUrlLower, '.pdf') ||
+        Str::contains($nodeUrlLower, 'pdfs/')
+    );
+
+    if ($isPdf) {
+        $href = asset(ltrim($nodeUrl, '/'));
+    } elseif ($nodeUrl !== '' && Str::startsWith($nodeUrl, ['http://', 'https://'])) {
+        $href = $nodeUrl;
+    } else {
+        $href = $defaultHref;
+    }
+
+    return [
+        'id'          => $n->id,
+        'title'       => $n->label,
+        'key'         => $this->buildMenuKey($sectionSlug, $newPath),
+        'href'        => $href,
+        'is_pdf'      => $isPdf,
+        'hasChildren' => MenuNode::query()
+            ->when(method_exists(MenuNode::class, 'scopeActive'), fn($q) => $q->active(), fn($q) => $q->where('is_active', 1))
+            ->where('parent_id', $n->id)
+            ->exists(),
+        'description' => '',
+        'customTitle' => null,
+    ];
+})->values();
 
         // Productos del nivel actual (MATCH EXACTO del fullPath)
         $products = MenuProduct::query()

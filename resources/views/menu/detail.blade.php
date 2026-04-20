@@ -104,13 +104,7 @@
     <section class="pd-body">
       <div class="pd-wrap">
 
-        <div class="pd-actions">
-          @if($isAdmin)
-            <button type="button" class="pd-btn" onclick="handleCreateProduct()">
-              + Agregar producto
-            </button>
-          @endif
-        </div>
+{{-- acciones vacías por ahora --}}
 
         @if(isset($products) && $products->count())
           <div class="pd-grid {{ $useWideHerramientasLayout ? 'pd-grid--wide-two' : '' }}">

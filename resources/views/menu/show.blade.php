@@ -508,17 +508,13 @@
     <div class="panel-head">
       <div class="h">Opciones</div>
 
-      @if($isAdmin)
-        <div class="head-actions" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          
-        <button type="button" class="btn btn-primary" onclick="openCreateNode(@js($currentNodeId ?? 0))">
-            + Agregar submenú
-          </button>
-          <button type="button" class="btn btn-primary" onclick="openCreateProduct()">
-            + Agregar producto
-          </button>
-        </div>
-      @endif
+@if($isAdmin)
+  <div class="head-actions" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+    <button type="button" class="btn btn-primary" onclick="openCreateNode(@js($currentNodeId ?? 0))">
+      + Agregar submenú
+    </button>
+  </div>
+@endif
     </div>
 
     @if(!empty($cards) && count($cards))
@@ -526,7 +522,6 @@
         @foreach($cards as $card)
           @php
             $key    = $card['key'] ?? '';
-            $token  = $key ? $tokenOf($key) : '';
             $href   = $card['href'] ?? '#';
             $nodeId = $card['id'] ?? null;
 
@@ -540,39 +535,42 @@
             $title       = $customTitle ?: ($card['title'] ?? '—');
           @endphp
 
-          <div class="tile"
-               onclick="if(@js($href)!=='#') window.location.href=@js($href);">
+<div class="tile"
+     onclick="
+       if(@js($card['is_pdf'] ?? false)){
+         event.preventDefault();
+         event.stopPropagation();
+         window.openPdfPreview(@js($href), @js($title));
+       }else if(@js($href)!=='#'){
+         window.location.href=@js($href);
+       }
+     ">
 
-            {{-- acciones admin --}}
-            @if($isAdmin)
-              <div class="tile-actions hide-when-modal">
-                <button type="button" class="icon-btn" title="Editar card"
-                        onclick="
-                          event.preventDefault();
-                          event.stopPropagation();
-                          event.stopImmediatePropagation();
-                          openEditCardModal(
-                            @js($token),
-                            @js($key),
-                            @js($customTitle ?: ''),
-                            @js($desc ?: ''),
-                            @js($imgUrl ?: ''),
-                            @js($card['title'] ?? '')
-                          );
-                        ">✎</button>
+@if($isAdmin)
+  <div class="tile-actions hide-when-modal">
+    @if($nodeId)
+      <a
+        href="{{ route('admin.menu.manage', $nodeId) }}"
+        class="icon-btn"
+        title="Administrar opción"
+        onclick="event.stopPropagation();"
+      >
+        ⚙️
+      </a>
 
-                @if($nodeId)
-                  <form method="POST"
-                        action="{{ route('admin.menu.destroy', ['menu_node' => $nodeId]) }}"
-                        onsubmit="event.stopPropagation(); return confirm('¿Eliminar esta opción del menú?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="icon-btn danger" title="Eliminar"
-                            onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); this.closest('form').submit();">
-                      🗑
-                    </button>
-                  </form>
-                @endif
+      <form method="POST"
+            action="{{ route('admin.menu.destroy', ['menu_node' => $nodeId]) }}"
+            onsubmit="event.stopPropagation(); return confirm('¿Eliminar esta opción del menú?');">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="icon-btn danger" title="Eliminar"
+                onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); this.closest('form').submit();">
+          🗑
+        </button>
+      </form>
+    @endif
+  </div>
+@endif
               </div>
             @endif
 
@@ -613,68 +611,6 @@
 
 @if($isAdmin)
 
-  {{-- =========================
-      ✅ MODAL: EDITAR CARD (MenuCardImage)
-      ========================= --}}
-  <div id="editCardBackdrop" class="modal-backdrop fixed inset-0 hidden" onclick="closeEditCardModal()"></div>
-  <div id="editCardModal" class="fixed inset-0 hidden">
-    <div class="min-h-full flex items-center justify-center p-4">
-      <div class="modal-enter w-full max-w-2xl modal-shell">
-        <div class="modal-header">
-          <div>
-            <div class="modal-title">Editar card</div>
-            <div class="modal-sub" id="editCardSmall">—</div>
-          </div>
-          <button type="button" class="btn btn-ghost" style="padding:.65rem .9rem; border-radius:14px;"
-                  onclick="closeEditCardModal()">Cerrar ✕</button>
-        </div>
-
-        <form id="editCardForm" method="POST" action="#" enctype="multipart/form-data">
-          @csrf
-          @method('PUT')
-
-          <div class="modal-body">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-              <div class="md:col-span-5">
-                <div style="border:1px solid rgba(15,23,42,.10); border-radius:18px; overflow:hidden; background:#fff;">
-                  <div style="background:#f3f4f6; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                    <img id="editCardPreviewImg" src="" alt="" style="width:100%;height:auto;display:none;">
-                    <div id="editCardNoImg" style="color:#94a3b8;font-weight:800;padding:26px;">Sin imagen</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="md:col-span-7 space-y-4">
-                <div>
-                  <label class="field-label">Título (opcional)</label>
-                  <input id="edit_card_title" name="title" type="text" class="input" placeholder="Título personalizado">
-                </div>
-
-                <div>
-                  <label class="field-label">Descripción</label>
-                  <textarea id="edit_card_description" name="description" rows="5" class="textarea" placeholder="Descripción"></textarea>
-                </div>
-
-                <div>
-                  <label class="field-label">Imagen</label>
-                  <input id="edit_card_image" name="image" type="file" accept="image/*" class="input" style="padding:.75rem 1rem;">
-                  <div class="hint" style="margin-top:6px;">
-                    Se guarda tal cual. En la vista se muestra completa (sin recorte).
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-2">
-              <button type="button" class="btn btn-ghost" onclick="closeEditCardModal()">Cancelar</button>
-              <button class="btn btn-primary">Guardar cambios</button>
-            </div>
-          </div>
-        </form>
-
-      </div>
-    </div>
-  </div>
 
   {{-- =========================
       ✅ MODAL: CREAR SUBMENÚ
@@ -732,130 +668,12 @@
     </div>
   </div>
 
-  {{-- =========================
-      ✅ MODAL: CREAR PRODUCTO
-      ========================= --}}
-  <div id="createProductBackdrop" class="modal-backdrop fixed inset-0 hidden z-[80]" onclick="closeCreateProduct()"></div>
-  <div id="createProductModal" class="fixed inset-0 hidden z-[90]">
-    <div class="min-h-full flex items-center justify-content:center p-4">
-      <div class="modal-enter w-full max-w-xl modal-shell">
-        <div class="modal-header">
-          <div>
-            <div class="modal-title">Agregar producto</div>
-            <div class="modal-sub">Asigna el producto al <span class="mono">menu_key</span> correcto.</div>
-          </div>
-          <button type="button" class="btn btn-ghost" style="padding:.65rem .9rem; border-radius:14px;" onclick="closeCreateProduct()">Cerrar ✕</button>
-        </div>
-
-        <form method="POST" action="{{ route('admin.menu-products.store') }}">
-          @csrf
-          <input type="hidden" name="redirect_to" value="{{ $redirectTo ?? url()->current() }}">
-
-          <div class="modal-body">
-            <div class="space-y-4">
-              <div>
-                <label class="field-label">menu_key</label>
-                <input name="menu_key" type="text" required class="input" value="{{ $fpTrim }}">
-                <div class="hint" style="margin-top:6px;">Sugerido: <span class="mono">{{ $fpTrim }}</span></div>
-              </div>
-
-              <div>
-                <label class="field-label">Título</label>
-                <input name="title" type="text" required class="input">
-              </div>
-
-              <div>
-                <label class="field-label">Descripción</label>
-                <textarea name="description" rows="5" class="textarea"></textarea>
-              </div>
-
-              <div>
-                <label class="field-label">URL (opcional)</label>
-                <input name="url" type="text" class="input" placeholder="https://...">
-              </div>
-
-              <div>
-                <label class="field-label">Orden</label>
-                <input name="sort" type="number" min="0" value="0" class="input">
-              </div>
-
-              <div class="flex items-end gap-2 pb-1">
-                <input id="prod_active" name="is_active" type="checkbox" class="rounded" checked>
-                <label for="prod_active" class="field-label" style="margin:0;">Activo</label>
-              </div>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-2">
-              <button type="button" class="btn btn-ghost" onclick="closeCreateProduct()">Cancelar</button>
-              <button class="btn btn-primary">Guardar</button>
-            </div>
-          </div>
-        </form>
-
-      </div>
-    </div>
-  </div>
 
   <script>
     function lockBodyScroll(lock) {
       const b = document.body;
       if (lock) { b.classList.add('no-scroll'); b.classList.add('modal-open'); }
       else { b.classList.remove('no-scroll'); b.classList.remove('modal-open'); }
-    }
-
-    // ✅ EDITAR CARD: modal funcional
-    function openEditCardModal(token, key, title, description, imgUrl, fallbackTitle){
-      const backdrop = document.getElementById('editCardBackdrop');
-      const modal = document.getElementById('editCardModal');
-      const form = document.getElementById('editCardForm');
-
-      const actionTpl = @js(route('admin.menu-cards.update', ['token' => '__TOKEN__']));
-      form.action = actionTpl.replace('__TOKEN__', String(token));
-
-      document.getElementById('editCardSmall').textContent = `Key: ${key}`;
-
-      const t = document.getElementById('edit_card_title');
-      const d = document.getElementById('edit_card_description');
-      t.value = title || '';
-      d.value = description || '';
-
-      const img = document.getElementById('editCardPreviewImg');
-      const no  = document.getElementById('editCardNoImg');
-
-      if (imgUrl) {
-        img.src = imgUrl;
-        img.style.display = 'block';
-        no.style.display = 'none';
-      } else {
-        img.src = '';
-        img.style.display = 'none';
-        no.style.display = 'block';
-      }
-
-      const fileInput = document.getElementById('edit_card_image');
-      fileInput.value = '';
-      fileInput.onchange = (e) => {
-        const f = e.target.files && e.target.files[0];
-        if (!f) return;
-        const url = URL.createObjectURL(f);
-        img.src = url;
-        img.style.display = 'block';
-        no.style.display = 'none';
-      };
-
-      backdrop.classList.remove('hidden');
-      modal.classList.remove('hidden');
-      modal.classList.add('modal-open');
-      lockBodyScroll(true);
-    }
-
-    function closeEditCardModal(){
-      const backdrop = document.getElementById('editCardBackdrop');
-      const modal = document.getElementById('editCardModal');
-      modal.classList.remove('modal-open');
-      backdrop.classList.add('hidden');
-      modal.classList.add('hidden');
-      lockBodyScroll(false);
     }
 
     // CREATE SUBMENU
@@ -877,37 +695,16 @@
       lockBodyScroll(false);
     }
 
-    // CREATE PRODUCT
-    function openCreateProduct(){
-      document.getElementById('createProductBackdrop')?.classList.remove('hidden');
-      const modal = document.getElementById('createProductModal');
-      modal?.classList.remove('hidden');
-      modal?.classList.add('modal-open');
-      lockBodyScroll(true);
-    }
-    function closeCreateProduct(){
-      document.getElementById('createProductBackdrop')?.classList.add('hidden');
-      const modal = document.getElementById('createProductModal');
-      modal?.classList.remove('modal-open');
-      modal?.classList.add('hidden');
-      lockBodyScroll(false);
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeEditCardModal();
-        closeCreateNode();
-        closeCreateProduct();
-      }
-    });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeCreateNode();
+  }
+});
 
     // exponer por si lo llamas desde otros lados
-    window.openEditCardModal = openEditCardModal;
-    window.closeEditCardModal = closeEditCardModal;
+
     window.openCreateNode = openCreateNode;
     window.closeCreateNode = closeCreateNode;
-    window.openCreateProduct = openCreateProduct;
-    window.closeCreateProduct = closeCreateProduct;
   </script>
 @endif
 
