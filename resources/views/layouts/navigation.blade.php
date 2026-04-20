@@ -59,12 +59,16 @@
 }
 
 .v-nav{
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 60;
-  background: var(--nav-bg);
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: rgba(255,255,255,.96);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--nav-line);
+  box-shadow: 0 10px 24px rgba(15,23,42,.06);
 }
 
 .v-nav-wrap{

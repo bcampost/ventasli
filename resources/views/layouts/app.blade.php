@@ -181,9 +181,9 @@
       </header>
     @endisset
 
-    <main>
-      {{ $slot ?? '' }}
-      @yield('content')
+    <main style="padding-top: 72px;">
+        {{ $slot ?? '' }}
+        @yield('content')
     </main>
   </div>
 
