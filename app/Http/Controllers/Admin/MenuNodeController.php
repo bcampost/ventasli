@@ -12,6 +12,31 @@ class MenuNodeController extends Controller
     /**
      * GET /admin/menu
      */
+
+public function deletePdf(MenuNode $menu_node)
+{
+    $currentUrl = trim((string)($menu_node->url ?? ''));
+
+    $isPdf = $currentUrl !== '' && (
+        Str::endsWith(Str::lower($currentUrl), '.pdf') ||
+        Str::contains(Str::lower($currentUrl), 'pdfs/')
+    );
+
+    if ($isPdf) {
+        $absolute = public_path(ltrim($currentUrl, '/'));
+
+        if (file_exists($absolute)) {
+            @unlink($absolute);
+        }
+
+        $menu_node->update([
+            'url' => null,
+        ]);
+    }
+
+    return back()->with('status', "PDF eliminado de: {$menu_node->label}");
+}
+
     public function index()
     {
         $roots = MenuNode::query()

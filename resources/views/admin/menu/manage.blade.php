@@ -425,32 +425,44 @@
   </div>
 
   <div class="mm-card-body" style="display:grid; gap:18px;">
-    <div class="mm-section">
-      <div class="mm-section-title">Subir / reemplazar PDF del nodo actual</div>
+<div class="mm-section">
+  <div class="mm-section-title">Subir / reemplazar PDF del nodo actual</div>
 
-      <form
-        method="POST"
-        action="{{ route('admin.menu.upload', $node) }}"
-        enctype="multipart/form-data"
-        class="mm-upload-row"
-      >
+  <form
+    method="POST"
+    action="{{ route('admin.menu.upload', $node) }}"
+    enctype="multipart/form-data"
+    class="mm-upload-row"
+  >
+    @csrf
+    <input type="file" name="pdf" accept="application/pdf" class="mm-file" required>
+    <button class="mm-btn mm-btn-dark">
+      Subir PDF
+    </button>
+  </form>
+
+  @if($nodeCurrentUrl)
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+      <a href="{{ $nodeCurrentUrl }}" target="_blank" class="mm-link">
+        Ver archivo actual
+      </a>
+
+      <form method="POST"
+            action="{{ route('admin.menu.pdf.destroy', $node) }}"
+            onsubmit="return confirm('¿Quitar el PDF de esta opción?');">
         @csrf
-        <input type="file" name="pdf" accept="application/pdf" class="mm-file" required>
-        <button class="mm-btn mm-btn-dark">
-          Subir PDF
+        @method('DELETE')
+        <button type="submit" class="mm-btn mm-btn-danger">
+          Quitar PDF
         </button>
       </form>
-
-      @if($nodeCurrentUrl)
-        <a href="{{ $nodeCurrentUrl }}" target="_blank" class="mm-link">
-          Ver archivo actual
-        </a>
-      @endif
-
-      @error('pdf')
-        <div class="mm-error">{{ $message }}</div>
-      @enderror
     </div>
+  @endif
+
+  @error('pdf')
+    <div class="mm-error">{{ $message }}</div>
+  @enderror
+</div>
 
     <div class="mm-section">
       <div class="mm-section-title">Configuración rápida del nodo actual</div>
@@ -494,6 +506,43 @@
   </div>
 </div>
 
+
+{{-- ✅ Agregar opción / subopción --}}
+<div class="mm-card">
+  <div class="mm-card-head">
+    <div>
+      <h2 class="mm-card-title">Agregar opción o subopción</h2>
+      <div class="mm-card-sub">
+        Crea una nueva opción debajo de <b>{{ $node->label }}</b>.
+      </div>
+    </div>
+  </div>
+
+  <div class="mm-card-body">
+    <form method="POST" action="{{ route('admin.menu.children.store', $node) }}" class="mm-create">
+      @csrf
+
+      <input
+        type="text"
+        name="label"
+        value="{{ old('label') }}"
+        placeholder="Ej. Inventarios"
+        class="mm-input"
+        required
+      >
+
+      <button type="submit" class="mm-btn mm-btn-dark">
+        + Agregar opción
+      </button>
+    </form>
+
+    @error('label')
+      <div class="mm-error">{{ $message }}</div>
+    @enderror
+  </div>
+</div>
+
+
       {{-- ✅ Hijos existentes --}}
       <div class="mt-5">
         @forelse($children as $child)
@@ -535,27 +584,58 @@
               {{-- Lado derecho: acciones --}}
               <div class="mm-actions">
 
+<div class="mm-section">
+  <div class="mm-section-title">Subopciones</div>
+
+  <a href="{{ route('admin.menu.manage', $child) }}" class="mm-btn mm-btn-soft">
+    Administrar subopciones
+  </a>
+
+  <div class="mm-tip" style="margin-top:12px;">
+    Entra aquí para crear opciones hijas de <code>{{ $child->label }}</code> y aplicarles la misma lógica de PDF o navegación.
+  </div>
+</div>
+
+
                 {{-- ✅ Subir PDF --}}
-                <div class="mm-section">
-                  <div class="mm-section-title">Subir / reemplazar PDF</div>
+<div class="mm-section">
+  <div class="mm-section-title">Subir / reemplazar PDF</div>
 
-                  <form
-                    method="POST"
-                    action="{{ route('admin.menu.upload', $child) }}"
-                    enctype="multipart/form-data"
-                    class="mm-upload-row"
-                  >
-                    @csrf
-                    <input type="file" name="pdf" accept="application/pdf" class="mm-file" required>
-                    <button class="mm-btn mm-btn-dark">
-                      Subir PDF
-                    </button>
-                  </form>
+  <form
+    method="POST"
+    action="{{ route('admin.menu.upload', $child) }}"
+    enctype="multipart/form-data"
+    class="mm-upload-row"
+  >
+    @csrf
+    <input type="file" name="pdf" accept="application/pdf" class="mm-file" required>
+    <button class="mm-btn mm-btn-dark">
+      Subir PDF
+    </button>
+  </form>
 
-                  @error('pdf')
-                    <div class="mm-error">{{ $message }}</div>
-                  @enderror
-                </div>
+  @if($currentUrl)
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+      <a href="{{ $currentUrl }}" target="_blank" class="mm-link">
+        Ver archivo actual
+      </a>
+
+      <form method="POST"
+            action="{{ route('admin.menu.pdf.destroy', $child) }}"
+            onsubmit="return confirm('¿Quitar el PDF de esta opción?');">
+        @csrf
+        @method('DELETE')
+        <button type="submit" class="mm-btn mm-btn-danger">
+          Quitar PDF
+        </button>
+      </form>
+    </div>
+  @endif
+
+  @error('pdf')
+    <div class="mm-error">{{ $message }}</div>
+  @enderror
+</div>
 
                 {{-- ✅ Edit rápido --}}
                 <div class="mm-section">

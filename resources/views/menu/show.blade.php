@@ -571,8 +571,7 @@
     @endif
   </div>
 @endif
-              </div>
-            @endif
+
 
               {{-- tooltip (SOLO hover): solo Título + Descripción --}}
               <div class="tile-tooltip" aria-hidden="true">

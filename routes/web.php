@@ -114,6 +114,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/menu/{menu_node}/upload', [MenuNodeController::class, 'uploadPdf'])
             ->name('menu.upload');
 
+        Route::delete('/menu/{menu_node}/pdf', [MenuNodeController::class, 'deletePdf'])
+            ->name('menu.pdf.destroy');
         /*
         |--------------------------------------------------------------------------
         | Menu Products (CRUD)
