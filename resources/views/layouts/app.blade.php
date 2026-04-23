@@ -443,24 +443,39 @@ window.printCurrentMedia = function () {
         document.body.classList.remove('no-scroll');
       };
 
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') window.closePdfPreview();
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') window.closePdfPreview();
 
-        if (imageWrap() && imageWrap().style.display !== 'none') {
-          if (e.key === '+' || e.key === '=') {
-            e.preventDefault();
-            window.mediaZoomIn();
-          }
-          if (e.key === '-') {
-            e.preventDefault();
-            window.mediaZoomOut();
-          }
-          if (e.key === '0') {
-            e.preventDefault();
-            window.mediaZoomReset();
-          }
-        }
-      });
+  const tag = (e.target?.tagName || '').toLowerCase();
+  const isTyping =
+    tag === 'input' ||
+    tag === 'textarea' ||
+    e.target?.isContentEditable;
+
+  if (isTyping) return;
+
+  const wrap = imageWrap();
+  const isImagePreviewOpen =
+    wrap &&
+    window.getComputedStyle(wrap).display !== 'none';
+
+  if (isImagePreviewOpen) {
+    if (e.key === '+' || e.key === '=') {
+      e.preventDefault();
+      window.mediaZoomIn();
+    }
+
+    if (e.key === '-') {
+      e.preventDefault();
+      window.mediaZoomOut();
+    }
+
+    if (e.key === '0') {
+      e.preventDefault();
+      window.mediaZoomReset();
+    }
+  }
+});
     })();
 
     window.openCreateNode = function (parentId) {

@@ -31,6 +31,24 @@ return [
 
     'connections' => [
 
+        'ingenieria' => [
+            'driver' => 'mysql',
+            'host' => env('DB_ING_HOST', '127.0.0.1'),
+            'port' => env('DB_ING_PORT', '3306'),
+            'database' => env('DB_ING_DATABASE', 'forge'),
+            'username' => env('DB_ING_USERNAME', 'forge'),
+            'password' => env('DB_ING_PASSWORD', ''),
+            'unix_socket' => env('DB_ING_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
+
+
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
