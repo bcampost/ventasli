@@ -16,7 +16,7 @@ class MenuProduct extends Model
         'image_path',
         'tech_pdf_path',
         'manual_pdf_path',
-
+        'ingenieria_code',
         // ✅ ahora puede ser:
         // 1) array de strings (legacy): ["path1","path2"]
         // 2) array de objetos (nuevo): [{path, steel, melamine}, ...]
@@ -62,7 +62,8 @@ class MenuProduct extends Model
 
     public function imageUrl(): ?string
     {
-        if (!$this->image_path) return null;
+        if (!$this->image_path)
+            return null;
         return asset('storage/' . ltrim($this->image_path, '/'));
     }
 
@@ -85,7 +86,8 @@ class MenuProduct extends Model
             // legacy string
             if (is_string($it)) {
                 $p = trim($it);
-                if ($p === '') continue;
+                if ($p === '')
+                    continue;
 
                 $out[] = [
                     'path' => ltrim($p, '/'),
@@ -97,13 +99,14 @@ class MenuProduct extends Model
 
             // nuevo objeto
             if (is_array($it)) {
-                $p = trim((string)($it['path'] ?? ''));
-                if ($p === '') continue;
+                $p = trim((string) ($it['path'] ?? ''));
+                if ($p === '')
+                    continue;
 
                 $out[] = [
                     'path' => ltrim($p, '/'),
-                    'steel' => trim((string)($it['steel'] ?? '')),
-                    'melamine' => trim((string)($it['melamine'] ?? '')),
+                    'steel' => trim((string) ($it['steel'] ?? '')),
+                    'melamine' => trim((string) ($it['melamine'] ?? '')),
                 ];
                 continue;
             }
@@ -113,10 +116,10 @@ class MenuProduct extends Model
     }
 
     public function materialColors()
-        {
-            return $this->belongsToMany(\App\Models\MaterialColor::class, 'menu_product_material_color')
-                ->withTimestamps();
-        }
+    {
+        return $this->belongsToMany(\App\Models\MaterialColor::class, 'menu_product_material_color')
+            ->withTimestamps();
+    }
 
     /**
      * ✅ URLs de galería (storage)
@@ -126,8 +129,32 @@ class MenuProduct extends Model
     {
         $norm = $this->galleryNormalized();
         return array_map(
-            fn ($it) => asset('storage/' . ltrim($it['path'], '/')),
+            fn($it) => asset('storage/' . ltrim($it['path'], '/')),
             $norm
         );
     }
+    public function ingenieriaDocs(): array
+    {
+        return app(\App\Services\IngenieriaService::class)
+            ->getDocs($this->ingenieria_code);
+    }
+
+    public function ingenieriaFichaUrl(): ?string
+    {
+        $docs = $this->ingenieriaDocs();
+
+        return !empty($docs['ficha'])
+            ? app(\App\Services\IngenieriaService::class)->url($docs['ficha'])
+            : null;
+    }
+
+    public function ingenieriaInstructivoUrl(): ?string
+    {
+        $docs = $this->ingenieriaDocs();
+
+        return !empty($docs['instructivo'])
+            ? app(\App\Services\IngenieriaService::class)->url($docs['instructivo'])
+            : null;
+    }
+
 }

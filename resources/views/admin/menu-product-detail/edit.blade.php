@@ -559,6 +559,19 @@
                             placeholder="Describe el producto, sus ventajas o su uso recomendado.">{{ old('description', $detail->description) }}</textarea>
                   <div class="ep-help">Usa una redacción clara y comercial para ayudar al usuario a entender mejor el producto.</div>
                 </div>
+                <div class="ep-field" style="margin-top:16px;">
+                  <label class="ep-label">Código ingeniería</label>
+                  <input
+                    name="ingenieria_code"
+                    value="{{ old('ingenieria_code', $product->ingenieria_code) }}"
+                    class="ep-input"
+                    placeholder="Ej. 1214"
+                  >
+                  <div class="ep-help">
+                    Solo el código base. Ejemplo: 1214 (el sistema buscará 1214F, 1214I, etc.)
+                  </div>
+                </div>
+
               </div>
             </div>
 

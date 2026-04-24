@@ -22,11 +22,14 @@ class MenuProductController extends Controller
 
     public function store(Request $request)
     {
+
+
         $data = $request->validate([
             'menu_key' => ['required', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'url' => ['nullable', 'string', 'max:2000'],
+            'ingenieria_code' => ['nullable', 'string', 'max:100'],
             'sort' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable'],
             'image' => ['nullable', 'image', 'max:5120'], // 5MB
@@ -48,6 +51,7 @@ class MenuProductController extends Controller
         $p->title = $data['title'];
         $p->description = $data['description'] ?? null;
         $p->url = $data['url'] ?? null;
+        $p->ingenieria_code = strtoupper(trim((string)($data['ingenieria_code'] ?? ''))) ?: null;
         $p->sort = (int)($data['sort'] ?? 0);
         $p->is_active = $request->has('is_active') ? 1 : 0;
 
@@ -98,6 +102,7 @@ class MenuProductController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'url' => ['nullable', 'string', 'max:2000'],
+            'ingenieria_code' => ['nullable', 'string', 'max:100'],
             'sort' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable'],
             'image' => ['nullable', 'image', 'max:5120'], // 5MB
@@ -125,6 +130,7 @@ class MenuProductController extends Controller
         $menu_product->title = $data['title'];
         $menu_product->description = $data['description'] ?? null;
         $menu_product->url = $data['url'] ?? null;
+        $menu_product->ingenieria_code = strtoupper(trim((string)($data['ingenieria_code'] ?? ''))) ?: null;
         $menu_product->sort = (int)($data['sort'] ?? 0);
         $menu_product->is_active = $request->has('is_active') ? 1 : 0;
 
