@@ -151,6 +151,20 @@
       font-weight: 750;
       opacity: .60;
     }
+  /* 1) contenedor más ancho */
+  .wrap{
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .panel{
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
 
     .btn {
       display: inline-flex;
@@ -176,6 +190,69 @@
       border-color: var(--line);
       color: var(--ink);
     }
+/* 3) opcional: un poquito más grande el título */
+.tile-title{
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 750;
+  opacity: .60;
+}
+
+
+  .btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.55rem;
+  font-weight: 900;
+  border-radius: 16px;
+  padding: .72rem .92rem;
+  font-size: .86rem;
+  border: 1px solid transparent;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+  user-select:none;
+  white-space:nowrap;
+}
+
+.btn:active{
+  transform: translateY(1px);
+}
+
+.btn-ghost{
+  background:#fff;
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.btn-ghost:hover{
+  background: rgba(248,250,252,.85);
+  border-color: var(--line2);
+}
+
+.btn-primary{
+  background: #162c47;
+  color:#fff;
+  box-shadow: none;
+}
+
+.btn-primary:hover{
+  opacity:.96;
+}
+
+.btn-plus{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size: 1.35rem;
+  line-height: 1;
+  font-weight: 900;
+  transition: transform .25s ease;
+  transform-origin: center;
+}
+
+.btn:hover .btn-plus{
+  transform: rotate(90deg);
+}
 
     .btn-ghost:hover {
       background: rgba(248, 250, 252, .85);
@@ -189,27 +266,128 @@
       box-shadow: 0 14px 30px rgba(37, 99, 235, .22);
     }
 
+  .empty{ padding: 18px; color: rgba(15,23,42,.65); text-align:center; }
+
     .btn-primary:hover {
       opacity: .96;
     }
 
-    .panel {
-      border: 1px solid var(--line);
-      border-radius: var(--rXL);
-      background: radial-gradient(900px 260px at 15% 0%, rgba(37, 99, 235, .06), transparent 55%), #fff;
-      overflow: hidden;
-      margin-top: 14px;
-    }
+  /* GRID como la foto 2 */
+  .tile-grid{
+    padding: 18px 16px 24px;
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+  }
 
-    .panel-head {
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(15, 23, 42, .08);
+  @media(max-width: 1500px){
+    .wrap{
+      min-height: 80vh;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      background: rgba(255, 255, 255, .75);
-      gap: 12px;
+      justify-content: center;
     }
+
+    .panel{
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+  }
+  @media(max-width: 1400px){
+    .panel{
+      width: 100%;
+      margin: 2em auto;
+      max-width: 1100px;
+    }
+  }
+  @media(max-width: 1300px){
+    .tile-grid{ grid-template-columns: repeat(3, 1fr);}
+    .panel{
+      width: 100%;
+      margin: 2em auto;
+      max-width: 1000px;
+    }
+  }
+  @media(max-width: 1200px){
+    .tile-grid{ grid-template-columns: repeat(3, 1fr);}
+
+    .panel{
+      width: 100%;
+      margin: 2em auto;
+      max-width: 900px;
+    }
+  }
+
+  @media(max-width: 1100px){
+    .tile-grid{ grid-template-columns: repeat(3, 1fr);}
+
+    .panel{
+      width: 100%;
+      margin: 2em auto;
+      max-width: 800px;
+    }
+  }
+
+  @media(max-width: 1000px){
+    .tile-grid{ grid-template-columns: repeat(2, 1fr);}
+
+    .panel{
+      width: 100%;
+      margin: 2em auto;
+      max-width: 700px;
+    }
+  }
+
+  @media(max-width: 900px){
+    .tile-grid{ grid-template-columns: repeat(2, 1fr);}
+
+    .panel{
+      width: 100%;
+      margin: 2em auto;
+      max-width: 650px;
+    }
+  }
+
+
+
+@media(max-width: 520px){
+  .tile-grid{ grid-template-columns: 1fr; }
+  .head-actions{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-contents: center;
+  }
+
+  .btn{
+    max-width: 148px;
+   font-weight: 700;
+    font-size: .72rem;
+  }
+
+}
+@media(max-width: 430px){
+
+  .btn{
+    max-width: 140px;
+   font-weight: 700;
+    font-size: .72rem;
+  }
+
+}
+
+@media(max-width: 400px){
+
+  .btn{
+    max-width: 120px;
+   font-weight: 600;
+    font-size: .65rem;
+  }
+
+}
+
+
 
     .panel-head .h {
       font-weight: 950;
@@ -749,8 +927,23 @@
                 {{-- título abajo como la foto 2 --}}
                 <div class="tile-title">{{ $title }}</div>
 
-              </div>
-          @endforeach
+  {{-- OPCIONES (SUBMENÚS) --}}
+  <div class="panel">
+    <div class="panel-head">
+      <div class="h">Opciones</div>
+
+      @if($isAdmin)
+        <div class="head-actions" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          
+          <button type="button" class="btn btn-primary" onclick="openCreateNode(@js($currentNodeId ?? 0))">
+            <span class="btn-plus">+</span>
+            <span>Agregar submenú</span>
+          </button>
+
+          <button type="button" class="btn btn-primary" onclick="openCreateProduct()">
+            <span class="btn-plus">+</span>
+            <span>Agregar producto</span>
+          </button>
         </div>
       @else
         <div class="empty">No hay opciones en este nivel.</div>
@@ -868,24 +1061,28 @@
   @endphp
 
   @if($manageId)
-    <a href="{{ route('admin.menu.manage', $manageId) }}" title="Editar este menú" style="
-            position: fixed;
-            right: 18px;
-            bottom: 18px;
-            width: 54px;
-            height: 54px;
-            border-radius: 999px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            background: #111827;
-            color: #fff;
-            box-shadow: 0 16px 28px rgba(0,0,0,.22);
-            z-index: 9999;
-            text-decoration: none;
-          ">
-      ⚙️
-    </a>
+    <a
+      href="{{ route('admin.menu.manage', $manageId) }}"
+      title="Editar este menú"
+      style="
+        position: fixed;
+        left: 18px;
+        bottom: 18px;
+        width: 54px;
+        height: 54px;
+        border-radius: 999px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background: #111827;
+        color: #fff;
+        box-shadow: 0 16px 28px rgba(0,0,0,.22);
+        z-index: 9999;
+        text-decoration: none;
+      "
+      >
+        ⚙️
+      </a>
   @endif
   @endrole
 

@@ -105,15 +105,36 @@
   }
 
   .li-footer-inner{
-    max-width: 1180px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 70px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 36px 18px 18px;
   }
 
   .li-foot-top{
+    flex: 0 0 270px;
+  }
+
+  .li-foot-grid{
+    flex: 1;
+    min-width: 0;
+  }
+
+  @media(max-width: 1350px){
+    .li-footer-inner{
+      max-width: 1000px;
+    }
+  }
+
+  .li-foot-top{
     display:flex;
+    flex-direction: column;
     align-items:flex-start;
-    justify-content:space-between;
+    justify-content:space-evenly;
     gap: 18px;
     margin-bottom: 18px;
   }
@@ -146,6 +167,9 @@
     justify-content:flex-end;
   }
 
+
+
+
   .li-icon{
     width: 40px;
     height: 40px;
@@ -172,7 +196,7 @@
 
   .li-foot-grid{
     display:grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 44px;
     align-items:start;
     padding-top: 10px;
@@ -345,7 +369,7 @@
     border-top: 1px solid var(--f-line);
     display:flex;
     align-items:center;
-    justify-content:space-between;
+    justify-content:space-evenly;
     gap: 12px;
     color: var(--f-dim);
     font-weight: 600;
@@ -640,22 +664,15 @@
           @endforeach
         </div>
       </section>
-
-      {{-- Columna derecha --}}
-      <section>
-        <div class="li-col-title"><span>Contacto</span></div>
-        <div class="li-col-rule"></div>
-        <div style="color:rgba(255,255,255,.62);font-weight:650;font-size:13px;line-height:1.55;">
-          Ventas Línea Italia · Portal interno
-        </div>
-      </section>
     </div>
+
+    
+  </div>
 
     <div class="li-foot-bottom">
       <div>© {{ date('Y') }} Línea Italia</div>
       <div style="opacity:.85;">Created with Línea Italia</div>
     </div>
-  </div>
 
   <div class="li-copy-toast" id="liCopyToast">Dirección copiada</div>
 

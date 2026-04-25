@@ -377,6 +377,98 @@
 .rk .rk-rankCircle,
 .rk .rk-avatar,
 .rk .rk-avatarRound{ font-weight: 600 !important; }
+
+/*Media queries*/
+@media(max-width: 625px){
+  .rk-top-inner{
+    padding: 18px;
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    justify-contents: center;
+  }
+
+  .rk-brand{
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .rk-kpis{ display:flex; flex-direction: column;  gap:20px; justify-content:center; align-items:center; }
+  .rk-kpi{
+    display: flex;
+    flex-direction: column;
+    align-item: center;
+    justify-content: center;
+  }
+
+  .k-label, .k-value{
+    margin: 0 auto
+  }
+}
+
+@media(max-width: 500px){
+
+  .rk-top5-row{
+    grid-template-columns: 100px 1fr auto;
+    gap: 10px;
+  }
+  .rk-top5-left{
+    width: 100px;
+    min-width: 100px !important;
+  }
+
+  .rk-rankCircle, .rk-top5-meta{
+    align-self:center;
+    margin: 0 auto;
+  }
+
+  .rk-avatarRound{
+    display: none;
+  }
+}
+
+/*Media queries*/
+@media(max-width: 400px){
+
+  .rk-top5-row{
+    grid-template-columns: 85px 1fr auto;
+    gap: 8px;
+  }
+
+  .rk-top5-left{
+    align-items: flex-start !important;
+    width: 85px;
+    min-width: 85px !important;
+  }
+
+  .rk-rankCircle{
+    align-self: flex-start;
+    margin-left: 0;
+    margin-right: auto;
+  } 
+
+  .rk-top5-meta{
+    align-self: center;
+    margin: 0 auto;
+  }
+
+  .rk-avatarRound{
+    display: none;
+  }
+
+  .rk-top5-name{
+    font-weight: 500;
+    font-size: 11px;
+  }
+
+  .rk-top5-money{
+    font-weight: 500;
+    font-size: 12px;
+  }
+}
+
 </style>
 
 <div class="rk">
