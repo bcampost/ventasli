@@ -104,7 +104,14 @@
     <section class="pd-body">
       <div class="pd-wrap">
 
-{{-- acciones vacías por ahora --}}
+        @role('admin')
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin:0 0 18px;">
+          <button type="button" class="pd-add-product-btn" onclick="openCreateProductModal()">
+            + Agregar producto
+          </button>
+        </div>
+        @endrole
+
 
         @if(isset($products) && $products->count())
           <div class="pd-grid {{ $useWideHerramientasLayout ? 'pd-grid--wide-two' : '' }}">
@@ -164,8 +171,8 @@
     }
 
     /* =========================
-       HERO FULL WIDTH
-       ========================= */
+         HERO FULL WIDTH
+         ========================= */
     .pd-hero {
       width: 100%;
       padding: 0;
@@ -370,8 +377,8 @@
     }
 
     /* =========================
-       BODY / PRODUCTS
-       ========================= */
+         BODY / PRODUCTS
+         ========================= */
     .pd-body {
       padding: 18px 0 34px;
     }
@@ -514,6 +521,147 @@
       color: rgba(15, 23, 42, .65);
       font-weight: 700;
     }
+
+    .pd-add-product-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 16px;
+      padding: 12px 16px;
+      border: 1px solid rgba(37, 99, 235, .18);
+      background: linear-gradient(180deg, #2563eb, #1d4ed8);
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 14px 28px rgba(37, 99, 235, .22);
+    }
+
+    .pd-add-product-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .pd-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      background: rgba(2, 6, 23, .72);
+      backdrop-filter: blur(10px);
+    }
+
+    .pd-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+    }
+
+    .pd-modal-box {
+      width: 100%;
+      max-width: 720px;
+      border-radius: 26px;
+      overflow: hidden;
+      background: #fff;
+      border: 1px solid rgba(15, 23, 42, .14);
+      box-shadow: 0 30px 90px rgba(2, 6, 23, .22);
+    }
+
+    .pd-modal-head {
+      padding: 18px 22px;
+      border-bottom: 1px solid rgba(15, 23, 42, .10);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(248, 250, 252, .9);
+    }
+
+    .pd-modal-title {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #0b1220;
+    }
+
+    .pd-modal-sub {
+      margin-top: 4px;
+      font-size: .9rem;
+      color: rgba(15, 23, 42, .58);
+    }
+
+    .pd-modal-body {
+      padding: 20px 22px 22px;
+      max-height: calc(100vh - 160px);
+      overflow: auto;
+    }
+
+    .pd-field {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 14px;
+    }
+
+    .pd-label {
+      font-size: .86rem;
+      font-weight: 800;
+      color: #334155;
+    }
+
+    .pd-input,
+    .pd-textarea {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(15, 23, 42, .14);
+      background: #fff;
+      padding: 12px 14px;
+      font-size: .95rem;
+      outline: none;
+    }
+
+    .pd-input:focus,
+    .pd-textarea:focus {
+      border-color: rgba(37, 99, 235, .45);
+      box-shadow: 0 0 0 5px rgba(37, 99, 235, .10);
+    }
+
+    .pd-help {
+      font-size: .8rem;
+      color: #64748b;
+    }
+
+    .pd-modal-actions {
+      margin-top: 18px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pd-btn-soft,
+    .pd-btn-primary {
+      border-radius: 16px;
+      padding: 11px 15px;
+      font-weight: 800;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    .pd-btn-soft {
+      background: #fff;
+      color: #0f172a;
+      border-color: rgba(15, 23, 42, .12);
+    }
+
+    .pd-btn-primary {
+      background: #0f172a;
+      color: #fff;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .no-scroll {
+      overflow: hidden !important;
+    }
   </style>
 
   <script>
@@ -568,53 +716,102 @@
     })();
   </script>
 
-  {{-- ✅ Si ya tienes tu modal de “Agregar producto” en show.blade.php,
-  puedes reusar la misma función. Si aquí no existe, no truena: --}}
-  <script>
-    function openCreateProduct() {
-      // Si en tu layout ya existe el modal global, ábrelo
-      const bd = document.getElementById('createProductBackdrop');
-      const md = document.getElementById('createProductModal');
-      if (bd && md) {
-        bd.classList.remove('hidden');
-        md.classList.remove('hidden');
-        md.classList.add('modal-open');
-        document.body.classList.add('no-scroll');
-        document.body.classList.add('modal-open');
-        return;
-      }
-      // fallback: manda al admin listado (si quieres)
-      // window.location.href = "{{ route('admin.menu-products.index') }}";
-    }
-  </script>
+  @role('admin')
+  <div id="createProductBackdrop" class="pd-modal-backdrop hidden" onclick="closeCreateProductModal()"></div>
+
+  <div id="createProductModal" class="pd-modal hidden">
+    <div style="min-height:100%; display:flex; align-items:center; justify-content:center; padding:18px;">
+      <div class="pd-modal-box">
+        <div class="pd-modal-head">
+          <div>
+            <div class="pd-modal-title">Agregar producto</div>
+            <div class="pd-modal-sub">Alta rápida dentro de este nivel.</div>
+          </div>
+
+          <button type="button" class="pd-btn-soft" onclick="closeCreateProductModal()">
+            Cerrar ✕
+          </button>
+        </div>
+
+        <form method="POST" action="{{ route('admin.menu-products.store') }}" enctype="multipart/form-data">
+          @csrf
+
+          <input type="hidden" name="menu_key" value="{{ $fullPath }}">
+          <input type="hidden" name="redirect_to" value="{{ url()->current() }}">
+
+          <div class="pd-modal-body">
+            <div class="pd-field">
+              <label class="pd-label">Título del producto</label>
+              <input name="title" type="text" required class="pd-input" placeholder="Ej. Escritorio 1000">
+            </div>
+
+            <div class="pd-field">
+              <label class="pd-label">Código ingeniería</label>
+              <input name="ingenieria_code" type="text" class="pd-input" placeholder="Ej. 1000, 106, 1214">
+              <div class="pd-help">
+                Opcional. Si lo dejas vacío, el sistema intentará detectarlo desde el título.
+              </div>
+            </div>
+
+            <div class="pd-field">
+              <label class="pd-label">Descripción</label>
+              <textarea name="description" rows="4" class="pd-textarea"
+                placeholder="Descripción comercial básica del producto"></textarea>
+            </div>
+
+            <div class="pd-field">
+              <label class="pd-label">Imagen principal</label>
+              <input name="image" type="file" accept="image/*" class="pd-input" style="padding:.75rem 1rem;">
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <div class="pd-field">
+                <label class="pd-label">Orden</label>
+                <input name="sort" type="number" min="0" value="0" class="pd-input">
+              </div>
+
+              <div class="pd-field" style="align-content:end;">
+                <label style="display:flex; align-items:center; gap:8px; font-weight:800; color:#334155;">
+                  <input name="is_active" type="checkbox" checked>
+                  Activo
+                </label>
+              </div>
+            </div>
+
+            <div class="pd-modal-actions">
+              <button type="button" class="pd-btn-soft" onclick="closeCreateProductModal()">
+                Cancelar
+              </button>
+
+              <button type="submit" class="pd-btn-primary">
+                Guardar producto
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <script>
-    function handleCreateProduct() {
-
-      // 1) Si existe el modal global (como en show.blade.php), lo abre
-      const backdrop = document.getElementById('createProductBackdrop');
-      const modal = document.getElementById('createProductModal');
-
-      if (backdrop && modal) {
-        backdrop.classList.remove('hidden');
-        modal.classList.remove('hidden');
-        modal.classList.add('modal-open');
-
-        document.body.classList.add('no-scroll');
-        document.body.classList.add('modal-open');
-        return;
-      }
-
-      // 2) Si NO existe modal → redirige a la ruta que SÍ tienes definida
-      const indexUrl = @json(route('admin.menu-products.index'));
-      const menuKey = @json($fullPath ?? '');
-
-      const url = menuKey
-        ? (indexUrl + (indexUrl.includes('?') ? '&' : '?') + 'menu_key=' + encodeURIComponent(menuKey))
-        : indexUrl;
-
-      window.location.href = url;
+    function openCreateProductModal() {
+      document.getElementById('createProductBackdrop')?.classList.remove('hidden');
+      document.getElementById('createProductModal')?.classList.remove('hidden');
+      document.body.classList.add('no-scroll');
     }
+
+    function closeCreateProductModal() {
+      document.getElementById('createProductBackdrop')?.classList.add('hidden');
+      document.getElementById('createProductModal')?.classList.add('hidden');
+      document.body.classList.remove('no-scroll');
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        closeCreateProductModal();
+      }
+    });
   </script>
+  @endrole
 
 @endsection

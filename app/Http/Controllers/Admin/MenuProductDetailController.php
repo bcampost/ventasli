@@ -57,13 +57,13 @@ class MenuProductDetailController extends Controller
             ->all();
 
         return view('admin.menu-product-detail.edit', [
-            'product'               => $menu_product,
-            'detail'                => $detail,
-            'redirectTo'            => $redirectTo,
-            'globalAcero'           => $globalAcero,
-            'globalLaminado'        => $globalLaminado,
-            'selectedColorIds'      => $selectedColorIds,
-            'productAceroColors'    => $productAceroColors,
+            'product' => $menu_product,
+            'detail' => $detail,
+            'redirectTo' => $redirectTo,
+            'globalAcero' => $globalAcero,
+            'globalLaminado' => $globalLaminado,
+            'selectedColorIds' => $selectedColorIds,
+            'productAceroColors' => $productAceroColors,
             'productLaminadoColors' => $productLaminadoColors,
         ]);
     }
@@ -74,43 +74,49 @@ class MenuProductDetailController extends Controller
 
         $data = $request->validate([
 
-            'selected_color_ids'   => ['nullable', 'array'],
-            'selected_color_ids.*' => ['nullable', 'integer', 'exists:material_colors,id'],
-            'title'       => ['nullable','string','max:255'],
-            'description' => ['nullable','string'],
+            'product_title' => ['required', 'string', 'max:255'],
+            'ingenieria_code' => ['nullable', 'string', 'max:100'],
 
-            'length' => ['nullable','string','max:50'],
-            'width'  => ['nullable','string','max:50'],
-            'height' => ['nullable','string','max:50'],
+            'selected_color_ids' => ['nullable', 'array'],
+            'selected_color_ids.*' => ['nullable', 'integer', 'exists:material_colors,id'],
+            'title' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+
+            'length' => ['nullable', 'string', 'max:50'],
+            'width' => ['nullable', 'string', 'max:50'],
+            'height' => ['nullable', 'string', 'max:50'],
 
             // subir imágenes nuevas
-            'gallery_images'     => ['nullable','array'],
-            'gallery_images.*'   => ['nullable','image','max:5120'],
+            'gallery_images' => ['nullable', 'array'],
+            'gallery_images.*' => ['nullable', 'image', 'max:5120'],
 
-            'gallery_meta'              => ['nullable','array'],
-            'gallery_meta.*.acero'      => ['nullable','string','max:60'],
-            'gallery_meta.*.melamina'   => ['nullable','string','max:60'],
+            'gallery_meta' => ['nullable', 'array'],
+            'gallery_meta.*.acero' => ['nullable', 'string', 'max:60'],
+            'gallery_meta.*.melamina' => ['nullable', 'string', 'max:60'],
 
             // reasignar existentes
-            'existing_meta'              => ['nullable','array'],
-            'existing_meta.*.acero'      => ['nullable','string','max:60'],
-            'existing_meta.*.melamina'   => ['nullable','string','max:60'],
+            'existing_meta' => ['nullable', 'array'],
+            'existing_meta.*.acero' => ['nullable', 'string', 'max:60'],
+            'existing_meta.*.melamina' => ['nullable', 'string', 'max:60'],
 
             // remover existentes
-            'remove_gallery'   => ['nullable','array'],
-            'remove_gallery.*' => ['nullable','string'],
+            'remove_gallery' => ['nullable', 'array'],
+            'remove_gallery.*' => ['nullable', 'string'],
 
             // ✅ PDFs
-            'tech_pdf'         => ['nullable','file','mimes:pdf','max:51200'],   // 50MB
-            'manual_pdf'       => ['nullable','file','mimes:pdf','max:51200'],
-            'remove_tech_pdf'  => ['nullable'],
-            'remove_manual_pdf'=> ['nullable'],
+            'tech_pdf' => ['nullable', 'file', 'mimes:pdf', 'max:51200'],   // 50MB
+            'manual_pdf' => ['nullable', 'file', 'mimes:pdf', 'max:51200'],
+            'remove_tech_pdf' => ['nullable'],
+            'remove_manual_pdf' => ['nullable'],
 
-            'acero_colors_json'    => ['nullable','string'],
-            'melamina_colors_json' => ['nullable','string'],
-            'redirect_to' => ['nullable','string'],
+            'acero_colors_json' => ['nullable', 'string'],
+            'melamina_colors_json' => ['nullable', 'string'],
+            'redirect_to' => ['nullable', 'string'],
         ]);
 
+
+        $menu_product->title = trim((string) $data['product_title']);
+        $menu_product->ingenieria_code = strtoupper(trim((string) ($data['ingenieria_code'] ?? ''))) ?: null;
         // =========================
         // ✅ IMÁGENES (detail->images)
         // =========================
@@ -118,14 +124,14 @@ class MenuProductDetailController extends Controller
         $imgs = is_array($imgs) ? $imgs : [];
 
         // 1) quitar marcadas
-        $toRemove = (array)($data['remove_gallery'] ?? []);
+        $toRemove = (array) ($data['remove_gallery'] ?? []);
         if (!empty($toRemove)) {
-            $imgs = array_values(array_filter($imgs, function($row) use ($toRemove){
+            $imgs = array_values(array_filter($imgs, function ($row) use ($toRemove) {
                 return !in_array(($row['path'] ?? ''), $toRemove, true);
             }));
 
             foreach ($toRemove as $p) {
-                $p = ltrim((string)$p,'/');
+                $p = ltrim((string) $p, '/');
                 if ($p !== '' && Storage::disk('public')->exists($p)) {
                     Storage::disk('public')->delete($p);
                 }
@@ -133,30 +139,32 @@ class MenuProductDetailController extends Controller
         }
 
         // 2) reasignar meta existentes por índice
-        $existingMeta = (array)($data['existing_meta'] ?? []);
+        $existingMeta = (array) ($data['existing_meta'] ?? []);
         if (!empty($existingMeta)) {
             foreach ($imgs as $i => $row) {
-                if (!array_key_exists($i, $existingMeta)) continue;
-                $imgs[$i]['acero']    = trim((string)($existingMeta[$i]['acero'] ?? ''));
-                $imgs[$i]['melamina'] = trim((string)($existingMeta[$i]['melamina'] ?? ''));
+                if (!array_key_exists($i, $existingMeta))
+                    continue;
+                $imgs[$i]['acero'] = trim((string) ($existingMeta[$i]['acero'] ?? ''));
+                $imgs[$i]['melamina'] = trim((string) ($existingMeta[$i]['melamina'] ?? ''));
             }
         }
 
         // 3) agregar nuevos uploads
         $files = $request->file('gallery_images', []);
-        $meta  = (array)($data['gallery_meta'] ?? []);
+        $meta = (array) ($data['gallery_meta'] ?? []);
 
         if (is_array($files) && count($files)) {
             foreach ($files as $idx => $file) {
-                if (!$file) continue;
+                if (!$file)
+                    continue;
                 $path = $file->store('products', 'public');
 
-                $newAcero = trim((string)($meta[$idx]['acero'] ?? ''));
-                $newMela  = trim((string)($meta[$idx]['melamina'] ?? ''));
+                $newAcero = trim((string) ($meta[$idx]['acero'] ?? ''));
+                $newMela = trim((string) ($meta[$idx]['melamina'] ?? ''));
 
                 $imgs[] = [
-                    'path'     => $path,
-                    'acero'    => $newAcero !== '' ? $newAcero : ($acero[0] ?? ''),
+                    'path' => $path,
+                    'acero' => $newAcero !== '' ? $newAcero : ($acero[0] ?? ''),
                     'melamina' => $newMela !== '' ? $newMela : ($mela[0] ?? ''),
                 ];
             }
@@ -205,33 +213,33 @@ class MenuProductDetailController extends Controller
         }
 
 
-        $acero = json_decode((string)($data['acero_colors_json'] ?? '[]'), true);
-        $mela  = json_decode((string)($data['melamina_colors_json'] ?? '[]'), true);
+        $acero = json_decode((string) ($data['acero_colors_json'] ?? '[]'), true);
+        $mela = json_decode((string) ($data['melamina_colors_json'] ?? '[]'), true);
 
         $acero = is_array($acero) ? $acero : [];
-        $mela  = is_array($mela) ? $mela : [];
+        $mela = is_array($mela) ? $mela : [];
 
         $acero = array_values(array_unique(array_filter(array_map('trim', $acero))));
-        $mela  = array_values(array_unique(array_filter(array_map('trim', $mela))));
+        $mela = array_values(array_unique(array_filter(array_map('trim', $mela))));
         // =========================
         // ✅ Guardar todo
         // =========================
         $detail->fill([
-            'title'            => $data['title'] ?? null,
-            'description'      => $data['description'] ?? null,
-            'length'           => $data['length'] ?? null,
-            'width'            => $data['width'] ?? null,
-            'height'           => $data['height'] ?? null,
-            'acero_colors'     => $acero,
-            'melamina_colors'  => $mela,
-            'images'           => $imgs,
+            'title' => $data['title'] ?? null,
+            'description' => $data['description'] ?? null,
+            'length' => $data['length'] ?? null,
+            'width' => $data['width'] ?? null,
+            'height' => $data['height'] ?? null,
+            'acero_colors' => $acero,
+            'melamina_colors' => $mela,
+            'images' => $imgs,
         ])->save();
 
         // Guarda rutas de PDFs en el producto
         $menu_product->save();
 
-        $selectedIds = collect((array)($data['selected_color_ids'] ?? []))
-            ->map(fn($id) => (int)$id)
+        $selectedIds = collect((array) ($data['selected_color_ids'] ?? []))
+            ->map(fn($id) => (int) $id)
             ->filter()
             ->unique()
             ->values()

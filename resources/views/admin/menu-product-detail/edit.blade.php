@@ -541,6 +541,21 @@
                 <div class="ep-card-sub">Edita el contenido que el usuario verá como presentación del producto.</div>
               </div>
 
+<div class="ep-field" style="margin-bottom:16px;">
+  <label class="ep-label">Nombre del producto</label>
+  <input
+    name="product_title"
+    value="{{ old('product_title', $product->title) }}"
+    class="ep-input"
+    placeholder="Ej. Escritorio 1000"
+    required
+  >
+  <div class="ep-help">
+    Este nombre aparece en las tarjetas y listados del portal.
+  </div>
+</div>
+
+
               <div class="ep-card-body">
                 <div class="ep-field">
                   <label class="ep-label">Título personalizado</label>
@@ -880,6 +895,16 @@
                   Volver
                 </a>
 
+<button
+  type="submit"
+  form="deleteProductForm"
+  class="ep-btn"
+  style="background:#fff1f2;color:#be123c;border:1px solid #fecdd3;"
+  onclick="return confirm('¿Seguro que quieres eliminar este producto? Esta acción no se puede deshacer.');"
+>
+  🗑 Eliminar producto
+</button>
+
                 <button type="submit" class="ep-btn ep-btn-primary">
                   Guardar cambios
                 </button>
@@ -889,6 +914,16 @@
 
         </div>
       </form>
+      <form
+  id="deleteProductForm"
+  method="POST"
+  action="{{ route('admin.menu-products.destroy', $product) }}"
+  style="display:none;"
+>
+  @csrf
+  @method('DELETE')
+  <input type="hidden" name="redirect_to" value="{{ $redirectTo }}">
+</form>
     </div>
   </div>
 
