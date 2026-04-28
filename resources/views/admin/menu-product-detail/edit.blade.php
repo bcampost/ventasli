@@ -480,6 +480,104 @@
       }
     }
 
+.ep-color-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+
+.ep-color-panel{
+  border:1px solid rgba(15,23,42,.10);
+  border-radius:22px;
+  padding:16px;
+  background:#fff;
+}
+
+.ep-color-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+.ep-color-title{
+  font-size:.95rem;
+  font-weight:600;
+  color:#0f172a;
+}
+
+.ep-color-sub{
+  margin-top:3px;
+  font-size:.78rem;
+  color:#64748b;
+}
+
+.ep-color-add{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.ep-color-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.ep-color-chip-row{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 6px 5px 9px;
+  border:1px solid rgba(15,23,42,.12);
+  border-radius:999px;
+  background:#f8fafc;
+}
+
+.ep-color-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:.84rem;
+  color:#334155;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+.ep-color-chip input{
+  width:14px;
+  height:14px;
+  accent-color:#2563eb;
+}
+
+.ep-color-delete{
+  width:24px;
+  height:24px;
+  border-radius:999px;
+  border:0;
+  background:#ffe4e6;
+  color:#be123c;
+  font-weight:800;
+  cursor:pointer;
+  line-height:1;
+}
+
+.ep-color-delete:hover{
+  background:#fecdd3;
+}
+
+@media(max-width: 980px){
+  .ep-color-grid{
+    grid-template-columns:1fr;
+  }
+
+  .ep-color-add{
+    grid-template-columns:1fr;
+  }
+}
+
   </style>
 
   <div class="ep-page ep-wrap">
@@ -715,95 +813,110 @@
   </div>
 
 
-  <div class="ep-card">
-    <div class="ep-card-head">
-      <h2 class="ep-card-title">Colores globales y selección del producto</h2>
-      <div class="ep-card-sub">
-        Los colores se administran globalmente y aquí decides cuáles se muestran en este producto.
-      </div>
+<div class="ep-card">
+  <div class="ep-card-head">
+    <h2 class="ep-card-title">Colores globales y selección del producto</h2>
+    <div class="ep-card-sub">
+      Administra colores globales y selecciona cuáles aplican a este producto.
     </div>
+  </div>
 
-    <div class="ep-card-body">
-      <div class="ep-grid-2">
-        <div>
-          <div class="ep-label" style="margin-bottom:10px;">Estructura global</div>
+  <div class="ep-card-body">
+    <div class="ep-color-grid">
 
-          <div style="display:flex;gap:10px;margin-bottom:12px;">
-            <input type="text" id="new_global_acero" class="ep-input" placeholder="Ej. Negro">
-            <button type="button" class="ep-btn ep-btn-dark" onclick="addGlobalColor('acero')">+ Agregar</button>
-          </div>
-
-          <div id="global_acero_list" style="display:grid;gap:10px;">
-            @foreach($globalAcero as $color)
-              <label class="ep-check" style="justify-content:space-between;border:1px solid rgba(15,23,42,.08);padding:10px 12px;border-radius:14px;">
-                <span>
-                  <input type="checkbox"
-                        name="selected_color_ids[]"
-                        value="{{ $color->id }}"
-                        {{ in_array((int)$color->id, $selectedColorIds ?? [], true) ? 'checked' : '' }}>
-                  {{ $color->name }}
-
-                  <form method="POST"
-                      action="{{ route('admin.material-colors.destroy', $color) }}"
-                      onsubmit="return confirm('¿Eliminar este color? Se quitará también de los productos donde esté asignado.');"
-                      style="margin:0;">
-                  @csrf
-                  @method('DELETE')
-
-                  <button type="submit"
-                          style="border:0;background:rgba(225,29,72,.08);color:#be123c;border-radius:10px;padding:6px 9px;font-weight:800;cursor:pointer;">
-                    Eliminar
-                  </button>
-                </form>
-                </span>
-                <span style="font-size:.8rem;color:#64748b;">Global</span>
-              </label>
-            @endforeach
+      {{-- ESTRUCTURA --}}
+      <div class="ep-color-panel">
+        <div class="ep-color-head">
+          <div>
+            <div class="ep-color-title">Estructura global</div>
+            <div class="ep-color-sub">Antes Acero</div>
           </div>
         </div>
 
-        <div>
-          <div class="ep-label" style="margin-bottom:10px;">Laminado global</div>
+        <div class="ep-color-add">
+          <input type="text" id="new_global_acero" class="ep-input" placeholder="Ej. Negro">
+          <button type="button" class="ep-btn ep-btn-dark" onclick="addGlobalColor('acero')">
+            + Agregar
+          </button>
+        </div>
 
-          <div style="display:flex;gap:10px;margin-bottom:12px;">
-            <input type="text" id="new_global_laminado" class="ep-input" placeholder="Ej. Encino">
-            <button type="button" class="ep-btn ep-btn-dark" onclick="addGlobalColor('laminado')">+ Agregar</button>
-          </div>
+        <div id="global_acero_list" class="ep-color-list">
+          @foreach($globalAcero as $color)
+            <div class="ep-color-chip-row">
+              <label class="ep-color-chip">
+                <input type="checkbox"
+                       name="selected_color_ids[]"
+                       value="{{ $color->id }}"
+                       {{ in_array((int)$color->id, $selectedColorIds ?? [], true) ? 'checked' : '' }}>
+                <span>{{ $color->name }}</span>
+              </label>
 
-          <div id="global_laminado_list" style="display:grid;gap:10px;">
-            @foreach($globalLaminado as $color)
-              <label class="ep-check" style="justify-content:space-between;border:1px solid rgba(15,23,42,.08);padding:10px 12px;border-radius:14px;">
-                <span>
-                  <input type="checkbox"
-                        name="selected_color_ids[]"
-                        value="{{ $color->id }}"
-                        {{ in_array((int)$color->id, $selectedColorIds ?? [], true) ? 'checked' : '' }}>
-                  {{ $color->name }}
-                  <form method="POST"
+              <form method="POST"
                     action="{{ route('admin.material-colors.destroy', $color) }}"
                     onsubmit="return confirm('¿Eliminar este color? Se quitará también de los productos donde esté asignado.');"
                     style="margin:0;">
                 @csrf
                 @method('DELETE')
 
-                <button type="submit"
-                        style="border:0;background:rgba(225,29,72,.08);color:#be123c;border-radius:10px;padding:6px 9px;font-weight:800;cursor:pointer;">
-                  Eliminar
+                <button type="submit" class="ep-color-delete">
+                  ×
                 </button>
               </form>
-                </span>
-                <span style="font-size:.8rem;color:#64748b;">Global</span>
-              </label>
-            @endforeach
-          </div>
+            </div>
+          @endforeach
         </div>
       </div>
 
-      <div class="ep-note" style="margin-top:16px;">
-        Agregar un color aquí lo hace disponible para todos los productos. Marcarlo o desmarcarlo define si este producto lo muestra.
+      {{-- LAMINADO --}}
+      <div class="ep-color-panel">
+        <div class="ep-color-head">
+          <div>
+            <div class="ep-color-title">Laminado global</div>
+            <div class="ep-color-sub">Melamina / acabados</div>
+          </div>
+        </div>
+
+        <div class="ep-color-add">
+          <input type="text" id="new_global_laminado" class="ep-input" placeholder="Ej. Encino">
+          <button type="button" class="ep-btn ep-btn-dark" onclick="addGlobalColor('laminado')">
+            + Agregar
+          </button>
+        </div>
+
+        <div id="global_laminado_list" class="ep-color-list">
+          @foreach($globalLaminado as $color)
+            <div class="ep-color-chip-row">
+              <label class="ep-color-chip">
+                <input type="checkbox"
+                       name="selected_color_ids[]"
+                       value="{{ $color->id }}"
+                       {{ in_array((int)$color->id, $selectedColorIds ?? [], true) ? 'checked' : '' }}>
+                <span>{{ $color->name }}</span>
+              </label>
+
+              <form method="POST"
+                    action="{{ route('admin.material-colors.destroy', $color) }}"
+                    onsubmit="return confirm('¿Eliminar este color? Se quitará también de los productos donde esté asignado.');"
+                    style="margin:0;">
+                @csrf
+                @method('DELETE')
+
+                <button type="submit" class="ep-color-delete">
+                  ×
+                </button>
+              </form>
+            </div>
+          @endforeach
+        </div>
       </div>
+
+    </div>
+
+    <div class="ep-note" style="margin-top:16px;">
+      Marca los colores que este producto debe mostrar. El botón × elimina el color global.
     </div>
   </div>
+</div>
 
 
           {{-- PDFs --}}
