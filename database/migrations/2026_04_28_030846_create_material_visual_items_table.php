@@ -4,14 +4,13 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('material_visual_items', function (Blueprint $table) {
             $table->id();
 
-            $table->string('section', 50); 
+            $table->string('section', 50);
             // catalogos, renders, fotos, videos, proyectos
 
             $table->string('parent_key')->nullable();

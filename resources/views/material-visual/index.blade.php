@@ -363,10 +363,10 @@
         const back = document.createElement('div');
         back.style.gridColumn = '1 / -1';
         back.innerHTML = `
-            <button type="button" class="mv-tab active" style="margin-bottom:10px;">
-              ← Volver
-            </button>
-          `;
+              <button type="button" class="mv-tab active" style="margin-bottom:10px;">
+                ← Volver
+              </button>
+            `;
 
         back.querySelector('button').addEventListener('click', () => {
           MV.parentKey = null;
@@ -411,52 +411,52 @@
         el.className = 'mv-card';
 
         el.innerHTML = `
-    <div class="mv-thumb">
-      ${item.thumb_url
+      <div class="mv-thumb">
+        ${item.thumb_url
             ? `<img src="${item.thumb_url}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;">`
             : `<span>${iconFor(item.type, item.section)}</span>`
           }
-    </div>
-
-    <div class="mv-body">
-      <div class="mv-title">${item.title}</div>
-      <div style="font-size:12px;color:#64748b;margin-top:4px;">
-        ${item.type === 'folder' ? 'Carpeta' : 'Archivo'}
       </div>
 
-      @if(auth()->check() && method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('admin'))
-              <div class="mv-card-actions">
-                <button type="button" onclick="event.stopPropagation(); openEditMVModal(${item.id})">
-                  ✏️ Editar
-                </button>
+      <div class="mv-body">
+        <div class="mv-title">${item.title}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:4px;">
+          ${item.type === 'folder' ? 'Carpeta' : 'Archivo'}
+        </div>
 
-        <form method="POST"
-              action="/admin/material-visual/items/${item.id}"
-              onclick="event.stopPropagation();"
-              onsubmit="event.stopPropagation(); return confirm('¿Eliminar este elemento?');">          @csrf
-                  @method('DELETE')
-                  <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
-        <button type="submit" onclick="event.stopPropagation();">
-          🗑 Eliminar
-        </button>
-                </form>
-              </div>
-      @endif
-    </div>
-  `;
+        @if(auth()->check() && method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('admin'))
+                <div class="mv-card-actions">
+                  <button type="button" onclick="event.stopPropagation(); openEditMVModal(${item.id})">
+                    ✏️ Editar
+                  </button>
 
-if (item.type === 'folder') {
-  el.addEventListener('click', () => {
-    MV.parentKey = makeKey(item);
-    render();
-  });
-} else {
-  el.addEventListener('click', () => {
-    if (item.file_url) {
-      window.open(item.file_url, '_blank');
-    }
-  });
-}
+          <form method="POST"
+                action="/admin/material-visual/items/${item.id}"
+                onclick="event.stopPropagation();"
+                onsubmit="event.stopPropagation(); return confirm('¿Eliminar este elemento?');">          @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
+          <button type="submit" onclick="event.stopPropagation();">
+            🗑 Eliminar
+          </button>
+                  </form>
+                </div>
+        @endif
+      </div>
+    `;
+
+        if (item.type === 'folder') {
+          el.addEventListener('click', () => {
+            MV.parentKey = makeKey(item);
+            render();
+          });
+        } else {
+          el.addEventListener('click', () => {
+            if (item.file_url) {
+              window.open(item.file_url, '_blank');
+            }
+          });
+        }
 
         grid.appendChild(el);
       });
