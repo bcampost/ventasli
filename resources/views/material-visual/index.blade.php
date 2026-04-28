@@ -103,49 +103,59 @@
 
 
 <script>
+const DB_ITEMS = @json($items ?? []);
+
 const MV = {
-  tab: @json($initialTab),
+  tab: @json($initialTab ?? 'renders'),
   search: ''
 };
 
-// 🔥 DATA MOCK (igual al video)
-const DATA = {
-
-catalogos: [
-  { name:'Catálogo 2025', icon:'📘' },
-  { name:'Catálogo 2026', icon:'📗' },
-  { name:'Acabados', icon:'🎨' },
-  { name:'Acusto', icon:'📄' },
-],
-
-  renders: [
-    { name:'Oficina Vasari', icon:'🖼️' },
-    { name:'Render Ejecutivo', icon:'🖼️' },
-    { name:'Área Operativa', icon:'🖼️' },
-  ],
-  fotos: [
-    { name:'Proyecto Continental', icon:'📷' },
-    { name:'Proyecto Kellogg', icon:'📷' },
-  ],
-  videos: [
-    { name:'Video Showroom', icon:'🎬' },
-  ],
-  historias: [
-    { name:'Caso de éxito', icon:'🏆' },
-  ]
+const TAB_LABELS = {
+  catalogos: 'Catálogos',
+  renders: 'Renders',
+  fotos: 'Fotos',
+  videos: 'Videos',
+  proyectos: 'Proyectos'
 };
 
-// 🔥 RENDER
+function normalize(text){
+  return String(text || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function iconFor(type, section){
+  if(type === 'folder') return '📁';
+  if(section === 'fotos') return '📷';
+  if(section === 'videos') return '🎬';
+  if(section === 'proyectos') return '🏆';
+  if(section === 'catalogos') return '📄';
+  return '🖼️';
+}
+
 function render(){
   const grid = document.getElementById('mvGrid');
+  if (!grid) return;
+
   grid.innerHTML = '';
 
-  let items = DATA[MV.tab];
+  let items = DB_ITEMS.filter(item => item.section === MV.tab && !item.parent_key);
 
   if(MV.search){
-    items = items.filter(i =>
-      i.name.toLowerCase().includes(MV.search.toLowerCase())
+    items = items.filter(item =>
+      normalize(item.title).includes(normalize(MV.search)) ||
+      normalize(item.description).includes(normalize(MV.search))
     );
+  }
+
+  if(!items.length){
+    grid.innerHTML = `
+      <div style="grid-column:1/-1; padding:34px; text-align:center; color:#64748b; font-weight:700;">
+        No hay elementos en esta sección.
+      </div>
+    `;
+    return;
   }
 
   items.forEach(item=>{
@@ -153,9 +163,17 @@ function render(){
     el.className = 'mv-card';
 
     el.innerHTML = `
-      <div class="mv-thumb">${item.icon}</div>
+      <div class="mv-thumb">
+        ${item.thumb_url
+          ? `<img src="${item.thumb_url}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;">`
+          : `<span>${iconFor(item.type, item.section)}</span>`
+        }
+      </div>
       <div class="mv-body">
-        <div class="mv-title">${item.name}</div>
+        <div class="mv-title">${item.title}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:4px;">
+          ${item.type === 'folder' ? 'Carpeta' : 'Archivo'}
+        </div>
       </div>
     `;
 
@@ -163,24 +181,34 @@ function render(){
   });
 }
 
-// 🔥 TABS
 document.querySelectorAll('.mv-tab').forEach(tab=>{
+  const tabName = tab.dataset.tab;
+
+  if(tabName === MV.tab){
+    tab.classList.add('active');
+  } else {
+    tab.classList.remove('active');
+  }
+
   tab.addEventListener('click', ()=>{
     document.querySelectorAll('.mv-tab').forEach(t=>t.classList.remove('active'));
     tab.classList.add('active');
 
     MV.tab = tab.dataset.tab;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', MV.tab);
+    window.history.replaceState({}, '', url);
+
     render();
   });
 });
 
-// 🔥 SEARCH
-document.getElementById('mvSearch').addEventListener('input', e=>{
+document.getElementById('mvSearch')?.addEventListener('input', e=>{
   MV.search = e.target.value;
   render();
 });
 
-// INIT
 render();
 </script>
 
