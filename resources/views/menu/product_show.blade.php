@@ -330,6 +330,21 @@
     .no-scroll {
       overflow: hidden !important;
     }
+
+    /* Suavizar textos del panel de variantes sin ocultar chips */
+    .card .info,
+    .card .info .hint,
+    .card .info .k,
+    .card .card-head .h,
+    .card .card-head .muted {
+      font-weight: 400 !important;
+    }
+
+    /* Mantener visibles los botones/chips */
+    .card .chip,
+    .card .btn {
+      font-weight: 400 !important;
+    }
   </style>
 
   <div class="pd-wrap">
@@ -510,7 +525,7 @@
         base = filtered.length ? filtered : (gallery.length ? gallery : []);
         idx = 0;
 
-        const a = selA ? `Acero: ${selA}` : '';
+        const a = selA ? `Estructura: ${selA}` : '';        
         const m = selM ? `Laminado: ${selM}` : '';
         filterLabel.textContent = (a || m) ? [a, m].filter(Boolean).join(' · ') : 'Sin filtros';
 
@@ -562,7 +577,6 @@
       renderChips();
       apply();
     })();
-
 
   </script>
 @endsection
