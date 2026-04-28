@@ -26,6 +26,9 @@ use App\Http\Controllers\Admin\MenuProductVariantColorsController;
 // ✅ NUEVO: subir PDFs del producto (Ficha técnica / Instructivo)
 use App\Http\Controllers\Admin\MenuProductFilesController;
 
+use App\Http\Controllers\MaterialVisualController;
+
+
 /*
 |--------------------------------------------------------------------------
 | ROOT
@@ -53,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
+
+Route::get('/material-visual', [MaterialVisualController::class, 'index'])
+    ->name('material-visual.index');
+
 
     Route::get('/dashboard', function () {
         return redirect()->route('home');

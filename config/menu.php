@@ -121,29 +121,23 @@ return [
 
 
   [
-    'label' => 'Material Visual',
-    'children' => [
-      ['label' => 'Catálogos', 'children' => [
-        ['label' => '2025', 'url' => '#'],
-        ['label' => '2026', 'url' => '#'],
-        ['label' => 'Acabados', 'url' => '#'],
-        ['label' => 'Acusto', 'url' => '#'],
-        ['label' => 'Acusto con precios', 'url' => '#'],
-        ['label' => 'Prospección', 'url' => '#'],
-        ['label' => 'Brochure Setto', 'url' => '#'],
-        ['label' => 'Brochure Vetta', 'url' => '#'],
-        ['label' => 'Brouche Aura', 'url' => '#'],
-        ['label' => 'Folleto Ley Sillas', 'url' => '#'],
-      ]],
-      ['label' => 'Renders', 'url' => '#'],
-      ['label' => 'Fotos', 'url' => '#'],
-      ['label' => 'Videos', 'url' => '#'],
-      ['label' => 'Proyectos anteriores', 'children' => [
-        ['label' => 'Banner con video de caso de éxito', 'url' => '#'],
-        ['label' => 'Casos de éxito', 'url' => '#'],
-        ['label' => 'Referencias', 'url' => '#'],
-      ]],
-    ],
+[
+  'label' => 'Material Visual',
+  'url' => '/material-visual', // 👈 ESTE ES NUEVO
+  'children' => [
+
+    ['label' => 'Catálogos', 'url' => '/material-visual?tab=catalogos'],
+
+    ['label' => 'Renders', 'url' => '/material-visual?tab=renders'],
+
+    ['label' => 'Fotos', 'url' => '/material-visual?tab=fotos'],
+
+    ['label' => 'Videos', 'url' => '/material-visual?tab=videos'],
+
+    ['label' => 'Proyectos anteriores', 'url' => '/material-visual?tab=proyectos'],
+
+  ],
+],
   ],
   [
     'label' => 'Herramientas de Venta',
