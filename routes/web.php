@@ -91,6 +91,15 @@ Route::get('/material-visual', [MaterialVisualController::class, 'index'])
     */
     Route::prefix('admin')->name('admin.')->middleware(['role:admin'])->group(function () {
 
+
+    Route::post('/material-visual/items', [\App\Http\Controllers\MaterialVisualController::class, 'store'])
+    ->name('material-visual.items.store');
+
+Route::put('/material-visual/items/{item}', [\App\Http\Controllers\MaterialVisualController::class, 'update'])
+    ->name('material-visual.items.update');
+
+Route::delete('/material-visual/items/{item}', [\App\Http\Controllers\MaterialVisualController::class, 'destroy'])
+    ->name('material-visual.items.destroy');
         Route::post('/footer-links/bulk', [FooterLinkController::class, 'bulkUpdate'])
             ->name('footer_links.bulk');
 
