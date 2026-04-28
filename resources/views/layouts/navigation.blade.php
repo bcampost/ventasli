@@ -321,7 +321,7 @@ body{
 .v-dd-arrow{
   font-size: 11px;
   color: rgba(15,23,42,.55);
-  font-weight: 900;
+  font-weight: 300;
   margin-left: 8px;
 }
 

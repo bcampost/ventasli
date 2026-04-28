@@ -87,7 +87,7 @@
       align-items: center;
       justify-content: center;
       gap: .55rem;
-      font-weight: 900;
+      font-weight: 300;
       border-radius: 16px;
       padding: .72rem .92rem;
       font-size: .86rem;
@@ -151,7 +151,7 @@
     }
 
     .muted {
-      font-weight: 900;
+      font-weight: 300;
       color: rgba(15, 23, 42, .6);
     }
 
@@ -263,7 +263,7 @@
       border-radius: 999px;
       border: 1px solid rgba(15, 23, 42, .14);
       background: rgba(255, 255, 255, .92);
-      font-weight: 900;
+      font-weight: 300;
       font-size: 12.5px;
       cursor: pointer;
       user-select: none;
@@ -310,7 +310,7 @@
     }
 
     .pdf-title {
-      font-weight: 900;
+      font-weight: 300;
       color: #0b1220;
     }
 
@@ -319,7 +319,7 @@
       background: #fff;
       border-radius: 14px;
       padding: .55rem .8rem;
-      font-weight: 900;
+      font-weight: 300;
       cursor: pointer;
     }
 
@@ -377,7 +377,7 @@
       <div class="card">
         <div class="card-head">
           <div class="h">Variantes</div>
-          <div class="muted">Acero + Laminado</div>
+          <div class="muted">Estructura + Laminado</div>
         </div>
 
         <div class="info">
@@ -390,14 +390,14 @@
         <div style="border-top:1px solid rgba(15,23,42,.08);"></div>
 
         <div class="info">
-          <div class="k">Acero</div>
+          <div class="k">Estructura</div>
           <div class="chips" id="chipsA"></div>
 
           <div class="k" style="margin-top:14px;">Laminado</div>
           <div class="chips" id="chipsM"></div>
 
           <div class="hint">
-            Si eliges <b>Acero</b> + <b>Laminado</b>, se mostrarán solo las imágenes asignadas a esa combinación.
+            Si eliges <b>Estructura</b> + <b>Laminado</b>, se mostrarán solo las imágenes asignadas a esa combinación.
           </div>
 
 

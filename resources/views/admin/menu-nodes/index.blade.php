@@ -27,7 +27,7 @@
   .page-wrap{ max-width: 1100px; margin:0 auto; padding: 28px 18px; }
   .page-title{
     font-size: 1.35rem;
-    font-weight: 900;
+    font-weight: 300;
     letter-spacing: -.02em;
     color: var(--ink);
   }
@@ -74,7 +74,7 @@
   .chev{
     transition: transform .25s ease;
     color: rgba(15,23,42,.70);
-    font-weight: 900;
+    font-weight: 300;
   }
 
   .meta{
@@ -93,7 +93,7 @@
     border-radius: 999px;
     padding:.38rem .65rem;
     font-size:.74rem;
-    font-weight: 900;
+    font-weight: 300;
     border: 1px solid rgba(15,23,42,.12);
     background: rgba(248,250,252,.9);
     color: rgba(15,23,42,.80);
@@ -112,7 +112,7 @@
   .btn{
     display:inline-flex; align-items:center; justify-content:center;
     gap:.5rem;
-    font-weight: 900;
+    font-weight: 300;
     border-radius: 16px;
     padding: .75rem .95rem;
     font-size: .86rem;

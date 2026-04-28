@@ -188,7 +188,7 @@
       background: #111827;
       color: #fff;
       font-size: 32px;
-      font-weight: 900;
+      font-weight: 300;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -230,7 +230,7 @@
 
     .mv-modal-title {
       font-size: 1.15rem;
-      font-weight: 900;
+      font-weight: 300;
       color: #111827;
     }
 

@@ -145,7 +145,7 @@
   display:flex;
   align-items:center;
   justify-content:center;
-  font-weight: 900;
+  font-weight: 300;
   letter-spacing: .12em;
   font-size: 13px;
   color: rgba(17,24,39,.70);
@@ -251,7 +251,7 @@
     margin-bottom: 14px;
     font-size: 13px;
   }
-  .li-auth-errors-title{ font-weight: 900; margin-bottom: 6px; }
+  .li-auth-errors-title{ font-weight: 300; margin-bottom: 6px; }
   .li-auth-errors ul{ margin:0; padding-left:18px; }
 </style>
 @endsection

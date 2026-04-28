@@ -49,7 +49,7 @@
   .btn{
     display:inline-flex; align-items:center; justify-content:center;
     gap:.55rem;
-    font-weight: 900;
+    font-weight: 300;
     border-radius: 16px;
     padding: .72rem .92rem;
     font-size: .86rem;
@@ -105,7 +105,7 @@
     font-size: .85rem;
     letter-spacing: .02em;
     color: rgba(15,23,42,.70);
-    font-weight: 900;
+    font-weight: 300;
     background: rgba(248,250,252,.80);
     border-bottom: 1px solid rgba(15,23,42,.10);
     position: sticky;
@@ -149,7 +149,7 @@
     border-radius: 999px;
     border: 1px solid rgba(15,23,42,.12);
     background: rgba(248,250,252,.75);
-    font-weight: 900;
+    font-weight: 300;
     font-size: .78rem;
     color: rgba(15,23,42,.72);
   }
@@ -174,7 +174,7 @@
     border-radius: 12px;
     border: 1px solid rgba(15,23,42,.12);
     background: rgba(255,255,255,.92);
-    font-weight: 900;
+    font-weight: 300;
     font-size: .84rem;
     color: rgba(15,23,42,.78);
     text-decoration:none;

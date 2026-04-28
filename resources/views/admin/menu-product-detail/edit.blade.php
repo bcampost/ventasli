@@ -683,9 +683,9 @@
                   </div>
 
                   <div class="ep-field">
-                    <label class="ep-label">Acero</label>
+                    <label class="ep-label">Estructura</label>
                     <select class="ep-input" name="existing_meta[{{ $i }}][acero]">
-                      <option value="">Acero (sin asignar)</option>
+                      <option value="">Estructura (sin asignar)</option>
                       @foreach($productAceroColors as $c)
                         <option value="{{ $c }}" {{ (($it['acero'] ?? '') === $c) ? 'selected' : '' }}>
                           {{ $c }}
@@ -726,7 +726,7 @@
     <div class="ep-card-body">
       <div class="ep-grid-2">
         <div>
-          <div class="ep-label" style="margin-bottom:10px;">Acero global</div>
+          <div class="ep-label" style="margin-bottom:10px;">Estructura global</div>
 
           <div style="display:flex;gap:10px;margin-bottom:12px;">
             <input type="text" id="new_global_acero" class="ep-input" placeholder="Ej. Negro">
@@ -742,6 +742,19 @@
                         value="{{ $color->id }}"
                         {{ in_array((int)$color->id, $selectedColorIds ?? [], true) ? 'checked' : '' }}>
                   {{ $color->name }}
+
+                  <form method="POST"
+                      action="{{ route('admin.material-colors.destroy', $color) }}"
+                      onsubmit="return confirm('¿Eliminar este color? Se quitará también de los productos donde esté asignado.');"
+                      style="margin:0;">
+                  @csrf
+                  @method('DELETE')
+
+                  <button type="submit"
+                          style="border:0;background:rgba(225,29,72,.08);color:#be123c;border-radius:10px;padding:6px 9px;font-weight:800;cursor:pointer;">
+                    Eliminar
+                  </button>
+                </form>
                 </span>
                 <span style="font-size:.8rem;color:#64748b;">Global</span>
               </label>
@@ -766,6 +779,18 @@
                         value="{{ $color->id }}"
                         {{ in_array((int)$color->id, $selectedColorIds ?? [], true) ? 'checked' : '' }}>
                   {{ $color->name }}
+                  <form method="POST"
+                    action="{{ route('admin.material-colors.destroy', $color) }}"
+                    onsubmit="return confirm('¿Eliminar este color? Se quitará también de los productos donde esté asignado.');"
+                    style="margin:0;">
+                @csrf
+                @method('DELETE')
+
+                <button type="submit"
+                        style="border:0;background:rgba(225,29,72,.08);color:#be123c;border-radius:10px;padding:6px 9px;font-weight:800;cursor:pointer;">
+                  Eliminar
+                </button>
+              </form>
                 </span>
                 <span style="font-size:.8rem;color:#64748b;">Global</span>
               </label>
@@ -993,8 +1018,8 @@
                 <div style="font-weight:700;color:#334155;">${escapeHtml(file.name)}</div>
 
                 <div class="ep-field">
-                  <label class="ep-label">Acero</label>
-                  ${buildSelect(`gallery_meta[${idx}][acero]`, acero, 'Acero (sin asignar)')}
+                  <label class="ep-label">Estructura</label>
+                  ${buildSelect(`gallery_meta[${idx}][acero]`, acero, 'Estructura (sin asignar)')}
                 </div>
 
                 <div class="ep-field">

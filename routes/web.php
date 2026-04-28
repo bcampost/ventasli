@@ -170,7 +170,7 @@ Route::middleware(['auth'])->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | ✅ Editor SOLO de colores (Acero/Melamina)
+        | ✅ Editor SOLO de colores (Estructura/Melamina)
         |--------------------------------------------------------------------------
         */
         Route::get('/product-variants/{menu_product}/colors', [MenuProductVariantColorsController::class, 'edit'])
@@ -294,6 +294,10 @@ Route::middleware(['auth'])->group(function () {
 
         Route::post('/material-colors', [\App\Http\Controllers\Admin\MaterialColorController::class, 'store'])
             ->name('material-colors.store');
+
+        Route::delete('/material-colors/{material_color}', [\App\Http\Controllers\Admin\MaterialColorController::class, 'destroy'])
+            ->name('material-colors.destroy');
+
     });
 });
 

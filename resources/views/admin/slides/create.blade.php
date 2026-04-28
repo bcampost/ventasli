@@ -55,7 +55,7 @@
   .btn{
     display:inline-flex; align-items:center; justify-content:center;
     gap:.55rem;
-    font-weight: 900;
+    font-weight: 300;
     border-radius: 16px;
     padding: .72rem .92rem;
     font-size: .86rem;

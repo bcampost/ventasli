@@ -107,7 +107,7 @@
     display:block;
     background:#f3f4f6;
   }
-  .pl-heroPlaceholder{ font-weight: 900; color: rgba(17,24,39,.45); }
+  .pl-heroPlaceholder{ font-weight: 300; color: rgba(17,24,39,.45); }
 
   .pl-heroBody{ padding: 16px 18px; }
   .pl-desc{ color: rgba(17,24,39,.86); font-weight: 650; line-height: 1.45; }
@@ -126,7 +126,7 @@
     border-radius: 999px;
     border: 1px solid rgba(17,24,39,.12);
     background: #fff;
-    font-weight: 900; font-size: 13px;
+    font-weight: 300; font-size: 13px;
     text-decoration:none;
     color: rgba(17,24,39,.88);
     box-shadow: 0 10px 18px rgba(0,0,0,.06);
@@ -175,7 +175,7 @@
 
   .pl-miniImg{ height: 120px; background:#f3f4f6; display:flex; align-items:center; justify-content:center; }
   .pl-miniImg img{ width:100%; height:100%; object-fit: cover; object-position:center; display:block; }
-  .pl-miniPh{ font-weight: 900; color: rgba(17,24,39,.45); font-size: 12px; }
+  .pl-miniPh{ font-weight: 300; color: rgba(17,24,39,.45); font-size: 12px; }
 
   .pl-miniName{ padding: 10px 12px; font-weight: 950; font-size: 13px; }
 

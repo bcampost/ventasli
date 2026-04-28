@@ -303,7 +303,7 @@
       background: rgba(255, 255, 255, .92);
       color: rgba(2, 6, 23, .92);
       font-size: 30px;
-      font-weight: 900;
+      font-weight: 300;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -454,7 +454,7 @@
 
     .pd-tt--wide {
       padding: 16px 14px 18px;
-      font-weight: 900;
+      font-weight: 300;
       font-size: 30px;
       line-height: 1.05;
       color: rgba(15, 23, 42, .88);
@@ -471,7 +471,7 @@
       color: #0b1220;
       padding: 10px 14px;
       border-radius: 999px;
-      font-weight: 900;
+      font-weight: 300;
       cursor: pointer;
       box-shadow: 0 12px 28px rgba(2, 6, 23, .12);
     }
@@ -577,7 +577,7 @@
 
     .pd-modal-title {
       font-size: 1.1rem;
-      font-weight: 900;
+      font-weight: 300;
       color: #0b1220;
     }
 

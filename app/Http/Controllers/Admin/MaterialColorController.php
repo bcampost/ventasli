@@ -8,6 +8,18 @@ use Illuminate\Http\Request;
 
 class MaterialColorController extends Controller
 {
+
+public function destroy(\App\Models\MaterialColor $material_color)
+{
+    \Illuminate\Support\Facades\DB::table('menu_product_material_color')
+        ->where('material_color_id', $material_color->id)
+        ->delete();
+
+    $material_color->delete();
+
+    return redirect()->back()->with('success', 'Color eliminado.');
+}
+
     public function store(Request $request)
     {
         $data = $request->validate([

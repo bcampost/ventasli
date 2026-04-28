@@ -67,7 +67,7 @@
     }
 
     #pdfTitle {
-      font-weight: 900;
+      font-weight: 300;
       color: #0b1220;
     }
 
@@ -76,7 +76,7 @@
       border-radius: 12px;
       border: 1px solid rgba(15, 23, 42, .12);
       background: rgba(248, 250, 252, .9);
-      font-weight: 900;
+      font-weight: 300;
       cursor: pointer;
       text-decoration: none;
       color: #0b1220;
@@ -112,7 +112,7 @@
       border: 1px solid rgba(15, 23, 42, .12);
       background: #fff;
       color: #0b1220;
-      font-weight: 900;
+      font-weight: 300;
       cursor: pointer;
     }
 

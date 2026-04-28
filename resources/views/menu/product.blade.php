@@ -41,7 +41,7 @@
 
   .btn{
     display:inline-flex; align-items:center; justify-content:center;
-    gap:.55rem; font-weight: 900; border-radius: 16px;
+    gap:.55rem; font-weight: 300; border-radius: 16px;
     padding: .72rem .92rem; font-size: .86rem;
     border: 1px solid transparent;
     transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
@@ -106,7 +106,7 @@
   .media-empty{
     padding: 42px 18px;
     color:#94a3b8;
-    font-weight: 900;
+    font-weight: 300;
   }
   .nav{
     position:absolute;
@@ -154,7 +154,7 @@
     border-radius: 999px;
     border: 1px solid rgba(15,23,42,.14);
     background: rgba(255,255,255,.92);
-    font-weight: 900;
+    font-weight: 300;
     font-size: 12.5px;
     cursor:pointer;
     user-select:none;
@@ -282,7 +282,7 @@
     <div class="card">
       <div class="card-head">
         <div class="h">Variantes</div>
-        <div style="font-weight:900;color:rgba(15,23,42,.6);">Acero + Melamina</div>
+        <div style="font-weight:900;color:rgba(15,23,42,.6);">Estructura + Laminado</div>
       </div>
 
       {{-- ✅ DESCRIPCIÓN ARRIBA --}}
@@ -295,14 +295,14 @@
 
       {{-- ✅ ACERO + MELAMINA --}}
       <div class="info">
-        <div class="k">Acero</div>
+        <div class="k">Estructura</div>
         <div class="chips" id="chipsSteel"></div>
 
-        <div class="k" style="margin-top:8px;">Melamina</div>
+        <div class="k" style="margin-top:8px;">Laminado</div>
         <div class="chips" id="chipsMel"></div>
 
         <div class="hint" style="padding-left:0; padding-right:0;">
-          Tip: si eliges <b>Acero</b> + <b>Melamina</b>, se muestran solo las imágenes asignadas a esa combinación.
+          Tip: si eliges <b>Estructura</b> + <b>Laminado</b>, se muestran solo las imágenes asignadas a esa combinación.
         </div>
       </div>
 
@@ -579,7 +579,7 @@
         <div class="modal-header">
           <div>
             <div class="modal-title">Editar producto</div>
-            <div class="modal-sub">Colores + galería con asignación (Acero/Melamina)</div>
+            <div class="modal-sub">Colores + galería con asignación (Estructura/Melamina)</div>
           </div>
           <button type="button" class="btn btn-ghost" style="padding:.65rem .9rem; border-radius:14px;" onclick="closeEditProduct()">Cerrar ✕</button>
         </div>
@@ -631,7 +631,7 @@
 
               <div class="md:col-span-6 space-y-4">
                 <div>
-                  <div class="field-label">Colores de Acero</div>
+                  <div class="field-label">Colores de Estructura</div>
                   <div style="display:flex; gap:10px; margin-top:8px;">
                     <input id="steel_add" class="input" placeholder="Ej. Negro" style="flex:1;">
                     <button type="button" class="btn btn-primary" onclick="addColor('steel')">+ Agregar</button>
@@ -640,7 +640,7 @@
                 </div>
 
                 <div>
-                  <div class="field-label">Colores de Melamina</div>
+                  <div class="field-label">Colores de Laminado</div>
                   <div style="display:flex; gap:10px; margin-top:8px;">
                     <input id="mel_add" class="input" placeholder="Ej. Encino" style="flex:1;">
                     <button type="button" class="btn btn-primary" onclick="addColor('mel')">+ Agregar</button>
@@ -652,7 +652,7 @@
                   <div class="field-label">Subir imágenes para galería (con asignación)</div>
                   <input class="input" style="padding:.75rem 1rem;" type="file" name="gallery_images[]" id="gallery_input" accept="image/*" multiple>
                   <div class="hint" style="padding:8px 0 0 0;">
-                    * Cada imagen debe asignarse a <b>Acero</b> y <b>Melamina</b>.
+                    * Cada imagen debe asignarse a <b>Estructura</b> y <b>Laminado</b>.
                   </div>
                   <div class="upload-grid" id="upload_previews"></div>
                 </div>
@@ -680,7 +680,7 @@
                         </div>
 
                         <select class="select" name="existing_meta[{{ $i }}][steel]">
-                          <option value="">Acero (sin asignar)</option>
+                          <option value="">Estructura (sin asignar)</option>
                           @foreach($steelSafe as $c)
                             <option value="{{ $c }}" {{ $it['steel']===$c ? 'selected':'' }}>{{ $c }}</option>
                           @endforeach
@@ -800,12 +800,12 @@
       previewState.items.forEach(it=>{
         if(it.steelEl){
           const val = it.steelEl.value;
-          it.steelEl.innerHTML = `<option value="">Selecciona Acero</option>` + steels.map(c=>`<option value="${escapeAttr(c)}">${escapeHtml(c)}</option>`).join('');
+          it.steelEl.innerHTML = `<option value="">Selecciona Estructura</option>` + steels.map(c=>`<option value="${escapeAttr(c)}">${escapeHtml(c)}</option>`).join('');
           it.steelEl.value = steels.includes(val) ? val : '';
         }
         if(it.melEl){
           const val = it.melEl.value;
-          it.melEl.innerHTML = `<option value="">Selecciona Melamina</option>` + mels.map(c=>`<option value="${escapeAttr(c)}">${escapeHtml(c)}</option>`).join('');
+          it.melEl.innerHTML = `<option value="">Selecciona Laminado</option>` + mels.map(c=>`<option value="${escapeAttr(c)}">${escapeHtml(c)}</option>`).join('');
           it.melEl.value = mels.includes(val) ? val : '';
         }
       });

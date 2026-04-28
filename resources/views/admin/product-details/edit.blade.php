@@ -142,7 +142,7 @@
           </div>
 
           <div>
-            <label style="display:block;font-weight:950;margin-bottom:6px;">Colores de Acero (separados por coma)</label>
+            <label style="display:block;font-weight:950;margin-bottom:6px;">Colores de Estructura (separados por coma)</label>
             <input name="acero_colors" value="{{ old('acero_colors', $toCsv($detail->acero_colors)) }}"
                    placeholder="Ej. Negro, Blanco, Gris"
                    style="width:100%;height:44px;border-radius:14px;border:1px solid rgba(15,23,42,.16);padding:0 12px;font-weight:750;outline:none;">
