@@ -406,11 +406,11 @@
         padding-right:18px;
       }
     }
-    .ep-upload-grid{
-      display:grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap:16px;
-    }
+.ep-upload-grid{
+  display:grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap:12px;
+}
 
     .ep-u-card{
       border:1px solid var(--ep-line);
@@ -420,15 +420,16 @@
       box-shadow: 0 8px 22px rgba(15,23,42,.04);
     }
 
-    .ep-u-prev{
-      aspect-ratio: 16 / 10;
-      background:#f8fafc;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-      border-bottom:1px solid rgba(15,23,42,.06);
-    }
+.ep-u-prev{
+  aspect-ratio: 4 / 3;
+  max-height: 160px;
+  background:#f8fafc;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  border-bottom:1px solid rgba(15,23,42,.06);
+}
 
     .ep-u-prev img{
       width:100%;
@@ -438,11 +439,11 @@
       background:#fff;
     }
 
-    .ep-u-meta{
-      padding:14px;
-      display:grid;
-      gap:10px;
-    }
+.ep-u-meta{
+  padding:10px;
+  display:grid;
+  gap:8px;
+}
 
     .ep-pillrow{
       display:flex;
@@ -578,6 +579,48 @@
   }
 }
 
+.ep-u-meta .ep-field{
+  gap:5px;
+}
+
+.ep-u-meta .ep-label{
+  font-size:.75rem;
+}
+
+.ep-u-meta .ep-input{
+  border-radius:12px;
+  padding:8px 10px;
+  font-size:.82rem;
+}
+
+.ep-u-meta .ep-check{
+  font-size:.78rem;
+}
+
+.ep-u-meta .ep-btn{
+  padding:7px 10px;
+  border-radius:12px;
+  font-size:.78rem;
+}
+
+@media (max-width: 1200px){
+  .ep-upload-grid{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 780px){
+  .ep-upload-grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px){
+  .ep-upload-grid{
+    grid-template-columns: 1fr;
+  }
+}
+
   </style>
 
   <div class="ep-page ep-wrap">
@@ -648,6 +691,24 @@
     placeholder="Ej. Escritorio 1000"
     required
   >
+
+  <div class="ep-field" style="margin-top:16px;">
+  <label class="ep-label">Portada del producto</label>
+
+  @if($product->image_path)
+    <div style="margin-bottom:10px;">
+      <img src="{{ asset('storage/'.ltrim($product->image_path,'/')) }}"
+           alt="{{ $product->title }}"
+           style="width:180px;max-width:100%;border-radius:16px;border:1px solid rgba(15,23,42,.12);">
+    </div>
+  @endif
+
+  <input type="file" name="image" accept="image/*" class="ep-file">
+
+  <div class="ep-help">
+    Esta imagen se mostrará como portada en la tarjeta/listado del producto.
+  </div>
+</div>
   <div class="ep-help">
     Este nombre aparece en las tarjetas y listados del portal.
   </div>
@@ -851,17 +912,11 @@
                 <span>{{ $color->name }}</span>
               </label>
 
-              <form method="POST"
-                    action="{{ route('admin.material-colors.destroy', $color) }}"
-                    onsubmit="return confirm('¿Eliminar este color? Se quitará también de los productos donde esté asignado.');"
-                    style="margin:0;">
-                @csrf
-                @method('DELETE')
-
-                <button type="submit" class="ep-color-delete">
-                  ×
-                </button>
-              </form>
+<button type="button"
+        class="ep-color-delete"
+        onclick="deleteMaterialColor('{{ route('admin.material-colors.destroy', $color) }}')">
+  ×
+</button>
             </div>
           @endforeach
         </div>
@@ -872,7 +927,7 @@
         <div class="ep-color-head">
           <div>
             <div class="ep-color-title">Laminado global</div>
-            <div class="ep-color-sub">Melamina / acabados</div>
+            <div class="ep-color-sub">Laminado  / acabados</div>
           </div>
         </div>
 
@@ -894,17 +949,11 @@
                 <span>{{ $color->name }}</span>
               </label>
 
-              <form method="POST"
-                    action="{{ route('admin.material-colors.destroy', $color) }}"
-                    onsubmit="return confirm('¿Eliminar este color? Se quitará también de los productos donde esté asignado.');"
-                    style="margin:0;">
-                @csrf
-                @method('DELETE')
-
-                <button type="submit" class="ep-color-delete">
-                  ×
-                </button>
-              </form>
+<button type="button"
+        class="ep-color-delete"
+        onclick="deleteMaterialColor('{{ route('admin.material-colors.destroy', $color) }}')">
+  ×
+</button>
             </div>
           @endforeach
         </div>
@@ -1184,6 +1233,28 @@
 
       window.location.reload();
     }
+
+    async function deleteMaterialColor(url) {
+  if (!confirm('¿Eliminar este color? Se quitará también de los productos donde esté asignado.')) return;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: '_method=DELETE'
+  });
+
+  if (!res.ok) {
+    alert('No se pudo eliminar el color.');
+    return;
+  }
+
+  window.location.reload();
+}
+
   </script>
 
   @endsection

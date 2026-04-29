@@ -70,11 +70,13 @@ class MenuProductDetailController extends Controller
 
     public function update(MenuProduct $menu_product, Request $request)
     {
+
         $detail = $menu_product->detail()->firstOrCreate([]);
 
         $data = $request->validate([
 
             'product_title' => ['required', 'string', 'max:255'],
+            'image' => ['nullable', 'image', 'max:5120'],
             'ingenieria_code' => ['nullable', 'string', 'max:100'],
 
             'selected_color_ids' => ['nullable', 'array'],
@@ -235,7 +237,30 @@ class MenuProductDetailController extends Controller
             'images' => $imgs,
         ])->save();
 
-        // Guarda rutas de PDFs en el producto
+        $menu_product->title = $data['product_title'];
+
+        if ($request->hasFile('image')) {
+            if ($menu_product->image_path && Storage::disk('public')->exists($menu_product->image_path)) {
+                Storage::disk('public')->delete($menu_product->image_path);
+            }
+
+            $menu_product->image_path = $request->file('image')->store('menu-products', 'public');
+        }
+
+        $menu_product->title = $data['product_title'];
+
+        if ($request->hasFile('image')) {
+
+            if ($menu_product->image_path && Storage::disk('public')->exists($menu_product->image_path)) {
+
+                Storage::disk('public')->delete($menu_product->image_path);
+
+            }
+
+            $menu_product->image_path = $request->file('image')->store('menu-products', 'public');
+
+        }
+
         $menu_product->save();
 
         $selectedIds = collect((array) ($data['selected_color_ids'] ?? []))
