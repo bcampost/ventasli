@@ -345,6 +345,42 @@
     .card .btn {
       font-weight: 400 !important;
     }
+
+    .variant-select-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .variant-select-field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .variant-select {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid rgba(15, 23, 42, .14);
+      background: #fff;
+      color: #0b1220;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 400;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .variant-select:focus {
+      border-color: rgba(37, 99, 235, .48);
+      box-shadow: 0 0 0 5px rgba(37, 99, 235, .12);
+    }
+
+    @media(max-width:520px) {
+      .variant-select-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 
   <div class="pd-wrap">
@@ -405,14 +441,20 @@
         <div style="border-top:1px solid rgba(15,23,42,.08);"></div>
 
         <div class="info">
-          <div class="k">Estructura</div>
-          <div class="chips" id="chipsA"></div>
+          <div class="variant-select-grid">
+            <div class="variant-select-field">
+              <label class="k" for="selectA">Estructura</label>
+              <select id="selectA" class="variant-select">
+                <option value="">Todas</option>
+              </select>
+            </div>
 
-          <div class="k" style="margin-top:14px;">Laminado</div>
-          <div class="chips" id="chipsM"></div>
-
-          <div class="hint">
-            Si eliges <b>Estructura</b> + <b>Laminado</b>, se mostrarán solo las imágenes asignadas a esa combinación.
+            <div class="variant-select-field">
+              <label class="k" for="selectM">Laminado</label>
+              <select id="selectM" class="variant-select">
+                <option value="">Todos</option>
+              </select>
+            </div>
           </div>
 
 
@@ -474,8 +516,8 @@
       let base = [];
       let idx = 0;
 
-      const chipsA = document.getElementById('chipsA');
-      const chipsM = document.getElementById('chipsM');
+      const selectA = document.getElementById('selectA');
+      const selectM = document.getElementById('selectM');
       const thumbs = document.getElementById('pdThumbs');
       const mainImg = document.getElementById('pdMainImg');
       const prev = document.getElementById('pdPrev');
@@ -491,28 +533,37 @@
       }
 
       function renderChips() {
-        chipsA.innerHTML = '';
-        chipsM.innerHTML = '';
+        if (!selectA || !selectM) return;
 
-        const allA = chip('Todos', selA === '');
-        allA.onclick = () => { selA = ''; apply(); renderChips(); };
-        chipsA.appendChild(allA);
+        selectA.innerHTML = '<option value="">Todas</option>';
+        selectM.innerHTML = '<option value="">Todos</option>';
 
         acero.forEach(c => {
-          const b = chip(c, selA === c);
-          b.onclick = () => { selA = (selA === c) ? '' : c; apply(); renderChips(); };
-          chipsA.appendChild(b);
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          selectA.appendChild(opt);
         });
-
-        const allM = chip('Todos', selM === '');
-        allM.onclick = () => { selM = ''; apply(); renderChips(); };
-        chipsM.appendChild(allM);
 
         melamina.forEach(c => {
-          const b = chip(c, selM === c);
-          b.onclick = () => { selM = (selM === c) ? '' : c; apply(); renderChips(); };
-          chipsM.appendChild(b);
+          const opt = document.createElement('option');
+          opt.value = c;
+          opt.textContent = c;
+          selectM.appendChild(opt);
         });
+
+        selectA.value = selA;
+        selectM.value = selM;
+
+        selectA.onchange = () => {
+          selA = selectA.value || '';
+          apply();
+        };
+
+        selectM.onchange = () => {
+          selM = selectM.value || '';
+          apply();
+        };
       }
 
       function apply() {
@@ -525,7 +576,7 @@
         base = filtered.length ? filtered : (gallery.length ? gallery : []);
         idx = 0;
 
-        const a = selA ? `Estructura: ${selA}` : '';        
+        const a = selA ? `Estructura: ${selA}` : '';
         const m = selM ? `Laminado: ${selM}` : '';
         filterLabel.textContent = (a || m) ? [a, m].filter(Boolean).join(' · ') : 'Sin filtros';
 

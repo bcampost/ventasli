@@ -122,21 +122,17 @@ return [
 
   [
 [
+
   'label' => 'Material Visual',
-  'url' => '/material-visual', // 👈 ESTE ES NUEVO
   'children' => [
-
     ['label' => 'Catálogos', 'url' => '/material-visual?tab=catalogos'],
-
     ['label' => 'Renders', 'url' => '/material-visual?tab=renders'],
-
     ['label' => 'Fotos', 'url' => '/material-visual?tab=fotos'],
-
     ['label' => 'Videos', 'url' => '/material-visual?tab=videos'],
-
     ['label' => 'Proyectos anteriores', 'url' => '/material-visual?tab=proyectos'],
 
   ],
+
 ],
   ],
   [
