@@ -27,7 +27,7 @@ use App\Http\Controllers\Admin\MenuProductVariantColorsController;
 use App\Http\Controllers\Admin\MenuProductFilesController;
 
 use App\Http\Controllers\MaterialVisualController;
-
+use App\Http\Controllers\ComunicadoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +66,10 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+Route::get('/comunicados', [ComunicadoController::class, 'index'])
+    ->name('comunicados.index');
+
 
     /*
     |--------------------------------------------------------------------------
