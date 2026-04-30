@@ -8,6 +8,21 @@ use Illuminate\Support\Facades\Storage;
 
 class MaterialVisualController extends Controller
 {
+
+    private function itemPayload(MaterialVisualItem $item): array
+    {
+        return [
+            'id' => $item->id,
+            'section' => $item->section,
+            'parent_key' => $item->parent_key,
+            'title' => $item->title,
+            'description' => $item->description,
+            'type' => $item->type,
+            'file_url' => $item->external_url ?: ($item->file_path ? asset('storage/' . ltrim($item->file_path, '/')) : null),
+            'thumb_url' => $item->thumb_path ? asset('storage/' . ltrim($item->thumb_path, '/')) : null,
+            'sort' => $item->sort,
+        ];
+    }
     public function index(Request $request)
     {
         $initialTab = $request->get('tab', 'renders');
@@ -89,6 +104,14 @@ class MaterialVisualController extends Controller
 
         $item->save();
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Elemento agregado.',
+                'item' => $this->itemPayload($item),
+            ]);
+        }
+
         return redirect($data['redirect_to'] ?? route('material-visual.index'))
             ->with('success', 'Elemento agregado.');
     }
@@ -129,6 +152,22 @@ class MaterialVisualController extends Controller
         }
 
         $item->save();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Elemento actualizado.',
+                'item' => $this->itemPayload($item),
+            ]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'ok' => true,
+                'message' => 'Elemento actualizado.',
+                'item' => $this->itemPayload($item),
+            ]);
+        }
 
         return redirect($data['redirect_to'] ?? route('material-visual.index'))
             ->with('success', 'Elemento actualizado.');

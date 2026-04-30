@@ -49,7 +49,8 @@
           <button type="button" class="mv-btn-soft" onclick="closeMVModal()">Cerrar ✕</button>
         </div>
 
-        <form method="POST" action="{{ route('admin.material-visual.items.store') }}" enctype="multipart/form-data">
+        <form id="mvItemForm" method="POST" action="{{ route('admin.material-visual.items.store') }}"
+          enctype="multipart/form-data">
           @csrf
 
           <input type="hidden" name="section" id="mv_section">
@@ -100,9 +101,8 @@
 
             <div class="mv-actions">
               <button type="button" class="mv-btn-soft" onclick="closeMVModal()">Cancelar</button>
-              <button type="submit" class="mv-btn-primary">Guardar</button>
+              <button type="submit" class="mv-btn-primary" id="mvSaveBtn">Guardar</button>
             </div>
-          </div>
         </form>
       </div>
     </div>
@@ -357,7 +357,7 @@
 
 
   <script>
-    const DB_ITEMS = @json($items ?? []);
+    let DB_ITEMS = @json($items ?? []);
     const MV_STORE_URL = @json(route('admin.material-visual.items.store'));
     const MV_ITEMS_BASE_URL = @json(url('/admin/material-visual/items'));
     const DB_MAP = {};
@@ -406,10 +406,10 @@
         const back = document.createElement('div');
         back.style.gridColumn = '1 / -1';
         back.innerHTML = `
-                <button type="button" class="mv-tab active" style="margin-bottom:10px;">
-                  ← Volver
-                </button>
-              `;
+                    <button type="button" class="mv-tab active" style="margin-bottom:10px;">
+                      ← Volver
+                    </button>
+                  `;
 
         back.querySelector('button').addEventListener('click', () => {
           MV.parentKey = null;
@@ -454,39 +454,39 @@
         el.className = 'mv-card';
 
         el.innerHTML = `
-        <div class="mv-thumb">
-          ${item.thumb_url
+            <div class="mv-thumb">
+              ${item.thumb_url
             ? `<img src="${item.thumb_url}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;">`
             : `<span>${iconFor(item.type, item.section)}</span>`
           }
-        </div>
+            </div>
 
-        <div class="mv-body">
-          <div class="mv-title">${item.title}</div>
-          <div style="font-size:12px;color:#64748b;margin-top:4px;">
-            ${item.type === 'folder' ? 'Carpeta' : 'Archivo'}
-          </div>
+            <div class="mv-body">
+              <div class="mv-title">${item.title}</div>
+              <div style="font-size:12px;color:#64748b;margin-top:4px;">
+                ${item.type === 'folder' ? 'Carpeta' : 'Archivo'}
+              </div>
 
-          @if(auth()->check() && method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('admin'))
-                            <div class="mv-card-actions">
-                              <button type="button" onclick="event.stopPropagation(); openEditMVModal(${item.id})">
-                                ✏️ Editar
-                              </button>
+              @if(auth()->check() && method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('admin'))
+                      <div class="mv-card-actions">
+                        <button type="button" onclick="event.stopPropagation(); openEditMVModal(${item.id})">
+                          ✏️ Editar
+                        </button>
 
-                      <form method="POST"
-                            action="${MV_ITEMS_BASE_URL}/${item.id}"                           
-                            onclick="event.stopPropagation();"
-                            onsubmit="event.stopPropagation(); return confirm('¿Eliminar este elemento?');">          @csrf
-                                @method('DELETE')
-                                <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
-                      <button type="submit" onclick="event.stopPropagation();">
-                        🗑 Eliminar
-                      </button>
-                              </form>
-                            </div>
-          @endif
-        </div>
-      `;
+                <form method="POST"
+                      action="${MV_ITEMS_BASE_URL}/${item.id}"                           
+                      onclick="event.stopPropagation();"
+                      onsubmit="event.stopPropagation(); return confirm('¿Eliminar este elemento?');">          @csrf
+                          @method('DELETE')
+                          <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
+                <button type="submit" onclick="event.stopPropagation();">
+                  🗑 Eliminar
+                </button>
+                        </form>
+                      </div>
+              @endif
+            </div>
+          `;
 
         if (item.type === 'folder') {
           el.addEventListener('click', () => {
@@ -600,6 +600,79 @@
         closeMVModal();
       }
     });
+
+
+
+let MV_IS_SAVING = false;
+
+document.getElementById('mvItemForm')?.addEventListener('submit', async function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (MV_IS_SAVING) return;
+  MV_IS_SAVING = true;
+
+  const form = this;
+  const btn = document.getElementById('mvSaveBtn');
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = 'Guardando...';
+  }
+
+  try {
+    const res = await fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json',
+      }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      alert(data.message || 'No se pudo guardar.');
+      return;
+    }
+
+    if (data.item) {
+      const existingIndex = DB_ITEMS.findIndex(i => Number(i.id) === Number(data.item.id));
+
+      if (existingIndex >= 0) {
+        DB_ITEMS[existingIndex] = data.item;
+      } else {
+        DB_ITEMS.push(data.item);
+      }
+
+      DB_MAP[data.item.id] = data.item;
+
+      DB_ITEMS.sort((a, b) => {
+        const sortA = Number(a.sort || 0);
+        const sortB = Number(b.sort || 0);
+
+        if (sortA !== sortB) return sortA - sortB;
+
+        return String(a.title || '').localeCompare(String(b.title || ''));
+      });
+    }
+
+    closeMVModal();
+    render();
+
+  } catch (error) {
+    alert('Error de conexión al guardar.');
+  } finally {
+    MV_IS_SAVING = false;
+
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = 'Guardar';
+    }
+  }
+});
+
     render();
   </script>
 
