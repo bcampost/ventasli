@@ -12,14 +12,22 @@
     </div>
 
     <div class="mv-tabs">
-      <button class="mv-tab {{ $initialTab === 'catalogos' ? 'active' : '' }}" data-tab="catalogos">Catálogos</button>
-
       <button class="mv-tab {{ $initialTab === 'renders' ? 'active' : '' }}" data-tab="renders">Renders</button>
       <button class="mv-tab {{ $initialTab === 'fotos' ? 'active' : '' }}" data-tab="fotos">Fotos</button>
       <button class="mv-tab {{ $initialTab === 'videos' ? 'active' : '' }}" data-tab="videos">Videos</button>
       <button class="mv-tab {{ $initialTab === 'proyectos' ? 'active' : '' }}" data-tab="proyectos">Proyectos</button>
     </div>
-    {{-- GRID --}}
+    @if(auth()->check() && method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('admin'))
+      <div class="mv-toolbar">
+        <button type="button" class="mv-add-level-btn" onclick="openMVModal()">
+          + Agregar opción aquí
+        </button>
+
+        <span id="mvLevelLabel" class="mv-level-label"></span>
+      </div>
+    @endif
+
+
     {{-- GRID --}}
     <div id="mvGrid" class="mv-grid"></div>
 
@@ -318,12 +326,40 @@
     .mv-card-actions button:hover {
       background: #f8fafc;
     }
+
+    .mv-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .mv-add-level-btn {
+      border: 0;
+      background: #111827;
+      color: #fff;
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .mv-add-level-btn:hover {
+      opacity: .92;
+    }
+
+    .mv-level-label {
+      color: #64748b;
+      font-size: 13px;
+    }
   </style>
 
 
   <script>
     const DB_ITEMS = @json($items ?? []);
-
+    const MV_STORE_URL = @json(route('admin.material-visual.items.store'));
+    const MV_ITEMS_BASE_URL = @json(url('/admin/material-visual/items'));
     const DB_MAP = {};
     DB_ITEMS.forEach(i => DB_MAP[i.id] = i);
 
@@ -356,6 +392,13 @@
     function render() {
       const grid = document.getElementById('mvGrid');
       if (!grid) return;
+      const levelLabel = document.getElementById('mvLevelLabel');
+      if (levelLabel) {
+        levelLabel.textContent = MV.parentKey
+          ? 'Agregando dentro de esta carpeta'
+          : 'Agregando en la raíz de esta sección';
+      }
+
 
       grid.innerHTML = '';
 
@@ -363,10 +406,10 @@
         const back = document.createElement('div');
         back.style.gridColumn = '1 / -1';
         back.innerHTML = `
-              <button type="button" class="mv-tab active" style="margin-bottom:10px;">
-                ← Volver
-              </button>
-            `;
+                <button type="button" class="mv-tab active" style="margin-bottom:10px;">
+                  ← Volver
+                </button>
+              `;
 
         back.querySelector('button').addEventListener('click', () => {
           MV.parentKey = null;
@@ -411,39 +454,39 @@
         el.className = 'mv-card';
 
         el.innerHTML = `
-      <div class="mv-thumb">
-        ${item.thumb_url
+        <div class="mv-thumb">
+          ${item.thumb_url
             ? `<img src="${item.thumb_url}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;">`
             : `<span>${iconFor(item.type, item.section)}</span>`
           }
-      </div>
-
-      <div class="mv-body">
-        <div class="mv-title">${item.title}</div>
-        <div style="font-size:12px;color:#64748b;margin-top:4px;">
-          ${item.type === 'folder' ? 'Carpeta' : 'Archivo'}
         </div>
 
-        @if(auth()->check() && method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('admin'))
-                <div class="mv-card-actions">
-                  <button type="button" onclick="event.stopPropagation(); openEditMVModal(${item.id})">
-                    ✏️ Editar
-                  </button>
+        <div class="mv-body">
+          <div class="mv-title">${item.title}</div>
+          <div style="font-size:12px;color:#64748b;margin-top:4px;">
+            ${item.type === 'folder' ? 'Carpeta' : 'Archivo'}
+          </div>
 
-          <form method="POST"
-                action="/admin/material-visual/items/${item.id}"
-                onclick="event.stopPropagation();"
-                onsubmit="event.stopPropagation(); return confirm('¿Eliminar este elemento?');">          @csrf
-                    @method('DELETE')
-                    <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
-          <button type="submit" onclick="event.stopPropagation();">
-            🗑 Eliminar
-          </button>
-                  </form>
-                </div>
-        @endif
-      </div>
-    `;
+          @if(auth()->check() && method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('admin'))
+                            <div class="mv-card-actions">
+                              <button type="button" onclick="event.stopPropagation(); openEditMVModal(${item.id})">
+                                ✏️ Editar
+                              </button>
+
+                      <form method="POST"
+                            action="${MV_ITEMS_BASE_URL}/${item.id}"                           
+                            onclick="event.stopPropagation();"
+                            onsubmit="event.stopPropagation(); return confirm('¿Eliminar este elemento?');">          @csrf
+                                @method('DELETE')
+                                <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
+                      <button type="submit" onclick="event.stopPropagation();">
+                        🗑 Eliminar
+                      </button>
+                              </form>
+                            </div>
+          @endif
+        </div>
+      `;
 
         if (item.type === 'folder') {
           el.addEventListener('click', () => {
@@ -498,8 +541,7 @@
 
       // RESET FORM primero
       form.reset();
-      form.action = `/admin/material-visual/items`;
-
+      form.action = MV_STORE_URL;
       let method = form.querySelector('input[name="_method"]');
       if (method) method.remove();
 
@@ -531,8 +573,7 @@
       // 🔥 CAMBIAR ACTION DEL FORM
       const form = document.querySelector('#mvModal form');
 
-      form.action = `/admin/material-visual/items/${id}`;
-
+      form.action = `${MV_ITEMS_BASE_URL}/${id}`;
       // si no existe _method lo crea
       let method = form.querySelector('input[name="_method"]');
       if (!method) {

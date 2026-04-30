@@ -445,14 +445,14 @@
             <div class="variant-select-field">
               <label class="k" for="selectA">Estructura</label>
               <select id="selectA" class="variant-select">
-                <option value="">Todas</option>
+                <option value="">Seleccionar...</option>
               </select>
             </div>
 
             <div class="variant-select-field">
               <label class="k" for="selectM">Laminado</label>
               <select id="selectM" class="variant-select">
-                <option value="">Todos</option>
+                <option value="">Seleccionar...</option>
               </select>
             </div>
           </div>

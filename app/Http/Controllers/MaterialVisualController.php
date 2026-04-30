@@ -63,8 +63,8 @@ class MaterialVisualController extends Controller
             'description' => ['nullable', 'string'],
             'type' => ['required', 'string', 'in:folder,image,video,pdf,link,file'],
             'external_url' => ['nullable', 'string', 'max:2000'],
-            'file' => ['nullable', 'file', 'max:102400'],
-            'thumbnail' => ['nullable', 'image', 'max:10240'],
+            'file' => ['nullable', 'file', 'max:51200'],      // 50 MB
+            'thumbnail' => ['nullable', 'image', 'max:2048'], // 2 MB
             'sort' => ['nullable', 'integer', 'min:0'],
             'redirect_to' => ['nullable', 'string', 'max:2000'],
         ]);
