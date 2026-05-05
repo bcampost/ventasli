@@ -26,7 +26,8 @@ class SlideController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'image' => ['required', 'image', 'max:4096'],
             'link'  => ['nullable', 'url', 'max:2048'],
-            'is_active' => ['nullable'],
+            'is_active' => ['nullable', 'boolean'],
+            'expires_at' => ['nullable', 'date'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ]);
 
@@ -37,6 +38,7 @@ class SlideController extends Controller
             'image_path' => $path,
             'link' => $data['link'] ?? null,
             'is_active' => $request->boolean('is_active'),
+            'expires_at' => $request->filled('expires_at') ? $request->input('expires_at') : null,
             'sort_order' => (int)($data['sort_order'] ?? 0),
         ]);
 
@@ -54,21 +56,23 @@ class SlideController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'image' => ['nullable', 'image', 'max:4096'],
             'link'  => ['nullable', 'url', 'max:2048'],
-            'is_active' => ['nullable'],
+            'is_active' => ['nullable', 'boolean'],
+            'expires_at' => ['nullable', 'date'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ]);
 
         if ($request->hasFile('image')) {
-            // borra imagen anterior si existe
             if ($slide->image_path && Storage::disk('public')->exists($slide->image_path)) {
                 Storage::disk('public')->delete($slide->image_path);
             }
+
             $slide->image_path = $request->file('image')->store('slides', 'public');
         }
 
         $slide->title = $data['title'] ?? null;
         $slide->link = $data['link'] ?? null;
         $slide->is_active = $request->boolean('is_active');
+        $slide->expires_at = $request->filled('expires_at') ? $request->input('expires_at') : null;
         $slide->sort_order = (int)($data['sort_order'] ?? 0);
         $slide->save();
 
