@@ -11,6 +11,7 @@ class Slide extends Model
         'image_path',
         'link',
         'is_active',
+        'expires_at',
         'sort_order',
     ];
 
