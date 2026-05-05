@@ -143,16 +143,16 @@
       align-items: center;
       justify-content: center;
       background: #0b1220;
+      padding: 14px;
     }
 
     #mediaImage {
       display: none;
-      max-width: none;
-      max-height: none;
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
       object-fit: contain;
-      transform-origin: center center;
-      transition: transform .14s ease;
-      background: #0b1220;
     }
 
     #pdfBody {
@@ -182,8 +182,8 @@
     @endisset
 
     <main>
-        {{ $slot ?? '' }}
-        @yield('content')
+      {{ $slot ?? '' }}
+      @yield('content')
     </main>
   </div>
 
@@ -209,13 +209,13 @@
             <button type="button" class="zoomBtn" onclick="window.mediaZoomOut && window.mediaZoomOut()">−</button>
             <div id="zoomLabel">100%</div>
             <button type="button" class="zoomBtn" onclick="window.mediaZoomIn && window.mediaZoomIn()">+</button>
-            <button type="button" class="zoomBtn" onclick="window.mediaZoomReset && window.mediaZoomReset()">Reset</button>
+            <button type="button" class="zoomBtn"
+              onclick="window.mediaZoomReset && window.mediaZoomReset()">Reset</button>
           </div>
 
-<button type="button" class="pdfBtn"
-  onclick="window.printCurrentMedia && window.printCurrentMedia(); event.stopPropagation();">
-  Imprimir 🖨️
-</button>
+          <a id="downloadMediaBtn" class="pdfBtn" href="#" download onclick="event.stopPropagation();">
+            Descargar ⬇️
+          </a>
 
           <button type="button" class="pdfBtn" onclick="window.closePdfPreview && window.closePdfPreview()">
             Cerrar ✕
@@ -223,14 +223,16 @@
         </div>
       </div>
 
-      <div id="pdfBody">
-        <iframe id="pdfFrame" src="" loading="lazy" style="display:none;width:100%;height:100%;border:0;background:#fff;"></iframe>
+      <div id="pdfBody" tabindex="-1">
+        <iframe id="pdfFrame" src="" loading="lazy"
+          style="display:none;width:100%;height:100%;border:0;background:#fff;"></iframe>
 
-        <div id="mediaImageWrap">
+        <div id="mediaImageWrap" tabindex="-1">
           <img id="mediaImage" src="" alt="">
         </div>
 
-        <video id="mediaVideo" controls playsinline style="display:none;width:100%;height:100%;background:#0b1220;"></video>
+        <video id="mediaVideo" controls playsinline
+          style="display:none;width:100%;height:100%;background:#0b1220;"></video>
       </div>
     </div>
   </div>
@@ -249,9 +251,9 @@
       const zoomLabel = () => document.getElementById('zoomLabel');
 
       let currentZoom = 1;
-      const MIN_ZOOM = 0.5;
+      const MIN_ZOOM = 0.25;
       const MAX_ZOOM = 3;
-      const STEP_ZOOM =0.10;
+      const STEP_ZOOM = 0.10;
 
       function updateZoomUI() {
         if (zoomLabel()) {
@@ -311,6 +313,11 @@
         if (titleEl()) titleEl().textContent = title || 'Documento';
         if (openNew()) openNew().href = url;
 
+        const downloadBtn = document.getElementById('downloadMediaBtn');
+        if (downloadBtn) {
+          downloadBtn.href = url;
+        }
+
         if (backdrop()) backdrop().style.display = 'block';
         if (modal()) {
           modal().style.display = 'flex';
@@ -318,6 +325,16 @@
         }
 
         document.body.classList.add('no-scroll');
+        setTimeout(() => {
+          const focusTarget =
+            (imageWrap() && imageWrap().style.display !== 'none')
+              ? imageWrap()
+              : document.getElementById('pdfBody');
+
+          if (focusTarget) {
+            focusTarget.focus({ preventScroll: true });
+          }
+        }, 50);
       }
 
       window.mediaZoomIn = function () {
@@ -379,58 +396,6 @@
         openModal(url, title || 'Vista previa');
       };
 
-window.printCurrentMedia = function () {
-  const frame = document.getElementById('pdfFrame');
-  const img = document.getElementById('mediaImage');
-  const video = document.getElementById('mediaVideo');
-
-  // 📄 PDF
-  if (frame && frame.style.display !== 'none') {
-    try {
-      frame.contentWindow.focus();
-      frame.contentWindow.print();
-    } catch (e) {
-      window.open(frame.src, '_blank')?.print();
-    }
-    return;
-  }
-
-  // 🖼️ Imagen
-  if (img && img.style.display !== 'none') {
-    const w = window.open('', '_blank');
-    if (!w) return;
-
-    w.document.write(`
-      <html>
-        <head>
-          <title>Imprimir</title>
-          <style>
-            body { margin:0; display:flex; justify-content:center; align-items:center; height:100vh; background:#fff; }
-            img { max-width:100%; max-height:100%; }
-          </style>
-        </head>
-        <body>
-          <img src="${img.src}" />
-          <script>
-            window.onload = function(){
-              window.print();
-              window.close();
-            }
-          <\/script>
-        </body>
-      </html>
-    `);
-    w.document.close();
-    return;
-  }
-
-  // 🎥 Video (opcional)
-  if (video && video.style.display !== 'none') {
-    alert('La impresión de video no está soportada.');
-  }
-};
-
-
       window.closePdfPreview = function () {
         resetMedia();
 
@@ -443,39 +408,39 @@ window.printCurrentMedia = function () {
         document.body.classList.remove('no-scroll');
       };
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') window.closePdfPreview();
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') window.closePdfPreview();
 
-  const tag = (e.target?.tagName || '').toLowerCase();
-  const isTyping =
-    tag === 'input' ||
-    tag === 'textarea' ||
-    e.target?.isContentEditable;
+        const tag = (e.target?.tagName || '').toLowerCase();
+        const isTyping =
+          tag === 'input' ||
+          tag === 'textarea' ||
+          e.target?.isContentEditable;
 
-  if (isTyping) return;
+        if (isTyping) return;
 
-  const wrap = imageWrap();
-  const isImagePreviewOpen =
-    wrap &&
-    window.getComputedStyle(wrap).display !== 'none';
+        const wrap = imageWrap();
+        const isImagePreviewOpen =
+          wrap &&
+          window.getComputedStyle(wrap).display !== 'none';
 
-  if (isImagePreviewOpen) {
-    if (e.key === '+' || e.key === '=') {
-      e.preventDefault();
-      window.mediaZoomIn();
-    }
+        if (isImagePreviewOpen) {
+          if (e.key === '+' || e.key === '=') {
+            e.preventDefault();
+            window.mediaZoomIn();
+          }
 
-    if (e.key === '-') {
-      e.preventDefault();
-      window.mediaZoomOut();
-    }
+          if (e.key === '-') {
+            e.preventDefault();
+            window.mediaZoomOut();
+          }
 
-    if (e.key === '0') {
-      e.preventDefault();
-      window.mediaZoomReset();
-    }
-  }
-});
+          if (e.key === '0') {
+            e.preventDefault();
+            window.mediaZoomReset();
+          }
+        }
+      });
     })();
 
     window.openCreateNode = function (parentId) {
