@@ -50,10 +50,26 @@
   <div class="cm-modal-box" onclick="event.stopPropagation()">
     <div class="cm-modal-head">
       <div id="comunicadoModalTitle">Comunicado</div>
-      <button type="button" onclick="closeComunicadoModal()">Cerrar ✕</button>
+
+      <div class="cm-modal-actions">
+        <a id="comunicadoDownload"
+           href="#"
+           download
+           class="cm-modal-btn">
+          Descargar
+        </a>
+
+        <button type="button" class="cm-modal-btn" onclick="toggleComunicadoZoom()">
+          Zoom
+        </button>
+
+        <button type="button" class="cm-modal-btn" onclick="closeComunicadoModal()">
+          Cerrar ✕
+        </button>
+      </div>
     </div>
 
-    <div class="cm-modal-body">
+    <div class="cm-modal-body" id="comunicadoModalBody">
       <img id="comunicadoModalImg" src="" alt="">
     </div>
   </div>
@@ -226,22 +242,81 @@
     padding:22px 16px 60px;
   }
 }
+
+
+.cm-modal-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.cm-modal-btn{
+  border:1px solid rgba(15,23,42,.14);
+  background:#fff;
+  color:#111827;
+  text-decoration:none;
+  border-radius:14px;
+  padding:9px 12px;
+  cursor:pointer;
+  font-weight:700;
+  font-size:.84rem;
+}
+
+.cm-modal-btn:hover{
+  background:#f8fafc;
+}
+
+.cm-modal-body.zoomed img{
+  max-width:none;
+  width:auto;
+  height:auto;
+  transform:scale(1.35);
+  transform-origin:center center;
+  cursor:zoom-out;
+}
 </style>
 
 <script>
+let comunicadoZoomed = false;
+
 function openComunicadoModal(img, title){
   if (!img) return;
 
-  document.getElementById('comunicadoModalImg').src = img;
-  document.getElementById('comunicadoModalTitle').textContent = title || 'Comunicado';
-  document.getElementById('comunicadoModal').style.display = 'flex';
+  comunicadoZoomed = false;
+
+  const modal = document.getElementById('comunicadoModal');
+  const modalImg = document.getElementById('comunicadoModalImg');
+  const modalTitle = document.getElementById('comunicadoModalTitle');
+  const download = document.getElementById('comunicadoDownload');
+  const body = document.getElementById('comunicadoModalBody');
+
+  modalImg.src = img;
+  modalTitle.textContent = title || 'Comunicado';
+  download.href = img;
+  body.classList.remove('zoomed');
+
+  modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
 
 function closeComunicadoModal(){
-  document.getElementById('comunicadoModal').style.display = 'none';
-  document.getElementById('comunicadoModalImg').src = '';
+  const modal = document.getElementById('comunicadoModal');
+  const modalImg = document.getElementById('comunicadoModalImg');
+  const body = document.getElementById('comunicadoModalBody');
+
+  modal.style.display = 'none';
+  modalImg.src = '';
+  body.classList.remove('zoomed');
+  comunicadoZoomed = false;
   document.body.style.overflow = '';
+}
+
+function toggleComunicadoZoom(){
+  const body = document.getElementById('comunicadoModalBody');
+
+  comunicadoZoomed = !comunicadoZoomed;
+  body.classList.toggle('zoomed', comunicadoZoomed);
 }
 
 document.addEventListener('keydown', function(e){
