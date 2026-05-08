@@ -28,6 +28,7 @@ use App\Http\Controllers\Admin\MenuProductFilesController;
 
 use App\Http\Controllers\MaterialVisualController;
 use App\Http\Controllers\ComunicadoController;
+use App\Http\Controllers\DocumentacionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,6 +58,19 @@ Route::middleware(['auth'])->group(function () {
 */
 Route::middleware(['auth'])->group(function () {
 
+    Route::get('/documentacion', [DocumentacionController::class, 'index'])
+        ->name('documentacion.index');
+
+    Route::post('/documentacion', [DocumentacionController::class, 'store'])
+        ->name('documentacion.store');
+
+    Route::put('/documentacion/{documento}', [DocumentacionController::class, 'update'])
+        ->name('documentacion.update');
+
+    Route::delete('/documentacion/{documento}', [DocumentacionController::class, 'destroy'])
+        ->name('documentacion.destroy');
+
+
     Route::get('/material-visual', [MaterialVisualController::class, 'index'])
         ->name('material-visual.index');
 
@@ -67,8 +81,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-Route::get('/comunicados', [ComunicadoController::class, 'index'])
-    ->name('comunicados.index');
+    Route::get('/comunicados', [ComunicadoController::class, 'index'])
+        ->name('comunicados.index');
 
 
     /*
