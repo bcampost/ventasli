@@ -381,6 +381,36 @@
         grid-template-columns: 1fr;
       }
     }
+
+    .download-img-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 20;
+
+      border: 0;
+      background: rgba(255, 255, 255, .88);
+      backdrop-filter: blur(8px);
+
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+
+      color: #0b1220;
+      text-decoration: none;
+      font-size: 16px;
+      line-height: 1;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      box-shadow: 0 10px 24px rgba(2, 6, 23, .10);
+    }
+
+    .download-img-btn:hover {
+      opacity: .82;
+    }
   </style>
 
   <div class="pd-wrap">
@@ -402,232 +432,273 @@
       </div>
     </div>
 
-    <div class="layout">
-      <div class="card">
-        <div class="card-head">
-          <div class="h">Galería</div>
-          <div class="muted" id="pdFilterLabel">Sin filtros</div>
-        </div>
+<div class="layout">
 
-        <div class="media">
-          <div class="media-frame">
-            @if($mainImg)
-              <img id="pdMainImg" src="{{ $mainImg }}" alt="{{ $product->title }}">
-            @else
-              <div class="media-empty">Sin imagen principal</div>
-            @endif
-          </div>
+  {{-- GALERÍA --}}
+  <div class="card">
 
-          <button type="button" class="nav prev" id="pdPrev" style="display:none;">‹</button>
-          <button type="button" class="nav next" id="pdNext" style="display:none;">›</button>
-        </div>
+    <div class="card-head">
+      <div class="h">Galería</div>
+      <div class="muted" id="pdFilterLabel">Sin filtros</div>
+    </div>
 
-        <div class="thumbs" id="pdThumbs"></div>
+    <div class="media">
+
+      {{-- BOTÓN DESCARGAR --}}
+      <a
+        id="pdDownloadBtn"
+        href="#"
+        download
+        class="download-img-btn"
+        title="Descargar imagen"
+      >
+        ⬇
+      </a>
+
+      <div class="media-frame">
+        @if($mainImg)
+          <img id="pdMainImg" src="{{ $mainImg }}" alt="{{ $product->title }}">
+        @else
+          <div class="media-empty">Sin imagen principal</div>
+        @endif
       </div>
 
-      <div class="card">
-        <div class="card-head">
-          <div class="h">Variantes</div>
-          <div class="muted">Estructura + Laminado</div>
-        </div>
+      <button type="button" class="nav prev" id="pdPrev" style="display:none;">‹</button>
+      <button type="button" class="nav next" id="pdNext" style="display:none;">›</button>
+    </div>
 
-        <div class="info">
-          <div class="k">Descripción</div>
-          <div class="hint" style="margin-top:6px;">
-            {{ $detail->description ?: ($product->description ?: 'Sin descripción.') }}
-          </div>
-        </div>
+    <div class="thumbs" id="pdThumbs"></div>
+  </div>
 
-        <div style="border-top:1px solid rgba(15,23,42,.08);"></div>
+  {{-- VARIANTES --}}
+  <div class="card">
 
-        <div class="info">
-          <div class="variant-select-grid">
-            <div class="variant-select-field">
-              <label class="k" for="selectA">Estructura</label>
-              <select id="selectA" class="variant-select">
-                <option value="">Seleccionar...</option>
-              </select>
-            </div>
+    <div class="card-head">
+      <div class="h">Variantes</div>
+      <div class="muted">Estructura + Laminado</div>
+    </div>
 
-            <div class="variant-select-field">
-              <label class="k" for="selectM">Laminado</label>
-              <select id="selectM" class="variant-select">
-                <option value="">Seleccionar...</option>
-              </select>
-            </div>
-          </div>
+    <div class="info">
+      <div class="k">Descripción</div>
 
-
-          @php
-            $svc = new \App\Services\IngenieriaService();
-
-            $code = $product->ingenieria_code ?: $product->title;
-
-            $docs = $svc->getDocs($code);
-            $fallbackDocs = $svc->guessDocsByCode($code);
-
-            $fichaIngenieria = $docs['ficha']
-              ? $svc->url($docs['ficha'])
-              : $svc->url($fallbackDocs['ficha']);
-
-            $instIngenieria = $docs['instructivo']
-              ? $svc->url($docs['instructivo'])
-              : $svc->url($fallbackDocs['instructivo']);
-
-            $fichaLocal = $techUrl ?? null;
-            $instLocal = $manualUrl ?? null;
-
-            $fichaUrl = $fichaIngenieria ?: $fichaLocal;
-            $instUrl = $instIngenieria ?: $instLocal;
-          @endphp
-
-          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
-
-            @if($fichaUrl)
-              <button type="button" class="btn btn-ghost" onclick="window.openPdfPreview(@js($fichaUrl), 'Ficha técnica')">
-                📄 Ficha técnica
-              </button>
-            @endif
-
-            @if($instUrl)
-              <button type="button" class="btn btn-ghost" onclick="window.openPdfPreview(@js($instUrl), 'Instructivo')">
-                📘 Instructivo
-              </button>
-            @endif
-
-          </div>
-        </div>
+      <div class="hint" style="margin-top:6px;">
+        {{ $detail->description ?: ($product->description ?: 'Sin descripción.') }}
       </div>
+    </div>
+
+    <div style="border-top:1px solid rgba(15,23,42,.08);"></div>
+
+    <div class="info">
+
+      <div class="variant-select-grid">
+
+        <div class="variant-select-field">
+          <label class="k" for="selectA">Estructura</label>
+
+          <select id="selectA" class="variant-select">
+            <option value="">Seleccionar...</option>
+          </select>
+        </div>
+
+        <div class="variant-select-field">
+          <label class="k" for="selectM">Laminado</label>
+
+          <select id="selectM" class="variant-select">
+            <option value="">Seleccionar...</option>
+          </select>
+        </div>
+
+      </div>
+
+      @php
+        $svc = new \App\Services\IngenieriaService();
+
+        $code = $product->ingenieria_code ?: $product->title;
+
+        $docs = $svc->getDocs($code);
+        $fallbackDocs = $svc->guessDocsByCode($code);
+
+        $fichaIngenieria = $docs['ficha']
+          ? $svc->url($docs['ficha'])
+          : $svc->url($fallbackDocs['ficha']);
+
+        $instIngenieria = $docs['instructivo']
+          ? $svc->url($docs['instructivo'])
+          : $svc->url($fallbackDocs['instructivo']);
+
+        $fichaLocal = $techUrl ?? null;
+        $instLocal = $manualUrl ?? null;
+
+        $fichaUrl = $fichaIngenieria ?: $fichaLocal;
+        $instUrl = $instIngenieria ?: $instLocal;
+      @endphp
+
+      <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+
+        @if($fichaUrl)
+          <button
+            type="button"
+            class="btn btn-ghost"
+            onclick="window.openPdfPreview(@js($fichaUrl), 'Ficha técnica')"
+          >
+            📄 Ficha técnica
+          </button>
+        @endif
+
+        @if($instUrl)
+          <button
+            type="button"
+            class="btn btn-ghost"
+            onclick="window.openPdfPreview(@js($instUrl), 'Instructivo')"
+          >
+            📘 Instructivo
+          </button>
+        @endif
+
+      </div>
+
     </div>
   </div>
 
+</div>
 
 
-  <script>
-    window.PROD = @json($payload);
+      <script>
+        window.PROD = @json($payload);
 
-    (function () {
-      const acero = window.PROD.acero || [];
-      const melamina = window.PROD.melamina || [];
-      const gallery = window.PROD.gallery || [];
+        (function () {
+          const acero = window.PROD.acero || [];
+          const melamina = window.PROD.melamina || [];
+          const gallery = window.PROD.gallery || [];
 
-      let selA = '';
-      let selM = '';
-      let base = [];
-      let idx = 0;
+          let selA = '';
+          let selM = '';
+          let base = [];
+          let idx = 0;
 
-      const selectA = document.getElementById('selectA');
-      const selectM = document.getElementById('selectM');
-      const thumbs = document.getElementById('pdThumbs');
-      const mainImg = document.getElementById('pdMainImg');
-      const prev = document.getElementById('pdPrev');
-      const next = document.getElementById('pdNext');
-      const filterLabel = document.getElementById('pdFilterLabel');
+          const selectA = document.getElementById('selectA');
+          const selectM = document.getElementById('selectM');
+          const thumbs = document.getElementById('pdThumbs');
+          const mainImg = document.getElementById('pdMainImg');
+          const prev = document.getElementById('pdPrev');
+          const next = document.getElementById('pdNext');
+          const downloadBtn = document.getElementById('pdDownloadBtn');
+          const filterLabel = document.getElementById('pdFilterLabel');
 
-      function chip(label, on) {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'chip' + (on ? ' is-on' : '');
-        b.textContent = label;
-        return b;
-      }
+          function chip(label, on) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'chip' + (on ? ' is-on' : '');
+            b.textContent = label;
+            return b;
+          }
 
-      function renderChips() {
-        if (!selectA || !selectM) return;
+          function renderChips() {
+            if (!selectA || !selectM) return;
 
-        selectA.innerHTML = '<option value="">Todas</option>';
-        selectM.innerHTML = '<option value="">Todos</option>';
+            selectA.innerHTML = '<option value="">Todas</option>';
+            selectM.innerHTML = '<option value="">Todos</option>';
 
-        acero.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c;
-          opt.textContent = c;
-          selectA.appendChild(opt);
-        });
+            acero.forEach(c => {
+              const opt = document.createElement('option');
+              opt.value = c;
+              opt.textContent = c;
+              selectA.appendChild(opt);
+            });
 
-        melamina.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c;
-          opt.textContent = c;
-          selectM.appendChild(opt);
-        });
+            melamina.forEach(c => {
+              const opt = document.createElement('option');
+              opt.value = c;
+              opt.textContent = c;
+              selectM.appendChild(opt);
+            });
 
-        selectA.value = selA;
-        selectM.value = selM;
+            selectA.value = selA;
+            selectM.value = selM;
 
-        selectA.onchange = () => {
-          selA = selectA.value || '';
-          apply();
-        };
+            selectA.onchange = () => {
+              selA = selectA.value || '';
+              apply();
+            };
 
-        selectM.onchange = () => {
-          selM = selectM.value || '';
-          apply();
-        };
-      }
+            selectM.onchange = () => {
+              selM = selectM.value || '';
+              apply();
+            };
+          }
 
-      function apply() {
-        const filtered = gallery.filter(it => {
-          const okA = selA ? (it.acero === selA) : true;
-          const okM = selM ? (it.melamina === selM) : true;
-          return okA && okM;
-        });
+          function apply() {
+            const filtered = gallery.filter(it => {
+              const okA = selA ? (it.acero === selA) : true;
+              const okM = selM ? (it.melamina === selM) : true;
+              return okA && okM;
+            });
 
-        base = filtered.length ? filtered : (gallery.length ? gallery : []);
-        idx = 0;
+            base = filtered.length ? filtered : (gallery.length ? gallery : []);
+            idx = 0;
 
-        const a = selA ? `Estructura: ${selA}` : '';
-        const m = selM ? `Laminado: ${selM}` : '';
-        filterLabel.textContent = (a || m) ? [a, m].filter(Boolean).join(' · ') : 'Sin filtros';
+            const a = selA ? `Estructura: ${selA}` : '';
+            const m = selM ? `Laminado: ${selM}` : '';
+            filterLabel.textContent = (a || m) ? [a, m].filter(Boolean).join(' · ') : 'Sin filtros';
 
-        renderGallery();
-      }
+            renderGallery();
+          }
 
-      function renderGallery() {
-        if (!mainImg) return;
+          function renderGallery() {
+            if (!mainImg) return;
 
-        thumbs.innerHTML = '';
-        const firstUrl = base[0]?.url || window.PROD.main || '';
-        if (firstUrl) mainImg.src = firstUrl;
+            thumbs.innerHTML = '';
+            const firstUrl = base[0]?.url || window.PROD.main || '';
+            if (firstUrl) mainImg.src = firstUrl;
+            if (downloadBtn) {
+              downloadBtn.href = firstUrl || '#';
+            }
 
-        base.forEach((it, i) => {
-          const d = document.createElement('div');
-          d.className = 'th' + (i === 0 ? ' is-active' : '');
-          const im = document.createElement('img');
-          im.src = it.url;
-          d.appendChild(im);
 
-          d.onclick = () => {
-            idx = i;
+            base.forEach((it, i) => {
+              const d = document.createElement('div');
+              d.className = 'th' + (i === 0 ? ' is-active' : '');
+              const im = document.createElement('img');
+              im.src = it.url;
+              d.appendChild(im);
+
+              d.onclick = () => {
+                idx = i;
+                mainImg.src = base[idx].url;
+                if (downloadBtn) {
+                  downloadBtn.href = base[idx].url;
+                }
+                [...thumbs.querySelectorAll('.th')].forEach((x, k) => x.classList.toggle('is-active', k === idx));
+                updateNav(base.length);
+              };
+
+              thumbs.appendChild(d);
+            });
+
+            updateNav(base.length);
+            prev.onclick = () => go(-1);
+            next.onclick = () => go(+1);
+          }
+
+          function updateNav(len) {
+            if (len > 1) { prev.style.display = 'flex'; next.style.display = 'flex'; }
+            else { prev.style.display = 'none'; next.style.display = 'none'; }
+          }
+
+          function go(step) {
+            if (!base.length) return;
+            idx = Math.max(0, Math.min(base.length - 1, idx + step));
             mainImg.src = base[idx].url;
+            if (downloadBtn) {
+              downloadBtn.href = base[idx].url;
+            }
             [...thumbs.querySelectorAll('.th')].forEach((x, k) => x.classList.toggle('is-active', k === idx));
             updateNav(base.length);
-          };
+          }
 
-          thumbs.appendChild(d);
-        });
+          renderChips();
+          apply();
+        })();
 
-        updateNav(base.length);
-        prev.onclick = () => go(-1);
-        next.onclick = () => go(+1);
-      }
-
-      function updateNav(len) {
-        if (len > 1) { prev.style.display = 'flex'; next.style.display = 'flex'; }
-        else { prev.style.display = 'none'; next.style.display = 'none'; }
-      }
-
-      function go(step) {
-        if (!base.length) return;
-        idx = Math.max(0, Math.min(base.length - 1, idx + step));
-        mainImg.src = base[idx].url;
-        [...thumbs.querySelectorAll('.th')].forEach((x, k) => x.classList.toggle('is-active', k === idx));
-        updateNav(base.length);
-      }
-
-      renderChips();
-      apply();
-    })();
-
-  </script>
+      </script>
 @endsection
