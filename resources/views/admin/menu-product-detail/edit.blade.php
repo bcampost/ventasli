@@ -620,6 +620,286 @@
     grid-template-columns: 1fr;
   }
 }
+.ep-gallery-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:14px;
+    margin-top:20px;
+}
+
+.ep-gallery-item{
+    aspect-ratio:1/1;
+    border-radius:18px;
+    overflow:hidden;
+    border:1px solid rgba(15,23,42,.08);
+    background:#f8fafc;
+    cursor:pointer;
+    transition:.2s ease;
+}
+
+.ep-gallery-item:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 24px rgba(15,23,42,.08);
+}
+
+.ep-gallery-item img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
+.ep-image-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:99999;
+    backdrop-filter:blur(6px);
+}
+
+.ep-image-modal-card{
+    width:min(1100px,95vw);
+    background:#fff;
+    border-radius:28px;
+    overflow:hidden;
+}
+
+.ep-image-modal-head{
+    padding:24px;
+    border-bottom:1px solid rgba(15,23,42,.08);
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.ep-image-modal-title{
+    font-size:1.3rem;
+    font-weight:700;
+    color:#0f172a;
+}
+
+.ep-image-modal-sub{
+    margin-top:4px;
+    color:#64748b;
+}
+
+.ep-modal-close{
+    width:40px;
+    height:40px;
+    border-radius:999px;
+    border:0;
+    background:#f1f5f9;
+    font-size:24px;
+    cursor:pointer;
+}
+
+.ep-image-modal-body{
+    padding:24px;
+
+    display:grid;
+    grid-template-columns:380px 1fr;
+    gap:30px;
+}
+
+.ep-image-preview{
+    border-radius:20px;
+    overflow:hidden;
+    background:#f8fafc;
+    border:1px solid rgba(15,23,42,.08);
+}
+
+.ep-image-preview img{
+    width:100%;
+    display:block;
+}
+
+.ep-image-group-title{
+    font-weight:700;
+    margin-bottom:12px;
+    color:#0f172a;
+}
+
+.ep-chip-wrap{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+}
+
+.ep-select-chip{
+    border-radius:999px;
+    border:1px solid rgba(15,23,42,.12);
+    background:#fff;
+    padding:10px 14px;
+    cursor:pointer;
+    transition:.2s ease;
+}
+
+.ep-select-chip.active{
+    background:#2563eb;
+    color:#fff;
+    border-color:#2563eb;
+}
+
+.ep-image-modal-footer{
+    padding:24px;
+    border-top:1px solid rgba(15,23,42,.08);
+
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+}
+.ep-cover-check{
+    margin-top:24px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border:1px solid rgba(15,23,42,.12);
+    border-radius:16px;
+    padding:14px 16px;
+    cursor:pointer;
+    background:#fff;
+    font-weight:600;
+    color:#0f172a;
+}
+
+.ep-cover-check input{
+    width:20px;
+    height:20px;
+    accent-color:#2563eb;
+}
+
+.ep-gallery-item.is-cover{
+    outline:4px solid rgba(37,99,235,.35);
+    border-color:#2563eb;
+}
+
+.ep-gallery-cover-badge{
+    position:absolute;
+    top:8px;
+    left:8px;
+    background:#2563eb;
+    color:#fff;
+    width:22px;
+    height:22px;
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:900;
+}
+
+.ep-gallery-scroll{
+    margin-top:20px;
+    max-height:520px;
+    overflow-y:auto;
+    overflow-x:hidden;
+    padding:4px 8px 4px 2px;
+}
+
+.ep-gallery-grid{
+    display:grid;
+    grid-template-columns:repeat(5, minmax(0, 1fr));
+    gap:14px;
+}
+
+.ep-gallery-card{
+    position:relative;
+}
+
+.ep-gallery-item{
+    position:relative;
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius:18px;
+    overflow:hidden;
+    border:1px solid rgba(15,23,42,.08);
+    background:#f8fafc;
+    cursor:pointer;
+    transition:.2s ease;
+    padding:0;
+    display:block;
+}
+
+.ep-gallery-item:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 24px rgba(15,23,42,.08);
+}
+
+.ep-gallery-item img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+    pointer-events:none;
+}
+
+.ep-status-dot{
+    position:absolute;
+    top:9px;
+    right:9px;
+    width:14px;
+    height:14px;
+    border-radius:999px;
+    z-index:5;
+    border:2px solid #fff;
+    box-shadow:0 4px 12px rgba(15,23,42,.22);
+}
+
+.status-green{
+    background:#16a34a;
+}
+
+.status-yellow{
+    background:#f59e0b;
+}
+
+.status-red{
+    background:#dc2626;
+}
+
+.ep-gallery-item.is-cover{
+    outline:4px solid rgba(37,99,235,.35);
+    border-color:#2563eb;
+}
+
+.ep-gallery-cover-badge{
+    position:absolute;
+    top:8px;
+    left:8px;
+    background:#2563eb;
+    color:#fff;
+    width:22px;
+    height:22px;
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:12px;
+    font-weight:900;
+    z-index:6;
+}
+
+@media(max-width:1100px){
+    .ep-gallery-grid{
+        grid-template-columns:repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media(max-width:780px){
+    .ep-gallery-grid{
+        grid-template-columns:repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media(max-width:520px){
+    .ep-gallery-grid{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+}
 
   </style>
 
@@ -790,88 +1070,254 @@
             </div>
           </div>
 
-  <div class="ep-card">
+  {{-- GALERÍA NUEVA --}}
+<div class="ep-card">
+
     <div class="ep-card-head">
-      <h2 class="ep-card-title">Galería del producto</h2>
-      <div class="ep-card-sub">
-        Sube nuevas imágenes, asigna sus colores y administra las imágenes actuales del producto.
-      </div>
+        <h2 class="ep-card-title">Galería del producto</h2>
+
+        <div class="ep-card-sub">
+            Haz click sobre una imagen para etiquetar sus colores.
+        </div>
     </div>
 
     <div class="ep-card-body">
-      <div class="ep-field">
-        <label class="ep-label">Subir nuevas imágenes</label>
-        <input type="file"
-              name="gallery_images[]"
-              id="gallery_input"
-              accept="image/*"
-              multiple
-              class="ep-file">
-        <div class="ep-help">
-          Puedes seleccionar varias imágenes al mismo tiempo y asignar a cada una su color de acero y laminado.
+
+        {{-- SUBIDA --}}
+        <div class="ep-field">
+            <label class="ep-label">Subir imágenes</label>
+
+            <input
+                type="file"
+                name="gallery_images[]"
+                id="gallery_input"
+                accept="image/*"
+                multiple
+                class="ep-file"
+            >
+
+            <div class="ep-help">
+                Puedes subir múltiples imágenes.
+            </div>
+
+<div id="upload_previews" class="ep-upload-grid" style="margin-top:16px;"></div>
+
+
         </div>
-      </div>
 
-      <div id="upload_previews" class="ep-upload-grid" style="margin-top:16px;"></div>
+<div class="ep-gallery-scroll">
+    <div class="ep-gallery-grid">
 
-      <div style="margin-top:20px; border-top:1px solid rgba(15,23,42,.08); padding-top:18px;">
-        <div class="ep-label" style="margin-bottom:10px;">Imágenes actuales</div>
+        @foreach($gallerySafe as $i => $it)
 
-        @if(empty($gallerySafe))
-          <div class="ep-note">
-            No hay imágenes cargadas todavía.
-          </div>
-        @else
-          <div class="ep-upload-grid">
-            @foreach($gallerySafe as $i => $it)
-              @php $u = asset('storage/'.ltrim($it['path'],'/')); @endphp
+            @php
+                $imgUrl = asset('storage/'.ltrim($it['path'],'/'));
+                $acero = trim($it['acero'] ?? '');
+                $melamina = trim($it['melamina'] ?? '');
 
-              <div class="ep-u-card">
-                <div class="ep-u-prev">
-                  <img src="{{ $u }}" alt="">
-                </div>
+                $statusClass = 'status-red';
 
-                <div class="ep-u-meta">
-                  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                    <label class="ep-check">
-                      <input type="checkbox" name="remove_gallery[]" value="{{ $it['path'] }}">
-                      Quitar imagen
-                    </label>
+                if ($acero && $melamina) {
+                    $statusClass = 'status-green';
+                } elseif ($acero || $melamina) {
+                    $statusClass = 'status-yellow';
+                }
+            @endphp
 
-                    <a href="{{ $u }}" target="_blank" class="ep-btn ep-btn-soft">Ver ↗</a>
-                  </div>
+            <div class="ep-gallery-card">
 
-                  <div class="ep-field">
-                    <label class="ep-label">Estructura</label>
-                    <select class="ep-input" name="existing_meta[{{ $i }}][acero]">
-                      <option value="">Estructura (sin asignar)</option>
-                      @foreach($productAceroColors as $c)
-                        <option value="{{ $c }}" {{ (($it['acero'] ?? '') === $c) ? 'selected' : '' }}>
-                          {{ $c }}
-                        </option>
-                      @endforeach
-                    </select>
-                  </div>
+                <button
+                    type="button"
+class="ep-gallery-item"
+data-index="{{ $i }}"
+onclick='openImageTagger(
+                        {{ $i }},
+                        @json($imgUrl),
+                        @json($acero),
+                        @json($melamina)
+                    )'
+                >
+                    <span class="ep-status-dot {{ $statusClass }}"></span>
 
-                  <div class="ep-field">
-                    <label class="ep-label">Laminado</label>
-                    <select class="ep-input" name="existing_meta[{{ $i }}][melamina]">
-                      <option value="">Laminado (sin asignar)</option>
-                      @foreach($productLaminadoColors as $c)
-                        <option value="{{ $c }}" {{ (($it['melamina'] ?? '') === $c) ? 'selected' : '' }}>
-                          {{ $c }}
-                        </option>
-                      @endforeach
-                    </select>
-                  </div>
-                </div>
-              </div>
-            @endforeach
-          </div>
-        @endif
-      </div>
+                    @if($product->image_path && ltrim($product->image_path, '/') === ltrim($it['path'], '/'))
+                        <span class="ep-gallery-cover-badge">★</span>
+                    @endif
+
+                    <img src="{{ $imgUrl }}" alt="">
+                </button>
+
+                <input
+                    type="hidden"
+                    name="existing_meta[{{ $i }}][acero]"
+                    id="existing_acero_{{ $i }}"
+                    value="{{ $acero }}"
+                >
+
+                <input
+                    type="hidden"
+                    name="existing_meta[{{ $i }}][melamina]"
+                    id="existing_mela_{{ $i }}"
+                    value="{{ $melamina }}"
+                >
+
+                <input
+                    type="hidden"
+                    name="existing_meta[{{ $i }}][cover]"
+                    id="existing_cover_{{ $i }}"
+                    value="{{ $product->image_path && ltrim($product->image_path, '/') === ltrim($it['path'], '/') ? '1' : '0' }}"
+                >
+
+                <input
+                    type="checkbox"
+                    name="remove_gallery[]"
+                    id="remove_gallery_{{ $i }}"
+                    value="{{ $it['path'] }}"
+                    style="display:none;"
+                >
+
+            </div>
+
+        @endforeach
+
     </div>
-  </div>
+</div>
+
+    </div>
+
+</div>
+
+{{-- MODAL TAGGER --}}
+<div class="ep-image-modal" id="imageTaggerModal">
+
+    <div class="ep-image-modal-card">
+
+        <div class="ep-image-modal-head">
+
+            <div>
+                <div class="ep-image-modal-title">
+                    Etiquetar imagen
+                </div>
+
+                <div class="ep-image-modal-sub">
+                    Selecciona colores de estructura y laminado.
+                </div>
+            </div>
+
+            <button
+                type="button"
+                class="ep-modal-close"
+                onclick="closeImageTagger()"
+            >
+                ×
+            </button>
+
+        </div>
+
+        <div class="ep-image-modal-body">
+
+            {{-- IMAGE --}}
+            <div class="ep-image-preview">
+                <img id="taggerPreview" src="">
+            </div>
+
+            {{-- COLORS --}}
+            <div class="ep-image-options">
+
+                {{-- ESTRUCTURA --}}
+                <div class="ep-image-group">
+
+                    <div class="ep-image-group-title">
+                        Estructura
+                    </div>
+
+                    <div class="ep-chip-wrap">
+
+                        @foreach($productAceroColors as $color)
+
+                            <button
+                                type="button"
+                                class="ep-select-chip"
+                                data-type="acero"
+                                data-value="{{ $color }}"
+                            >
+                                {{ $color }}
+                            </button>
+
+                        @endforeach
+
+                    </div>
+
+                </div>
+
+                {{-- LAMINADO --}}
+                <div class="ep-image-group" style="margin-top:20px;">
+
+                    <div class="ep-image-group-title">
+                        Laminado
+                    </div>
+
+                    <div class="ep-chip-wrap">
+
+                        @foreach($productLaminadoColors as $color)
+
+                            <button
+                                type="button"
+                                class="ep-select-chip"
+                                data-type="melamina"
+                                data-value="{{ $color }}"
+                            >
+                                {{ $color }}
+                            </button>
+
+                        @endforeach
+
+                    </div>
+
+                </div>
+
+                  <label class="ep-cover-check">
+                      <input type="checkbox" id="taggerCover">
+                      <span>⭐ Marcar como portada</span>
+                  </label>
+
+            </div>
+
+        </div>
+
+          <div class="ep-image-modal-footer" style="justify-content:space-between;">
+
+              <button
+                  type="button"
+                  class="ep-btn"
+                  style="background:#fff1f2;color:#be123c;border:1px solid #fecdd3;"
+                  onclick="deleteCurrentImage()"
+              >
+                  🗑 Eliminar imagen
+              </button>
+
+              <div style="display:flex;gap:12px;">
+                  <button
+                      type="button"
+                      class="ep-btn ep-btn-soft"
+                      onclick="closeImageTagger()"
+                  >
+                      Cancelar
+                  </button>
+
+                  <button
+                      type="button"
+                      class="ep-btn ep-btn-primary"
+                      onclick="applyImageTags()"
+                  >
+                      Aplicar
+                  </button>
+              </div>
+
+          </div>
+
+    </div>
+
+</div>
 
 
 <div class="ep-card">
@@ -1256,5 +1702,169 @@
 }
 
   </script>
+
+<script>
+
+let currentImageIndex = null;
+let currentAcero = '';
+let currentMelamina = '';
+
+function openImageTagger(index, image, acero, melamina){
+
+    currentImageIndex = index;
+    currentAcero = acero || '';
+    currentMelamina = melamina || '';
+
+    document.getElementById('taggerPreview').src = image;
+
+const coverInput = document.getElementById(`existing_cover_${index}`);
+document.getElementById('taggerCover').checked = coverInput && coverInput.value === '1';
+
+    document.querySelectorAll('.ep-select-chip').forEach(chip => {
+        chip.classList.remove('active');
+
+        const type = chip.dataset.type;
+        const value = chip.dataset.value;
+
+        if(type === 'acero' && value === currentAcero){
+            chip.classList.add('active');
+        }
+
+        if(type === 'melamina' && value === currentMelamina){
+            chip.classList.add('active');
+        }
+    });
+
+    document.getElementById('imageTaggerModal').style.display = 'flex';
+}
+
+function closeImageTagger(){
+    document.getElementById('imageTaggerModal').style.display = 'none';
+}
+
+document.querySelectorAll('.ep-select-chip').forEach(chip => {
+
+    chip.addEventListener('click', () => {
+
+        const type = chip.dataset.type;
+
+        document.querySelectorAll(`.ep-select-chip[data-type="${type}"]`)
+            .forEach(c => c.classList.remove('active'));
+
+        chip.classList.add('active');
+
+        if(type === 'acero'){
+            currentAcero = chip.dataset.value;
+        }
+
+        if(type === 'melamina'){
+            currentMelamina = chip.dataset.value;
+        }
+    });
+
+});
+
+function applyImageTags(){
+
+    if(currentImageIndex === null){
+        return;
+    }
+
+    const aceroInput = document.getElementById(
+        `existing_acero_${currentImageIndex}`
+    );
+
+    const melaInput = document.getElementById(
+        `existing_mela_${currentImageIndex}`
+    );
+
+    if(aceroInput){
+        aceroInput.value = currentAcero;
+    }
+
+    if(melaInput){
+        melaInput.value = currentMelamina;
+    }
+
+const item = document.querySelector(`.ep-gallery-item[data-index="${currentImageIndex}"]`);
+if (item) {
+    const dot = item.querySelector('.ep-status-dot');
+
+    if (dot) {
+        dot.classList.remove('status-green', 'status-yellow', 'status-red');
+
+        if (currentAcero && currentMelamina) {
+            dot.classList.add('status-green');
+        } else if (currentAcero || currentMelamina) {
+            dot.classList.add('status-yellow');
+        } else {
+            dot.classList.add('status-red');
+        }
+    }
+}
+
+    const coverChecked = document.getElementById('taggerCover').checked;
+
+if (coverChecked) {
+    document.querySelectorAll('[id^="existing_cover_"]').forEach(input => {
+        input.value = '0';
+    });
+
+    document.querySelectorAll('.ep-gallery-item').forEach(item => {
+        item.classList.remove('is-cover');
+
+        const badge = item.querySelector('.ep-gallery-cover-badge');
+        if (badge) badge.remove();
+    });
+
+    const coverInput = document.getElementById(`existing_cover_${currentImageIndex}`);
+    if (coverInput) {
+        coverInput.value = '1';
+    }
+
+const item = document.querySelector(`.ep-gallery-item[data-index="${currentImageIndex}"]`);
+
+    if (item) {
+        item.classList.add('is-cover');
+
+        const badge = document.createElement('span');
+        badge.className = 'ep-gallery-cover-badge';
+        badge.textContent = '★';
+
+        item.appendChild(badge);
+    }
+}
+
+    closeImageTagger();
+}
+
+function deleteCurrentImage() {
+    if (currentImageIndex === null) return;
+
+    if (!confirm('¿Eliminar esta imagen del producto? Se eliminará al guardar cambios.')) {
+        return;
+    }
+
+    const removeInput = document.getElementById(`remove_gallery_${currentImageIndex}`);
+
+    if (removeInput) {
+        removeInput.checked = true;
+    }
+
+    const item = document.querySelector(`.ep-gallery-item[data-index="${currentImageIndex}"]`);
+
+    if (item) {
+        const card = item.closest('.ep-gallery-card');
+
+        if (card) {
+            card.style.opacity = '.35';
+            card.style.pointerEvents = 'none';
+        }
+    }
+
+    closeImageTagger();
+}
+
+</script>
 
   @endsection

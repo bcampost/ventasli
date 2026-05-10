@@ -144,10 +144,16 @@ class MenuProductDetailController extends Controller
         $existingMeta = (array) ($data['existing_meta'] ?? []);
         if (!empty($existingMeta)) {
             foreach ($imgs as $i => $row) {
-                if (!array_key_exists($i, $existingMeta))
+                if (!array_key_exists($i, $existingMeta)) {
                     continue;
+                }
+
                 $imgs[$i]['acero'] = trim((string) ($existingMeta[$i]['acero'] ?? ''));
                 $imgs[$i]['melamina'] = trim((string) ($existingMeta[$i]['melamina'] ?? ''));
+
+                if (($existingMeta[$i]['cover'] ?? '0') === '1') {
+                    $menu_product->image_path = $imgs[$i]['path'] ?? $menu_product->image_path;
+                }
             }
         }
 
@@ -166,8 +172,8 @@ class MenuProductDetailController extends Controller
 
                 $imgs[] = [
                     'path' => $path,
-                    'acero' => $newAcero !== '' ? $newAcero : ($acero[0] ?? ''),
-                    'melamina' => $newMela !== '' ? $newMela : ($mela[0] ?? ''),
+                    'acero' => $newAcero,
+                    'melamina' => $newMela,
                 ];
             }
         }
@@ -245,20 +251,6 @@ class MenuProductDetailController extends Controller
             }
 
             $menu_product->image_path = $request->file('image')->store('menu-products', 'public');
-        }
-
-        $menu_product->title = $data['product_title'];
-
-        if ($request->hasFile('image')) {
-
-            if ($menu_product->image_path && Storage::disk('public')->exists($menu_product->image_path)) {
-
-                Storage::disk('public')->delete($menu_product->image_path);
-
-            }
-
-            $menu_product->image_path = $request->file('image')->store('menu-products', 'public');
-
         }
 
         $menu_product->save();
