@@ -309,10 +309,30 @@
                                 <td>{{ $doc->id }}</td>
 
                                 <td>
-                                    <span
-                                        class="badge {{ $doc->categoria === 'Contabilidad' ? 'badge-yellow' : 'badge-blue' }}">
-                                        {{ $doc->categoria }}
-                                    </span>
+                                    @php
+
+                                        $categoriaOriginal = trim($doc->categoria);
+
+                                        $categoriaLimpia = mb_strtolower(
+                                            iconv('UTF-8', 'UTF-8//IGNORE', $categoriaOriginal)
+                                        );
+
+                                        if (
+                                            str_contains($categoriaLimpia, 'fiscal') ||
+                                            str_contains($categoriaLimpia, 'rea')
+                                        ) {
+
+                                            $categoria = 'Área fiscal';
+
+                                        } else {
+
+                                            $categoria = $categoriaOriginal;
+                                        }
+
+                                    @endphp
+
+                                    <span class="badge {{ $categoria === 'Contabilidad' ? 'badge-yellow' : 'badge-blue' }}">
+                                        {!! $categoria === 'Área fiscal' ? '&Aacute;rea fiscal' : e($categoria) !!} </span>
                                 </td>
 
                                 <td>{{ $doc->nombre }}</td>
@@ -484,34 +504,34 @@
             <div id="previewScroll" style="height:calc(100% - 60px); overflow:auto; background:#f8fafc;">
 
                 <div id="previewStage" style="
-                        min-height:100%;
-                        width:100%;
-                        display:flex;
-                        justify-content:center;
-                        align-items:center;
-                        padding:18px;
-                        box-sizing:border-box;
-                    ">
+                                            min-height:100%;
+                                            width:100%;
+                                            display:flex;
+                                            justify-content:center;
+                                            align-items:center;
+                                            padding:18px;
+                                            box-sizing:border-box;
+                                        ">
 
                     <iframe id="previewFrame" src="" style="
-                            display:none;
-                            width:100%;
-                            height:780px;
-                            border:0;
-                            background:#fff;
-                            transform-origin:center center;
-                        "></iframe>
+                                                display:none;
+                                                width:100%;
+                                                height:780px;
+                                                border:0;
+                                                background:#fff;
+                                                transform-origin:center center;
+                                            "></iframe>
 
                     <img id="previewImage" src="" alt="" style="
-                            display:none;
-                            max-width:100%;
-                            max-height:calc(90vh - 120px);
-                            width:auto;
-                            height:auto;
-                            object-fit:contain;
-                            transform-origin:center center;
-                            transition:transform .12s ease;
-                        ">
+                                                display:none;
+                                                max-width:100%;
+                                                max-height:calc(90vh - 120px);
+                                                width:auto;
+                                                height:auto;
+                                                object-fit:contain;
+                                                transform-origin:center center;
+                                                transition:transform .12s ease;
+                                            ">
                 </div>
 
             </div>
@@ -672,31 +692,31 @@
                     if (!w) return;
 
                     w.document.write(`
-                        <html>
-                            <head>
-                                <title>Imprimir</title>
-                                <style>
-                                    body {
-                                        margin: 0;
-                                        min-height: 100vh;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        background: #fff;
-                                    }
+                                            <html>
+                                                <head>
+                                                    <title>Imprimir</title>
+                                                    <style>
+                                                        body {
+                                                            margin: 0;
+                                                            min-height: 100vh;
+                                                            display: flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                            background: #fff;
+                                                        }
 
-                                    img {
-                                        max-width: 100%;
-                                        max-height: 100vh;
-                                        object-fit: contain;
-                                    }
-                                </style>
-                            </head>
-                            <body>
-                                <img src="${previewImage.src}" onload="window.print(); window.close();" />
-                            </body>
-                        </html>
-                    `);
+                                                        img {
+                                                            max-width: 100%;
+                                                            max-height: 100vh;
+                                                            object-fit: contain;
+                                                        }
+                                                    </style>
+                                                </head>
+                                                <body>
+                                                    <img src="${previewImage.src}" onload="window.print(); window.close();" />
+                                                </body>
+                                            </html>
+                                        `);
 
                     w.document.close();
                     return;
