@@ -188,6 +188,14 @@
             color: #fff;
         }
 
+        .btn-preview {
+
+            background: #eef2ff;
+
+            color: #3730a3;
+
+        }
+
         .modal-bg {
             position: fixed;
             inset: 0;
@@ -328,10 +336,17 @@
                                 <td style="display:flex; gap:8px; flex-wrap:wrap;">
 
                                     @if($doc->archivo_path)
+
+                                        <button type="button" class="action-btn btn-preview"
+                                            onclick="openPreview('{{ asset('storage/' . $doc->archivo_path) }}')">
+                                            Preview
+                                        </button>
+
                                         <a href="{{ asset('storage/' . $doc->archivo_path) }}" download
                                             class="action-btn btn-download" style="text-decoration:none;">
                                             Descargar
                                         </a>
+
                                     @endif
 
                                     <button class="action-btn btn-edit" onclick='openEditModal(@json($doc))'>
@@ -439,9 +454,270 @@
 
     </div>
 
+    {{-- MODAL PREVIEW --}}
+
+    <div class="modal-bg" id="previewModal">
+
+        <div class="modal-card" style="width:min(1200px,96vw); height:min(90vh,900px); padding:0; overflow:hidden;">
+
+            <div
+                style="height:60px; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between; padding:0 18px; gap:12px;">
+
+                <strong>Preview documento</strong>
+
+                <div style="display:flex; gap:8px; align-items:center;">
+
+                    <button type="button" class="action-btn btn-preview" onclick="zoomPreviewOut()">-</button>
+
+                    <button type="button" class="action-btn btn-preview" onclick="zoomPreviewReset()">100%</button>
+
+                    <button type="button" class="action-btn btn-preview" onclick="zoomPreviewIn()">+</button>
+
+                    <button type="button" class="action-btn btn-download" onclick="printPreview()">
+
+                        Imprimir
+
+                    </button>
+
+                    <button type="button" onclick="closePreview()" class="action-btn btn-delete">
+
+                        Cerrar
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div id="previewScroll" style="height:calc(100% - 60px); overflow:auto; background:#f8fafc;">
+
+                <div id="previewStage" style="
+                        min-height:100%;
+                        width:100%;
+                        display:flex;
+                        justify-content:center;
+                        align-items:center;
+                        padding:18px;
+                        box-sizing:border-box;
+                    ">
+
+                    <iframe id="previewFrame" src="" style="
+                            display:none;
+                            width:100%;
+                            height:780px;
+                            border:0;
+                            background:#fff;
+                            transform-origin:center center;
+                        "></iframe>
+
+                    <img id="previewImage" src="" alt="" style="
+                            display:none;
+                            max-width:100%;
+                            max-height:calc(90vh - 120px);
+                            width:auto;
+                            height:auto;
+                            object-fit:contain;
+                            transform-origin:center center;
+                            transition:transform .12s ease;
+                        ">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
     <script>
 
         const modal = document.getElementById('docModal');
+
+        const previewModal = document.getElementById('previewModal');
+        const previewFrame = document.getElementById('previewFrame');
+        const previewImage = document.getElementById('previewImage');
+
+        let previewZoom = 1;
+
+        const previewScroll = document.getElementById('previewScroll');
+        const previewStage = document.getElementById('previewStage');
+
+        function isImageUrl(url) {
+            return /\.(jpg|jpeg|png|webp|gif|svg)(\?.*)?$/i.test(url);
+        }
+
+        function isImagePreviewOpen() {
+            return previewImage && previewImage.style.display !== 'none';
+        }
+
+        function currentPreviewEl() {
+            return isImagePreviewOpen() ? previewImage : previewFrame;
+        }
+
+        function updateZoomLabel() {
+            const zoomBtn = document.querySelector('[onclick="zoomPreviewReset()"]');
+            if (zoomBtn) {
+                zoomBtn.textContent = Math.round(previewZoom * 100) + '%';
+            }
+        }
+
+        function resetPreviewScroll() {
+            if (!previewScroll) return;
+
+            previewScroll.scrollTop = 0;
+            previewScroll.scrollLeft = 0;
+        }
+
+        function centerPreviewScroll() {
+            if (!previewScroll) return;
+
+            requestAnimationFrame(() => {
+                const maxLeft = previewScroll.scrollWidth - previewScroll.clientWidth;
+                const maxTop = previewScroll.scrollHeight - previewScroll.clientHeight;
+
+                previewScroll.scrollLeft = Math.max(0, maxLeft / 2);
+                previewScroll.scrollTop = Math.max(0, maxTop / 2);
+            });
+        }
+
+        function applyPreviewZoom() {
+
+            const el = currentPreviewEl();
+
+            if (!el) return;
+
+            el.style.transform = `scale(${previewZoom})`;
+
+            updateZoomLabel();
+
+            if (previewZoom > 1) {
+
+                centerPreviewScroll();
+
+            } else {
+
+                resetPreviewScroll();
+
+            }
+
+        }
+
+        function openPreview(url) {
+            previewZoom = 1;
+
+            previewFrame.src = '';
+            previewImage.src = '';
+
+            previewFrame.style.transform = 'scale(1)';
+            previewImage.style.transform = 'scale(1)';
+
+            if (isImageUrl(url)) {
+                previewFrame.style.display = 'none';
+
+                previewImage.src = url;
+                previewImage.style.display = 'block';
+
+                previewStage.style.alignItems = 'center';
+                previewStage.style.justifyContent = 'center';
+            } else {
+                previewImage.style.display = 'none';
+
+                previewFrame.src = url;
+                previewFrame.style.display = 'block';
+
+                previewStage.style.alignItems = 'flex-start';
+                previewStage.style.justifyContent = 'center';
+            }
+
+            previewModal.style.display = 'flex';
+
+            setTimeout(() => {
+                applyPreviewZoom();
+                resetPreviewScroll();
+            }, 80);
+        }
+
+        function closePreview() {
+            previewModal.style.display = 'none';
+
+            previewFrame.src = '';
+            previewImage.src = '';
+
+            previewFrame.style.display = 'none';
+            previewImage.style.display = 'none';
+
+            previewFrame.style.transform = 'scale(1)';
+            previewImage.style.transform = 'scale(1)';
+
+            previewZoom = 1;
+            updateZoomLabel();
+            resetPreviewScroll();
+        }
+
+        function zoomPreviewIn() {
+            previewZoom = Math.min(3, previewZoom + 0.15);
+            applyPreviewZoom();
+        }
+
+        function zoomPreviewOut() {
+            previewZoom = Math.max(0.5, previewZoom - 0.15);
+            applyPreviewZoom();
+        }
+
+        function zoomPreviewReset() {
+            previewZoom = 1;
+            applyPreviewZoom();
+
+            setTimeout(() => {
+                resetPreviewScroll();
+            }, 50);
+        }
+
+        function printPreview() {
+            try {
+                if (previewImage && previewImage.style.display !== 'none') {
+                    const w = window.open('', '_blank');
+
+                    if (!w) return;
+
+                    w.document.write(`
+                        <html>
+                            <head>
+                                <title>Imprimir</title>
+                                <style>
+                                    body {
+                                        margin: 0;
+                                        min-height: 100vh;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        background: #fff;
+                                    }
+
+                                    img {
+                                        max-width: 100%;
+                                        max-height: 100vh;
+                                        object-fit: contain;
+                                    }
+                                </style>
+                            </head>
+                            <body>
+                                <img src="${previewImage.src}" onload="window.print(); window.close();" />
+                            </body>
+                        </html>
+                    `);
+
+                    w.document.close();
+                    return;
+                }
+
+                previewFrame.contentWindow.focus();
+                previewFrame.contentWindow.print();
+
+            } catch (e) {
+                window.open(previewFrame.src || previewImage.src, '_blank');
+            }
+        }
+
         const DOCUMENTACION_BASE_URL = @json(url('/documentacion'));
 
         function openCreateModal() {
@@ -458,13 +734,26 @@
 
         function openEditModal(doc) {
 
-            document.getElementById('fCategoria').value = doc.categoria || '';
-            document.getElementById('fNombre').value = doc.nombre || '';
-            document.getElementById('fVigencia').value = doc.vigencia || '';
-            document.getElementById('fEstatus').value = doc.estatus || '';
-            document.getElementById('fPeriodo').value = doc.periodo || '';
-            document.getElementById('fActualizado').value = doc.actualizado_por || '';
-            document.getElementById('fResponsable').value = doc.responsable || '';
+            document.getElementById('fCategoria').value =
+                doc.categoria || '';
+
+            document.getElementById('fNombre').value =
+                doc.nombre || '';
+
+            document.getElementById('fVigencia').value =
+                doc.vigencia || '';
+
+            document.getElementById('fEstatus').value =
+                doc.estatus || '';
+
+            document.getElementById('fPeriodo').value =
+                doc.periodo || '';
+
+            document.getElementById('fActualizado').value =
+                doc.actualizado_por || '';
+
+            document.getElementById('fResponsable').value =
+                doc.responsable || '';
 
             document.getElementById('docForm').action =
                 DOCUMENTACION_BASE_URL + '/' + doc.id;
@@ -478,9 +767,52 @@
         modal.addEventListener('click', (e) => {
 
             if (e.target === modal) {
+
                 modal.style.display = 'none';
             }
 
+        });
+
+        previewModal.addEventListener('click', (e) => {
+
+            if (e.target === previewModal) {
+
+                closePreview();
+            }
+
+        });
+
+
+        const docSearch = document.getElementById('docSearch');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const docRows = document.querySelectorAll('#docsTable tr');
+
+        function filterDocs() {
+            const term = (docSearch?.value || '').toLowerCase().trim();
+            const activeFilter =
+                document.querySelector('.tab-btn.active')?.dataset.filter || 'all';
+
+            docRows.forEach(row => {
+                const category = row.dataset.category || '';
+                const text = row.innerText.toLowerCase();
+
+                const matchesSearch = text.includes(term);
+                const matchesCategory =
+                    activeFilter === 'all' || category === activeFilter;
+
+                row.style.display =
+                    matchesSearch && matchesCategory ? '' : 'none';
+            });
+        }
+
+        docSearch?.addEventListener('input', filterDocs);
+
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabButtons.forEach(x => x.classList.remove('active'));
+                btn.classList.add('active');
+                filterDocs();
+            });
         });
 
     </script>
