@@ -100,7 +100,7 @@ class MenuProductDetailController extends Controller
             'existing_meta' => ['nullable', 'array'],
             'existing_meta.*.acero' => ['nullable', 'string', 'max:60'],
             'existing_meta.*.melamina' => ['nullable', 'string', 'max:60'],
-
+            'existing_meta.*.cover' => ['nullable', 'string', 'max:5'],
             // remover existentes
             'remove_gallery' => ['nullable', 'array'],
             'remove_gallery.*' => ['nullable', 'string'],
@@ -144,15 +144,17 @@ class MenuProductDetailController extends Controller
         $existingMeta = (array) ($data['existing_meta'] ?? []);
         if (!empty($existingMeta)) {
             foreach ($imgs as $i => $row) {
-                if (!array_key_exists($i, $existingMeta)) {
-                    continue;
-                }
+                foreach ($imgs as $i => $row) {
+                    if (!array_key_exists($i, $existingMeta)) {
+                        continue;
+                    }
 
-                $imgs[$i]['acero'] = trim((string) ($existingMeta[$i]['acero'] ?? ''));
-                $imgs[$i]['melamina'] = trim((string) ($existingMeta[$i]['melamina'] ?? ''));
+                    $imgs[$i]['acero'] = trim((string) ($existingMeta[$i]['acero'] ?? ''));
+                    $imgs[$i]['melamina'] = trim((string) ($existingMeta[$i]['melamina'] ?? ''));
 
-                if (($existingMeta[$i]['cover'] ?? '0') === '1') {
-                    $menu_product->image_path = $imgs[$i]['path'] ?? $menu_product->image_path;
+                    if (($existingMeta[$i]['cover'] ?? '0') === '1') {
+                        $menu_product->image_path = $imgs[$i]['path'] ?? $menu_product->image_path;
+                    }
                 }
             }
         }
