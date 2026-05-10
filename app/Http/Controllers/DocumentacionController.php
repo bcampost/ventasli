@@ -10,6 +10,12 @@ class DocumentacionController extends Controller
 {
     public function index()
     {
+        Documento::query()
+            ->where('estatus', 'Vigente')
+            ->whereNotNull('vigencia')
+            ->where('vigencia', '<', now()->toDateString())
+            ->update(['estatus' => 'Vencido']);
+
         $documentos = Documento::orderByDesc('id')->get();
 
         return view('documentacion.index', compact('documentos'));
@@ -20,14 +26,18 @@ class DocumentacionController extends Controller
         $data = $request->validate([
             'categoria' => ['required', 'string', 'max:255'],
             'nombre' => ['required', 'string', 'max:255'],
-            'vigencia' => ['nullable', 'string', 'max:255'],
-            'estatus' => ['required', 'string', 'max:255'],
-            'periodo' => ['nullable', 'string', 'max:255'],
+            'vigencia' => ['nullable', 'date'],
             'actualizado_en' => ['nullable', 'date'],
             'actualizado_por' => ['nullable', 'string', 'max:255'],
             'responsable' => ['nullable', 'string', 'max:255'],
             'archivo' => ['nullable', 'file', 'max:10240'],
         ]);
+
+        $data['estatus'] = !empty($data['vigencia']) && $data['vigencia'] < now()->toDateString()
+            ? 'Vencido'
+            : 'Vigente';
+
+        unset($data['periodo']);
 
         if ($request->hasFile('archivo')) {
             $data['archivo_path'] = $request->file('archivo')->store('documentacion', 'public');
@@ -43,14 +53,18 @@ class DocumentacionController extends Controller
         $data = $request->validate([
             'categoria' => ['required', 'string', 'max:255'],
             'nombre' => ['required', 'string', 'max:255'],
-            'vigencia' => ['nullable', 'string', 'max:255'],
-            'estatus' => ['required', 'string', 'max:255'],
-            'periodo' => ['nullable', 'string', 'max:255'],
+            'vigencia' => ['nullable', 'date'],
             'actualizado_en' => ['nullable', 'date'],
             'actualizado_por' => ['nullable', 'string', 'max:255'],
             'responsable' => ['nullable', 'string', 'max:255'],
             'archivo' => ['nullable', 'file', 'max:10240'],
         ]);
+
+        $data['estatus'] = !empty($data['vigencia']) && $data['vigencia'] < now()->toDateString()
+            ? 'Vencido'
+            : 'Vigente';
+
+        unset($data['periodo']);
 
         if ($request->hasFile('archivo')) {
             if ($documento->archivo_path && Storage::disk('public')->exists($documento->archivo_path)) {

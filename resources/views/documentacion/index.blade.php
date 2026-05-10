@@ -294,7 +294,6 @@
                             <th>NOMBRE</th>
                             <th>VIGENCIA</th>
                             <th>ESTATUS</th>
-                            <th>PERIODO</th>
                             <th>ACTUALIZADO POR</th>
                             <th>RESPONSABLE</th>
                             <th>ACCIONES</th>
@@ -326,8 +325,6 @@
                                         {{ $doc->estatus }}
                                     </span>
                                 </td>
-
-                                <td>{{ $doc->periodo }}</td>
 
                                 <td>{{ $doc->actualizado_por }}</td>
 
@@ -408,7 +405,7 @@
 
                     <div class="field">
                         <label>Vigencia</label>
-                        <input type="text" name="vigencia" id="fVigencia">
+                        <input type="date" name="vigencia" id="fVigencia">
                     </div>
 
                     <div class="field">
@@ -418,11 +415,6 @@
                             <option>Vigente</option>
                             <option>Vencido</option>
                         </select>
-                    </div>
-
-                    <div class="field">
-                        <label>Periodo</label>
-                        <input type="text" name="periodo" id="fPeriodo">
                     </div>
 
                     <div class="field">
@@ -745,9 +737,6 @@
 
             document.getElementById('fEstatus').value =
                 doc.estatus || '';
-
-            document.getElementById('fPeriodo').value =
-                doc.periodo || '';
 
             document.getElementById('fActualizado').value =
                 doc.actualizado_por || '';
