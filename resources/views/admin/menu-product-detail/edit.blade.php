@@ -1839,26 +1839,34 @@ const item = document.querySelector(`.ep-gallery-item[data-index="${currentImage
 }
 
 function deleteCurrentImage() {
-    if (currentImageIndex === null) return;
 
-    if (!confirm('¿Eliminar esta imagen del producto? Se eliminará al guardar cambios.')) {
+    if (currentImageIndex === null) {
         return;
     }
 
-    const removeInput = document.getElementById(`remove_gallery_${currentImageIndex}`);
+    if (!confirm('¿Eliminar esta imagen del producto?')) {
+        return;
+    }
+
+    const removeInput = document.getElementById(
+        `remove_gallery_${currentImageIndex}`
+    );
 
     if (removeInput) {
         removeInput.checked = true;
     }
 
-    const item = document.querySelector(`.ep-gallery-item[data-index="${currentImageIndex}"]`);
+    const item = document.querySelector(
+        `.ep-gallery-item[data-index="${currentImageIndex}"]`
+    );
 
     if (item) {
+
         const card = item.closest('.ep-gallery-card');
 
         if (card) {
             card.style.opacity = '.35';
-            card.style.pointerEvents = 'none';
+            card.style.pointerEvents = 'none';        
         }
     }
 
