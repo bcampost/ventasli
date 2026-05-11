@@ -42,19 +42,19 @@
       .ep-wrap{ padding-right: 118px; }
     }
 
-    .ep-page{
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 26px 18px 90px;
-    }
+      .ep-page{
+        max-width: 1160px;
+        margin: 0 auto;
+        padding: 18px 18px 90px;
+      }
 
-    .ep-shell{
-      background:#fff;
-      border:1px solid var(--ep-line);
-      border-radius: 28px;
-      box-shadow: var(--ep-shadow);
-      overflow: hidden;
-    }
+      .ep-shell{
+        background:transparent;
+        border:0;
+        border-radius:0;
+        box-shadow:none;
+        overflow:visible;
+      }
 
     .ep-head{
       padding: 28px 28px 22px;
@@ -900,43 +900,285 @@
         grid-template-columns:repeat(2, minmax(0, 1fr));
     }
 }
+.ep-topbar{
+    background:#fff;
+    border:1px solid rgba(15,23,42,.10);
+    border-radius:16px;
+    padding:18px 26px;
+    margin-bottom:18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    box-shadow:0 8px 24px rgba(15,23,42,.04);
+}
 
+.ep-breadcrumb{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-size:.78rem;
+    color:#94a3b8;
+    margin-bottom:8px;
+}
+
+.ep-breadcrumb a{
+    color:#94a3b8;
+    text-decoration:none;
+}
+
+.ep-edit-title{
+    margin:0;
+    color:#0f172a;
+    font-size:1.35rem;
+    font-weight:700;
+    letter-spacing:-.02em;
+}
+
+.ep-edit-meta{
+    margin-top:4px;
+    color:#64748b;
+    font-size:.82rem;
+}
+
+.ep-top-actions{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.ep-cancel-btn,
+.ep-save-btn{
+    height:44px;
+    padding:0 18px;
+    border-radius:8px;
+    font-size:.9rem;
+    font-weight:500;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.ep-cancel-btn{
+    background:#fff;
+    color:#0f172a;
+    border:1px solid rgba(15,23,42,.12);
+}
+
+.ep-save-btn{
+    background:#8fb3f4;
+    color:#fff;
+    border:0;
+}
+
+@media(max-width:780px){
+    .ep-topbar{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .ep-top-actions{
+        width:100%;
+    }
+
+    .ep-cancel-btn,
+    .ep-save-btn{
+        flex:1;
+    }
+}
+
+.ep-main-card{
+    overflow:hidden;
+}
+
+.ep-main-layout{
+    display:grid;
+    grid-template-columns:220px 1fr;
+    gap:22px;
+    padding:22px;
+}
+
+.ep-main-side{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.ep-side-cover{
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius:14px;
+    overflow:hidden;
+    border:1px solid rgba(15,23,42,.08);
+    background:#f8fafc;
+}
+
+.ep-side-cover img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
+.ep-side-empty{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:42px;
+    color:#94a3b8;
+}
+
+.ep-side-upload{
+    width:100%;
+    justify-content:center;
+}
+
+.ep-main-content{
+    min-width:0;
+}
+
+.ep-main-content .ep-input{
+    height:46px;
+}
+
+.ep-main-content .ep-textarea{
+    min-height:260px;
+    resize:vertical;
+}
+
+@media(max-width:980px){
+
+    .ep-main-layout{
+        grid-template-columns:1fr;
+    }
+
+    .ep-main-side{
+        max-width:260px;
+    }
+}
+
+.ep-basic-layout{
+    display:grid;
+    grid-template-columns:190px 1fr;
+    gap:28px;
+    padding:22px 26px;
+}
+
+.ep-basic-side{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.ep-basic-content{
+    min-width:0;
+}
+
+.ep-cover-box{
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius:10px;
+    border:1px solid rgba(15,23,42,.10);
+    background:#eaf0f7;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.ep-cover-box img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+}
+
+.ep-cover-empty{
+    color:#94a3b8;
+    font-size:34px;
+}
+
+.ep-cover-edit{
+    height:34px;
+    border-radius:6px;
+    border:1px solid rgba(15,23,42,.12);
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:.82rem;
+    color:#0f172a;
+}
+
+.ep-description-area{
+    min-height:325px;
+}
+
+@media(max-width:900px){
+    .ep-basic-layout{
+        grid-template-columns:1fr;
+    }
+
+    .ep-basic-side{
+        max-width:220px;
+    }
+}
+
+.ep-main-card{
+    width:100%;
+}
+
+.ep-basic-layout{
+    grid-template-columns:210px 1fr;
+}
+
+.ep-description-area{
+    min-height:330px;
+    height:330px;
+}
   </style>
 
   <div class="ep-page ep-wrap">
     <div class="ep-shell">
 
-      <div class="ep-head">
-        <div class="ep-head-top">
-          <div class="min-w-0">
-            <h1 class="ep-title">Editar detalle del producto</h1>
-            <div class="ep-sub">
-              Centraliza la información comercial y documental del producto. Desde aquí puedes actualizar descripción, medidas y archivos PDF visibles para el usuario.
-            </div>
-
-            <div class="ep-meta">
-              <div class="ep-chip">Producto <code>{{ $product->title }}</code></div>
-              <div class="ep-chip">ID <code>{{ $product->id }}</code></div>
-            </div>
-          </div>
-
-          @if(session('success'))
-            <div class="ep-flash success">
-              {{ session('success') }}
-            </div>
-          @endif
-
-          @if(session('status'))
-            <div class="ep-flash success">
-              {{ session('status') }}
-            </div>
-          @endif
+<div class="ep-topbar">
+    <div>
+        <div class="ep-breadcrumb">
+            <a href="{{ $redirectTo }}">← Productos</a>
+            <span>›</span>
+            <span>{{ $product->title }}</span>
+            <span>›</span>
+            <span>Editar</span>
         </div>
-      </div>
 
-      <form method="POST"
-            action="{{ route('admin.product-details.update', $product) }}"
-            enctype="multipart/form-data">
+        <h1 class="ep-edit-title">{{ $product->title }}</h1>
+
+        <div class="ep-edit-meta">
+            SKU {{ $product->sku ?? $product->title }}
+            · ID interno {{ $product->id }}
+            · Editado hace 2 días
+        </div>
+    </div>
+
+    <div class="ep-top-actions">
+        <a href="{{ $redirectTo }}" class="ep-cancel-btn">
+            Cancelar
+        </a>
+
+          <button type="submit" form="productDetailForm" class="ep-save-btn">
+              Guardar cambios
+          </button>
+    </div>
+</div>
+
+        <form id="productDetailForm"
+              method="POST"
+              action="{{ route('admin.product-details.update', $product) }}"
+              enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -954,121 +1196,87 @@
             </div>
           @endif
 
-          <div class="ep-grid-2">
-            {{-- Información base --}}
-            <div class="ep-card">
-              <div class="ep-card-head">
-                <h2 class="ep-card-title">Información principal</h2>
-                <div class="ep-card-sub">Edita el contenido que el usuario verá como presentación del producto.</div>
-              </div>
+{{-- Información básica --}}
+<div class="ep-card ep-main-card">
 
-<div class="ep-field" style="margin-bottom:16px;">
-  <label class="ep-label">Nombre del producto</label>
-  <input
-    name="product_title"
-    value="{{ old('product_title', $product->title) }}"
-    class="ep-input"
-    placeholder="Ej. Escritorio 1000"
-    required
-  >
-
-  <div class="ep-field" style="margin-top:16px;">
-  <label class="ep-label">Portada del producto</label>
-
-  @if($product->image_path)
-    <div style="margin-bottom:10px;">
-      <img src="{{ asset('storage/'.ltrim($product->image_path,'/')) }}"
-           alt="{{ $product->title }}"
-           style="width:180px;max-width:100%;border-radius:16px;border:1px solid rgba(15,23,42,.12);">
+    <div class="ep-card-head">
+        <h2 class="ep-card-title">Información básica</h2>
+        <div class="ep-card-sub">
+            Datos que el usuario verá como presentación del producto.
+        </div>
     </div>
-  @endif
 
-  <input type="file" name="image" accept="image/*" class="ep-file">
+    <div class="ep-basic-layout">
 
-  <div class="ep-help">
-    Esta imagen se mostrará como portada en la tarjeta/listado del producto.
-  </div>
-</div>
-  <div class="ep-help">
-    Este nombre aparece en las tarjetas y listados del portal.
-  </div>
-</div>
+        {{-- COLUMNA IZQUIERDA --}}
+        <div class="ep-basic-side">
 
+            <div class="ep-field">
+                <label class="ep-label">Portada</label>
 
-              <div class="ep-card-body">
-                <div class="ep-field">
-                  <label class="ep-label">Título personalizado</label>
-                  <input name="title"
-                        value="{{ old('title', $detail->title) }}"
-                        class="ep-input"
-                        placeholder="Ej. Escritorio ejecutivo modular">
-                  <div class="ep-help">Si lo dejas vacío, el sistema mostrará automáticamente el título principal del producto.</div>
+                <div class="ep-cover-box">
+                    @if($product->image_path)
+                        <img
+                            src="{{ asset('storage/'.ltrim($product->image_path,'/')) }}"
+                            alt="{{ $product->title }}"
+                        >
+                    @else
+                        <div class="ep-cover-empty">▧</div>
+                    @endif
                 </div>
+            </div>
 
-                <div class="ep-field" style="margin-top:16px;">
-                  <label class="ep-label">Descripción</label>
-                  <textarea name="description"
-                            rows="5"
-                            class="ep-textarea"
-                            placeholder="Describe el producto, sus ventajas o su uso recomendado.">{{ old('description', $detail->description) }}</textarea>
-                  <div class="ep-help">Usa una redacción clara y comercial para ayudar al usuario a entender mejor el producto.</div>
-                </div>
-                <div class="ep-field" style="margin-top:16px;">
-                  <label class="ep-label">Código ingeniería</label>
-                  <input
+            <div class="ep-field">
+                <label class="ep-label">SKU</label>
+                <input
+                    name="product_title"
+                    value="{{ old('product_title', $product->title) }}"
+                    class="ep-input"
+                >
+            </div>
+
+            <div class="ep-field">
+                <label class="ep-label">Código de ingeniería</label>
+                <input
                     name="ingenieria_code"
                     value="{{ old('ingenieria_code', $product->ingenieria_code) }}"
                     class="ep-input"
                     placeholder="Ej. 1214"
-                  >
-                  <div class="ep-help">
-                    Solo el código base. Ejemplo: 1214 (el sistema buscará 1214F, 1214I, etc.)
-                  </div>
+                >
+                <div class="ep-help">
+                    El sistema buscará 1214F, 1214L, etc.
                 </div>
-
-              </div>
             </div>
 
-            {{-- Medidas --}}
-            <div class="ep-card">
-              <div class="ep-card-head">
-                <h2 class="ep-card-title">Dimensiones</h2>
-                <div class="ep-card-sub">Registra las medidas principales del producto para referencia rápida.</div>
-              </div>
+        </div>
 
-              <div class="ep-card-body">
-                <div class="ep-grid-3">
-                  <div class="ep-field">
-                    <label class="ep-label">Largo</label>
-                    <input name="length"
-                          value="{{ old('length', $detail->length) }}"
-                          class="ep-input"
-                          placeholder="Ej. 180 cm">
-                  </div>
+        {{-- COLUMNA DERECHA --}}
+        <div class="ep-basic-content">
 
-                  <div class="ep-field">
-                    <label class="ep-label">Ancho</label>
-                    <input name="width"
-                          value="{{ old('width', $detail->width) }}"
-                          class="ep-input"
-                          placeholder="Ej. 80 cm">
-                  </div>
-
-                  <div class="ep-field">
-                    <label class="ep-label">Alto</label>
-                    <input name="height"
-                          value="{{ old('height', $detail->height) }}"
-                          class="ep-input"
-                          placeholder="Ej. 75 cm">
-                  </div>
-                </div>
-
-                <div class="ep-note" style="margin-top:16px;">
-                  Mantén el mismo formato de captura en todas las medidas para que la lectura sea consistente en la plataforma.
-                </div>
-              </div>
+            <div class="ep-field">
+                <label class="ep-label">Nombre del producto</label>
+                <input
+                    name="title"
+                    value="{{ old('title', $detail->title ?: $product->title) }}"
+                    class="ep-input"
+                    placeholder="Ej. Escritorio 180 x 80"
+                >
             </div>
-          </div>
+
+            <div class="ep-field" style="margin-top:18px;">
+                <label class="ep-label">Descripción</label>
+                <textarea
+                    name="description"
+                    rows="11"
+                    class="ep-textarea ep-description-area"
+                >{{ old('description', $detail->description) }}</textarea>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
   {{-- GALERÍA NUEVA --}}
 <div class="ep-card">
