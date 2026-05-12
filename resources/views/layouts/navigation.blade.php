@@ -898,30 +898,70 @@
     <div class="v-mobile-panel" id="vMobilePanel">
       <div class="v-menu">
         @foreach($navRoots as $root)
-          @php
-            $rootSlug = Str::slug($root->label, '-');
-            $hasKids = $root->children && $root->children->count() > 0;
+            @php
+              $rootSlug = Str::slug($root->label, '-');
 
-            $rootHref = $hasKids
-              ? 'javascript:void(0)'
-              : $hrefFor($rootSlug, $root, []);
+              $children = $root->children ?? collect();
 
-            $isPriceList = mb_strtolower(trim($root->label)) === mb_strtolower('Lista de precios');
-            $isProducts = mb_strtolower(trim($root->label)) === mb_strtolower('Productos');
+              $hasKids = $children->count() > 0;
+              $hasMultipleKids = $children->count() > 1;
+              $hasSingleKid = $children->count() === 1;
 
-            $canShowTools = $isAdmin && $hasKids;
+              /*
+              |--------------------------------------------------------------------------
+              | Link principal
+              |--------------------------------------------------------------------------
+              |
+              | - Sin hijos        -> va al propio nodo
+              | - 1 hijo           -> va directo al hijo
+              | - +1 hijos         -> dropdown normal
+              |
+              */
 
-            $hasManageRoute = \Illuminate\Support\Facades\Route::has('admin.menu.manage');
-            $hasPricePdfsRoute = \Illuminate\Support\Facades\Route::has('admin.price-list-pdfs.index');
-          @endphp
+              if ($hasSingleKid) {
+
+                  $firstChild = $children->first();
+
+                  $firstChildSlug = Str::slug($firstChild->label, '-');
+
+                  $rootHref = $hrefFor(
+                      $rootSlug,
+                      $firstChild,
+                      [$firstChildSlug]
+                  );
+
+              } elseif ($hasMultipleKids) {
+
+                  $rootHref = 'javascript:void(0)';
+
+              } else {
+
+                  $rootHref = $hrefFor($rootSlug, $root, []);
+              }
+
+              $isPriceList = mb_strtolower(trim($root->label)) === mb_strtolower('Lista de precios');
+              $isProducts = mb_strtolower(trim($root->label)) === mb_strtolower('Productos');
+
+              $canShowTools = $isAdmin && $hasKids;
+
+              $hasManageRoute = \Illuminate\Support\Facades\Route::has('admin.menu.manage');
+              $hasPricePdfsRoute = \Illuminate\Support\Facades\Route::has('admin.price-list-pdfs.index');
+            @endphp
 
           <div class="v-item">
-            <a class="v-link" href="{{ $rootHref }}" @if($hasKids) onclick="return handleMenuToggle(event, this)" @endif>
-              {{ $root->label }}
-              @if($hasKids)<span class="v-caret">▾</span>@endif
+                  <a
+                    class="v-link"
+                    href="{{ $rootHref }}"
+                    @if($hasMultipleKids)
+                      onclick="return handleMenuToggle(event, this)"
+                    @endif
+                  >              {{ $root->label }}
+                @if($hasMultipleKids)
+                  <span class="v-caret">▾</span>
+                @endif
             </a>
 
-            @if($hasKids)
+            @if($hasMultipleKids)
               <div class="v-dd">
                 @if(!$isProducts)
                   @foreach($root->children as $child)

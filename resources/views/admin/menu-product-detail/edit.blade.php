@@ -406,11 +406,119 @@
         padding-right:18px;
       }
     }
-.ep-upload-grid{
-  display:grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap:12px;
-}
+
+    /* =========================================
+      DRAG & DROP UPLOADER
+    ========================================= */
+
+    .ep-dropzone{
+        position:relative;
+        border:2px dashed rgba(37,99,235,.22);
+        background:
+            linear-gradient(
+                180deg,
+                rgba(248,250,252,.96),
+                rgba(255,255,255,1)
+            );
+        border-radius:24px;
+        padding:34px 26px;
+        text-align:center;
+        transition:
+            border-color .22s ease,
+            background .22s ease,
+            transform .22s ease,
+            box-shadow .22s ease;
+        overflow:hidden;
+    }
+
+    .ep-dropzone:hover{
+        border-color:rgba(37,99,235,.45);
+        box-shadow:0 18px 42px rgba(37,99,235,.10);
+        transform:translateY(-1px);
+    }
+
+    .ep-dropzone.dragging{
+        border-color:#2563eb;
+        background:
+            linear-gradient(
+                180deg,
+                rgba(219,234,254,.72),
+                rgba(239,246,255,.92)
+            );
+        box-shadow:
+            0 0 0 6px rgba(37,99,235,.10),
+            0 22px 48px rgba(37,99,235,.14);
+    }
+
+    .ep-drop-icon{
+        width:72px;
+        height:72px;
+        margin:0 auto 18px;
+        border-radius:22px;
+        background:
+            linear-gradient(
+                180deg,
+                rgba(37,99,235,.12),
+                rgba(37,99,235,.06)
+            );
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:34px;
+    }
+
+    .ep-drop-title{
+        font-size:1.08rem;
+        font-weight:700;
+        color:#0f172a;
+        letter-spacing:-.01em;
+    }
+
+    .ep-drop-sub{
+        margin-top:8px;
+        color:#64748b;
+        font-size:.92rem;
+        line-height:1.55;
+    }
+
+    .ep-drop-browse{
+        margin-top:18px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        gap:8px;
+        height:44px;
+        padding:0 18px;
+        border-radius:14px;
+        background:#2563eb;
+        color:#fff;
+        font-size:.9rem;
+        font-weight:600;
+        cursor:pointer;
+        transition:.2s ease;
+        box-shadow:0 14px 28px rgba(37,99,235,.18);
+    }
+
+    .ep-drop-browse:hover{
+        transform:translateY(-1px);
+        background:#1d4ed8;
+    }
+
+    .ep-drop-meta{
+        margin-top:14px;
+        font-size:.8rem;
+        color:#94a3b8;
+    }
+
+    .ep-dropzone input[type="file"]{
+        display:none;
+    }
+
+    .ep-upload-grid{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap:12px;
+    }
 
     .ep-u-card{
       border:1px solid var(--ep-line);
@@ -1295,18 +1403,54 @@
         <div class="ep-field">
             <label class="ep-label">Subir imágenes</label>
 
-            <input
-                type="file"
-                name="gallery_images[]"
-                id="gallery_input"
-                accept="image/*"
-                multiple
-                class="ep-file"
-            >
+          <div
+              class="ep-dropzone"
+              id="gallery_dropzone"
+          >
 
-            <div class="ep-help">
-                Puedes subir múltiples imágenes.
-            </div>
+              <div class="ep-drop-icon">
+                  🖼
+              </div>
+
+              <div class="ep-drop-title">
+                  Arrastra imágenes aquí
+              </div>
+
+              <div class="ep-drop-sub">
+                  O selecciónalas manualmente desde tu computadora.
+                  <br>
+                  Puedes subir múltiples imágenes al mismo tiempo.
+              </div>
+
+              <label
+                  for="gallery_input"
+                  class="ep-drop-browse"
+              >
+                  Seleccionar imágenes
+              </label>
+
+              <div class="ep-drop-meta">
+                  JPG · PNG · WEBP
+              </div>
+
+              <div
+                  id="gallery_count"
+                  style="
+                      margin-top:8px;
+                      font-size:.82rem;
+                      color:#2563eb;
+                      font-weight:600;
+                  "
+              ></div>
+
+              <input
+                  type="file"
+                  name="gallery_images[]"
+                  id="gallery_input"
+                  accept="image/*"
+                  multiple
+              >
+          </div>
 
 <div id="upload_previews" class="ep-upload-grid" style="margin-top:16px;"></div>
 
@@ -1817,6 +1961,13 @@ onclick='openImageTagger(
           wrap.innerHTML = '';
 
           const files = Array.from(input.files || []);
+          const count = document.getElementById('gallery_count');
+            if(count){
+                count.textContent = files.length
+                    ? `${files.length} imagen(es) seleccionada(s)`
+                    : '';
+            }
+
           const acero = getCurrentAceroColors();
           const laminado = getCurrentLaminadoColors();
 
@@ -1849,10 +2000,82 @@ onclick='openImageTagger(
           });
         }
 
+        function setupGalleryDropzone(){
+
+            const dropzone = document.getElementById('gallery_dropzone');
+            const input = document.getElementById('gallery_input');
+
+            if(!dropzone || !input){
+                return;
+            }
+
+            dropzone.addEventListener('click', (e) => {
+
+                const isFileInput = e.target === input;
+                const isBrowseBtn = e.target.closest('.ep-drop-browse');
+
+                if(isFileInput || isBrowseBtn){
+                    return;
+                }
+
+                input.click();
+            });
+
+            [
+                'dragenter',
+                'dragover'
+            ].forEach(eventName => {
+
+                dropzone.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    dropzone.classList.add('dragging');
+                });
+
+            });
+
+            [
+                'dragleave',
+                'dragend',
+                'drop'
+            ].forEach(eventName => {
+
+                dropzone.addEventListener(eventName, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    dropzone.classList.remove('dragging');
+                });
+
+            });
+
+            dropzone.addEventListener('drop', e => {
+
+                const files = e.dataTransfer.files;
+
+                if(!files || !files.length){
+                    return;
+                }
+
+                Array.from(files)
+                    .filter(file => file.type.startsWith('image/'))
+                    .forEach(file => {
+                        dt.items.add(file);
+                    });
+
+                  input.files = dt.files;
+
+                renderUploadPreviews();
+            });
+        }
+
+
         document.addEventListener('DOMContentLoaded', function(){
           const galleryInput = document.getElementById('gallery_input');
           if (galleryInput) {
             galleryInput.addEventListener('change', renderUploadPreviews);
+            setupGalleryDropzone();
           }
         });
       </script>
