@@ -898,67 +898,74 @@
     <div class="v-mobile-panel" id="vMobilePanel">
       <div class="v-menu">
         @foreach($navRoots as $root)
-            @php
-              $rootSlug = Str::slug($root->label, '-');
+          @php
+            $rootSlug = Str::slug($root->label, '-');
 
-              $children = $root->children ?? collect();
+            $children = $root->children ?? collect();
 
-              $hasKids = $children->count() > 0;
+            $hasKids = $children->count() > 0;
+
+            $isMaterialVisual = mb_strtolower(trim($root->label)) === mb_strtolower('Material Visual');
+
+            /*
+            |--------------------------------------------------------------------------
+            | Material Visual debe entrar directo a su página
+            |--------------------------------------------------------------------------
+            */
+            if ($isMaterialVisual) {
+              $hasMultipleKids = false;
+              $hasSingleKid = false;
+            } else {
               $hasMultipleKids = $children->count() > 1;
               $hasSingleKid = $children->count() === 1;
+            }
 
-              /*
-              |--------------------------------------------------------------------------
-              | Link principal
-              |--------------------------------------------------------------------------
-              |
-              | - Sin hijos        -> va al propio nodo
-              | - 1 hijo           -> va directo al hijo
-              | - +1 hijos         -> dropdown normal
-              |
-              */
+            /*
+            |--------------------------------------------------------------------------
+            | Link principal
+            |--------------------------------------------------------------------------
+            |
+            | - Sin hijos        -> va al propio nodo
+            | - 1 hijo           -> va directo al hijo
+            | - +1 hijos         -> dropdown normal
+            |
+            */
 
-              if ($hasSingleKid) {
+            if ($isMaterialVisual) {
 
-                  $firstChild = $children->first();
+              $rootHref = url('/material-visual?tab=renders');
 
-                  $firstChildSlug = Str::slug($firstChild->label, '-');
+            } elseif ($hasSingleKid) {
 
-                  $rootHref = $hrefFor(
-                      $rootSlug,
-                      $firstChild,
-                      [$firstChildSlug]
-                  );
+              $firstChild = $children->first();
+              $firstChildSlug = Str::slug($firstChild->label, '-');
 
-              } elseif ($hasMultipleKids) {
+              $rootHref = $hrefFor($rootSlug, $firstChild, [$firstChildSlug]);
 
-                  $rootHref = 'javascript:void(0)';
+            } elseif ($hasMultipleKids) {
 
-              } else {
+              $rootHref = 'javascript:void(0)';
 
-                  $rootHref = $hrefFor($rootSlug, $root, []);
-              }
+            } else {
 
-              $isPriceList = mb_strtolower(trim($root->label)) === mb_strtolower('Lista de precios');
-              $isProducts = mb_strtolower(trim($root->label)) === mb_strtolower('Productos');
+              $rootHref = $hrefFor($rootSlug, $root, []);
+            }
 
-              $canShowTools = $isAdmin && $hasKids;
+            $isPriceList = mb_strtolower(trim($root->label)) === mb_strtolower('Lista de precios');
+            $isProducts = mb_strtolower(trim($root->label)) === mb_strtolower('Productos');
 
-              $hasManageRoute = \Illuminate\Support\Facades\Route::has('admin.menu.manage');
-              $hasPricePdfsRoute = \Illuminate\Support\Facades\Route::has('admin.price-list-pdfs.index');
-            @endphp
+            $canShowTools = $isAdmin && $hasKids;
+
+            $hasManageRoute = \Illuminate\Support\Facades\Route::has('admin.menu.manage');
+            $hasPricePdfsRoute = \Illuminate\Support\Facades\Route::has('admin.price-list-pdfs.index');
+          @endphp
 
           <div class="v-item">
-                  <a
-                    class="v-link"
-                    href="{{ $rootHref }}"
-                    @if($hasMultipleKids)
-                      onclick="return handleMenuToggle(event, this)"
-                    @endif
-                  >              {{ $root->label }}
-                @if($hasMultipleKids)
-                  <span class="v-caret">▾</span>
-                @endif
+            <a class="v-link" href="{{ $rootHref }}" @if($hasMultipleKids) onclick="return handleMenuToggle(event, this)"
+            @endif> {{ $root->label }}
+              @if($hasMultipleKids)
+                <span class="v-caret">▾</span>
+              @endif
             </a>
 
             @if($hasMultipleKids)
