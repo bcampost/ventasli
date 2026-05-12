@@ -208,9 +208,11 @@
   }
 
   .v-caret {
-    font-size: 10px;
-    color: rgba(15, 23, 42, .48);
-    margin-left: 2px;
+    font-size: 16px;
+    color: rgba(15, 23, 42, .78);
+    margin-left: 6px;
+    line-height: 1;
+    font-weight: 900;
     transform: translateY(1px);
   }
 
@@ -331,10 +333,11 @@
   }
 
   .v-dd-arrow {
-    font-size: 11px;
-    color: rgba(15, 23, 42, .55);
-    font-weight: 300;
-    margin-left: 8px;
+    font-size: 16px;
+    color: rgba(15, 23, 42, .78);
+    font-weight: 900;
+    margin-left: 10px;
+    line-height: 1;
   }
 
   /* ✅ contenedor engranes abajo del dropdown */
