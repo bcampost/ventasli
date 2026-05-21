@@ -107,7 +107,9 @@
   </div>
 
   {{-- ✅ Ranking sube automáticamente al ocultar comunicados --}}
-  @include('partials.rankings-dashboard')
+  <div class="home-ranking-space">
+    @include('partials.rankings-dashboard')
+  </div>
 
   <style>
     :root {
@@ -408,6 +410,21 @@
 
     .home-comunicados-link:hover {
       text-decoration: underline;
+    }
+
+    .home-ranking-space {
+      margin: 0;
+      padding: 0 0 32px;
+      line-height: 0;
+    }
+
+    .home-ranking-space>* {
+      line-height: normal;
+    }
+
+    .home-ranking-space iframe {
+      display: block;
+      margin: 0;
     }
   </style>
 
