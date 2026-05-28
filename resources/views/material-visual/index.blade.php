@@ -15,7 +15,7 @@
 
         <h1 id="mvPageTitle">Material Visual</h1>
 
-        <p class="mv-subtitle">
+        <p id="mvSubtitle" class="mv-subtitle">
           Explora renders, fotografías, videos y proyectos comerciales.
         </p>
       </div>
@@ -32,6 +32,7 @@
         <button class="mv-tab {{ $initialTab === 'videos' ? 'active' : '' }}" data-tab="videos">Videos</button>
         <button class="mv-tab {{ $initialTab === 'proyectos' ? 'active' : '' }}" data-tab="proyectos">Historias de
           éxito</button>
+        <button class="mv-tab {{ $initialTab === 'redes' ? 'active' : '' }}" data-tab="redes">Redes Sociales</button>
       </div>
     </div>
     <div id="mvSubtabs" class="mv-subtabs" style="display:none;"></div>
@@ -694,6 +695,124 @@
       color: #fff;
     }
 
+    /* REDES SOCIALES */
+
+    .mv-thumb.mv-thumb-16x9 {
+      aspect-ratio: 16 / 9;
+    }
+
+    .mv-thumb.mv-thumb-1x1 {
+      aspect-ratio: 1 / 1;
+    }
+
+    .mv-play-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color .18s ease;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .mv-card:hover .mv-play-overlay {
+      background: rgba(0, 0, 0, .10);
+    }
+
+    .mv-play-overlay-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .18);
+    }
+
+    .mv-play-overlay-circle::before {
+      content: '';
+      display: block;
+      width: 0;
+      height: 0;
+      margin-left: 4px;
+      border-left: 14px solid #111827;
+      border-top: 9px solid transparent;
+      border-bottom: 9px solid transparent;
+    }
+
+    .mv-duration-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, .72);
+      color: #fff;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: .02em;
+      z-index: 6;
+    }
+
+    .mv-grid.mv-grid-2col {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px;
+    }
+
+    .mv-redes-section-label {
+      grid-column: 1 / -1;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      color: #94a3b8;
+      text-transform: uppercase;
+      margin: 0 0 6px;
+    }
+
+    .mv-card-category .mv-thumb {
+      aspect-ratio: 16 / 9;
+    }
+
+    .mv-card-category .mv-body {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      gap: 12px;
+    }
+
+    .mv-card-category .mv-card-meta {
+      font-size: .85rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    .mv-card-category-chevron {
+      font-size: 22px;
+      color: #cbd5e1;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .mv-back-link {
+      background: none;
+      border: 0;
+      font-size: .85rem;
+      color: #64748b;
+      cursor: pointer;
+      padding: 6px 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+    }
+
+    .mv-back-link:hover {
+      color: #111827;
+    }
+
     /* MOBILE */
 
     @media(max-width:900px) {
@@ -707,6 +826,10 @@
       }
 
       .mv-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mv-grid.mv-grid-2col {
         grid-template-columns: 1fr;
       }
 
@@ -735,6 +858,89 @@
       subfilter: '',
       parentKey: null
     };
+
+    const REDES_SUBSECTIONS = {
+      'redes/historias': {
+        name: 'Historias de éxito',
+        description: 'Videos de proyectos reales con clientes.',
+        aspectClass: 'mv-thumb-16x9',
+        isVideo: true,
+      },
+      'redes/posts': {
+        name: 'Posts',
+        description: 'Publicaciones gráficas para redes sociales.',
+        aspectClass: 'mv-thumb-1x1',
+        isVideo: false,
+      },
+    };
+    const REDES_CATEGORY_ORDER = ['redes/historias', 'redes/posts'];
+
+    const HERO_DEFAULTS = {
+      title: 'Material Visual',
+      subtitle: 'Explora renders, fotografías, videos y proyectos comerciales.',
+    };
+
+    function updateHero(title, subtitle) {
+      const titleEl = document.getElementById('mvPageTitle');
+      const subEl = document.getElementById('mvSubtitle');
+      if (titleEl) titleEl.textContent = title;
+      if (subEl) subEl.textContent = subtitle;
+    }
+
+    function resetHero() {
+      updateHero(HERO_DEFAULTS.title, HERO_DEFAULTS.subtitle);
+    }
+
+    function renderRedesCategoryPicker() {
+      const grid = document.getElementById('mvGrid');
+      const panel = document.querySelector('.mv-panel');
+      const toolbar = document.querySelector('.mv-toolbar');
+      if (panel) panel.style.display = 'none';
+      if (toolbar) toolbar.style.display = 'none';
+
+      updateHero('Redes Sociales', 'Material visual publicado en nuestras redes, listo para compartir o reutilizar.');
+
+      grid.classList.add('mv-grid-2col');
+
+      const header = document.createElement('p');
+      header.className = 'mv-redes-section-label';
+      header.textContent = 'Selecciona una categoría';
+      grid.appendChild(header);
+
+      REDES_CATEGORY_ORDER.forEach(key => {
+        const sub = REDES_SUBSECTIONS[key];
+        const count = DB_ITEMS.filter(i => i.section === 'redes' && i.parent_key === key).length;
+
+        const card = document.createElement('div');
+        card.className = 'mv-card mv-card-category';
+        card.innerHTML = `
+          <div class="mv-thumb">
+            <span>🖼️</span>
+          </div>
+          <div class="mv-body">
+            <div>
+              <div class="mv-title">${sub.name}</div>
+              <div class="mv-card-meta">${count} archivo${count === 1 ? '' : 's'}</div>
+            </div>
+            <span class="mv-card-category-chevron">›</span>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          MV.parentKey = key;
+          render();
+        });
+        grid.appendChild(card);
+      });
+
+      const counter = document.getElementById('mvCounter');
+      if (counter) {
+        const total = DB_ITEMS.filter(i => i.section === 'redes').length;
+        counter.textContent = `${total} archivo${total === 1 ? '' : 's'}`;
+      }
+
+      const currentSection = document.getElementById('mvCurrentSection');
+      if (currentSection) currentSection.textContent = 'Redes Sociales';
+    }
 
     function normalize(text) {
       return String(text || '')
@@ -817,14 +1023,43 @@
 
       grid.innerHTML = '';
 
+      // Restablecer estado visual heredado del render anterior
+      const panel = document.querySelector('.mv-panel');
+      const toolbar = document.querySelector('.mv-toolbar');
+      if (panel) panel.style.display = '';
+      if (toolbar) toolbar.style.display = '';
+      grid.classList.remove('mv-grid-2col');
+      resetHero();
+
+      // Redes Sociales raíz → selector de subcategorías y salir
+      if (MV.tab === 'redes' && !MV.parentKey) {
+        renderRedesCategoryPicker();
+        return;
+      }
+
+      // Detectar subsección de Redes Sociales para estilos especiales
+      const redesSubConfig = (MV.tab === 'redes' && MV.parentKey) ? REDES_SUBSECTIONS[MV.parentKey] : null;
+      if (redesSubConfig) {
+        updateHero(redesSubConfig.name, redesSubConfig.description);
+      }
+
       if (MV.parentKey !== null) {
         const back = document.createElement('div');
         back.style.gridColumn = '1 / -1';
-        back.innerHTML = `
+
+        if (redesSubConfig) {
+          back.innerHTML = `
+            <button type="button" class="mv-back-link" style="margin-bottom:8px;">
+              ← Volver a Redes Sociales
+            </button>
+            `;
+        } else {
+          back.innerHTML = `
             <button type="button" class="mv-tab active" style="margin-bottom:10px;">
               ← Volver
             </button>
             `;
+        }
 
         back.querySelector('button').addEventListener('click', () => {
           MV.parentKey = null;
@@ -885,9 +1120,17 @@
 
       const currentSection = document.getElementById('mvCurrentSection');
       if (currentSection) {
-        currentSection.textContent = MV.tab === 'proyectos'
-          ? 'Historias de éxito'
-          : MV.tab.charAt(0).toUpperCase() + MV.tab.slice(1);
+        if (MV.tab === 'proyectos') {
+          currentSection.textContent = 'Historias de éxito';
+        } else if (MV.tab === 'redes') {
+          if (redesSubConfig) {
+            currentSection.innerHTML = `Redes Sociales <span>›</span> ${redesSubConfig.name}`;
+          } else {
+            currentSection.textContent = 'Redes Sociales';
+          }
+        } else {
+          currentSection.textContent = MV.tab.charAt(0).toUpperCase() + MV.tab.slice(1);
+        }
       }
 
       if (!items.length) {
@@ -903,16 +1146,26 @@
         return;
       }
 
+      const thumbExtraClass = redesSubConfig ? redesSubConfig.aspectClass : '';
+      const showPlayOverlay = !!(redesSubConfig && redesSubConfig.isVideo);
+      const durationRegex = /^\d{1,2}:\d{2}$/;
+
       items.forEach(item => {
         const el = document.createElement('div');
         el.className = 'mv-card';
 
+        const duration = (showPlayOverlay && item.description && durationRegex.test(item.description.trim()))
+          ? item.description.trim()
+          : null;
+
         el.innerHTML = `
-          <div class="mv-thumb">
+          <div class="mv-thumb ${thumbExtraClass}">
             ${item.thumb_url
             ? `<img src="${item.thumb_url}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;">`
             : `<span>${iconFor(item.type, item.section)}</span>`
           }
+            ${showPlayOverlay ? `<div class="mv-play-overlay"><div class="mv-play-overlay-circle"></div></div>` : ''}
+            ${duration ? `<div class="mv-duration-badge">${duration}</div>` : ''}
 
             @if(auth()->check() && method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole('admin'))
               <div class="mv-thumb-actions">
