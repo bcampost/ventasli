@@ -155,11 +155,6 @@
       object-fit: contain;
     }
 
-    #pdfBody {
-      flex: 1;
-      background: #0b1220;
-    }
-
     #pdfFrame {
       width: 100%;
       height: 100%;
@@ -351,27 +346,37 @@
         resetZoom();
       };
 
-      window.openPdfPreview = function (url, title) {
-        if (!url) return;
+      // ============ Detección de tipos por extensión ============
+      function extOf(u) {
+        const lower = String(u || '').toLowerCase().split('#')[0].split('?')[0];
+        const m = lower.match(/\.([a-z0-9]+)$/);
+        return m ? m[1] : '';
+      }
 
-        resetMedia();
+      function isPdfUrl(u) { return extOf(u) === 'pdf'; }
+      function isWordUrl(u) { return ['doc', 'docx'].includes(extOf(u)); }
+      function isExcelUrl(u) { return ['xls', 'xlsx'].includes(extOf(u)); }
+      function isImageUrl(u) { return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extOf(u)); }
+      function isVideoUrl(u) { return ['mp4', 'webm', 'ogg'].includes(extOf(u)); }
+      function needsOfficeViewer(u) { return isWordUrl(u) || isExcelUrl(u); }
 
-        if (frame()) {
-          frame().src = url;
-          frame().style.display = 'block';
-        }
+      function toAbsUrl(u) {
+        try { return new URL(u, window.location.href).toString(); }
+        catch (_) { return u; }
+      }
 
-        openModal(url, title || 'Documento');
-      };
+      function officeEmbedUrl(absUrl) {
+        const base = absUrl.split('#')[0];
+        return 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(base);
+      }
 
+      // ============ Vista previa universal ============
       window.openMediaPreview = function (url, title) {
         if (!url) return;
 
         resetMedia();
 
-        const lower = String(url).toLowerCase();
-
-        if (lower.match(/\.(png|jpg|jpeg|gif|webp|svg)(\?.*)?$/)) {
+        if (isImageUrl(url)) {
           if (imageWrap()) imageWrap().style.display = 'flex';
           if (imageEl()) {
             imageEl().src = url;
@@ -380,13 +385,21 @@
           showZoomBar(true);
           resetZoom();
         }
-        else if (lower.match(/\.(mp4|webm|ogg)(\?.*)?$/)) {
+        else if (isVideoUrl(url)) {
           if (videoEl()) {
             videoEl().src = url;
             videoEl().style.display = 'block';
           }
         }
+        else if (needsOfficeViewer(url)) {
+          // Word o Excel → visor embed de Microsoft Office (requiere URL pública).
+          if (frame()) {
+            frame().src = officeEmbedUrl(toAbsUrl(url));
+            frame().style.display = 'block';
+          }
+        }
         else {
+          // PDF u otros → iframe directo.
           if (frame()) {
             frame().src = url;
             frame().style.display = 'block';
@@ -394,6 +407,15 @@
         }
 
         openModal(url, title || 'Vista previa');
+
+        // La descarga siempre apunta al archivo original.
+        const downloadBtn = document.getElementById('downloadMediaBtn');
+        if (downloadBtn) downloadBtn.href = url;
+      };
+
+      // openPdfPreview se mantiene como alias para no romper llamadas existentes.
+      window.openPdfPreview = function (url, title) {
+        window.openMediaPreview(url, title || 'Documento');
       };
 
       window.closePdfPreview = function () {

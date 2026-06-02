@@ -12,16 +12,16 @@ use Illuminate\Support\Facades\Schema;
 class FooterLinkController extends Controller
 {
 
-private function footerLinksColumns(): array
-{
-    static $cols = null;
+    private function footerLinksColumns(): array
+    {
+        static $cols = null;
 
-    if ($cols === null) {
-        $cols = Schema::getColumnListing('footer_links');
+        if ($cols === null) {
+            $cols = Schema::getColumnListing('footer_links');
+        }
+
+        return $cols;
     }
-
-    return $cols;
-}
     /**
      * Update de un solo link (pantallas clásicas).
      * Soporta menu|external|file (file NO sube archivo aquí; eso lo hace bulkUpdate o upload()).
@@ -29,24 +29,24 @@ private function footerLinksColumns(): array
     public function update(Request $request, FooterLink $footer_link)
     {
         $data = $request->validate([
-            'label'        => ['required', 'string', 'max:120'],
-            'link_mode'    => ['required', 'in:menu,external,file'],
-            'menu_path'    => ['nullable', 'string', 'max:255'],
+            'label' => ['required', 'string', 'max:120'],
+            'link_mode' => ['required', 'in:menu,external,file'],
+            'menu_path' => ['nullable', 'string', 'max:255'],
             'external_url' => ['nullable', 'string', 'max:2048'],
-            'is_active'    => ['nullable'],
-            'sort'         => ['nullable', 'integer', 'min:0'],
-            'redirect_to'  => ['nullable', 'string', 'max:2048'],
+            'is_active' => ['nullable'],
+            'sort' => ['nullable', 'integer', 'min:0'],
+            'redirect_to' => ['nullable', 'string', 'max:2048'],
         ]);
 
         $mode = (string) $data['link_mode'];
 
         // Normaliza
         $menuPath = trim((string) ($data['menu_path'] ?? ''), '/');
-        $extUrl   = trim((string) ($data['external_url'] ?? ''));
+        $extUrl = trim((string) ($data['external_url'] ?? ''));
 
-        $footer_link->label     = $data['label'];
+        $footer_link->label = $data['label'];
         $footer_link->link_mode = $mode;
-        $footer_link->sort      = isset($data['sort']) ? (int) $data['sort'] : $footer_link->sort;
+        $footer_link->sort = isset($data['sort']) ? (int) $data['sort'] : $footer_link->sort;
         $footer_link->is_active = $request->has('is_active')
             ? (bool) $request->boolean('is_active')
             : $footer_link->is_active;
@@ -57,11 +57,11 @@ private function footerLinksColumns(): array
             }
 
             $footer_link->external_url = $extUrl;
-            $footer_link->menu_path    = $menuPath ?: ($footer_link->menu_path ?: ('capacitaciones/' . $footer_link->key));
+            $footer_link->menu_path = $menuPath ?: ($footer_link->menu_path ?: ('capacitaciones/' . $footer_link->key));
 
             // NO borramos file_path por si regresan a "file"
         } elseif ($mode === 'menu') {
-            $footer_link->menu_path    = $menuPath !== '' ? $menuPath : ($footer_link->menu_path ?: ('capacitaciones/' . $footer_link->key));
+            $footer_link->menu_path = $menuPath !== '' ? $menuPath : ($footer_link->menu_path ?: ('capacitaciones/' . $footer_link->key));
             $footer_link->external_url = null;
 
             // NO borramos file_path por si regresan a "file"
@@ -69,7 +69,7 @@ private function footerLinksColumns(): array
             // Aquí NO subimos archivo en update(). Solo dejamos el modo.
             // Si no hay archivo, menu_path queda como fallback
             $footer_link->external_url = null;
-            $footer_link->menu_path    = $menuPath ?: ($footer_link->menu_path ?: ('capacitaciones/' . $footer_link->key));
+            $footer_link->menu_path = $menuPath ?: ($footer_link->menu_path ?: ('capacitaciones/' . $footer_link->key));
         }
 
         $footer_link->save();
@@ -90,16 +90,20 @@ private function footerLinksColumns(): array
     {
         // items viene como JSON string
         $items = json_decode((string) $request->input('items', '[]'), true);
-        if (!is_array($items)) $items = [];
+        if (!is_array($items))
+            $items = [];
 
         foreach ($items as $row) {
-            if (!isset($row['id'])) continue;
+            if (!isset($row['id']))
+                continue;
 
             $link = FooterLink::find($row['id']);
-            if (!$link) continue;
+            if (!$link)
+                continue;
 
             $label = trim((string) ($row['label'] ?? ''));
-            if ($label === '') continue;
+            if ($label === '')
+                continue;
 
             $mode = (string) ($row['link_mode'] ?? 'menu');
             if (!in_array($mode, ['menu', 'external', 'file'], true)) {
@@ -115,11 +119,11 @@ private function footerLinksColumns(): array
             }
 
             $menuPath = trim((string) ($row['menu_path'] ?? ''), '/');
-            $extUrl   = trim((string) ($row['external_url'] ?? ''));
+            $extUrl = trim((string) ($row['external_url'] ?? ''));
 
-            $link->label     = $label;
+            $link->label = $label;
             $link->link_mode = $mode;
-            $link->sort      = isset($row['sort']) ? (int) $row['sort'] : $link->sort;
+            $link->sort = isset($row['sort']) ? (int) $row['sort'] : $link->sort;
             $link->is_active = array_key_exists('is_active', $row) ? (bool) $row['is_active'] : $link->is_active;
 
             if ($mode === 'external') {
@@ -136,7 +140,7 @@ private function footerLinksColumns(): array
 
                 // no borramos file_path
             } elseif ($mode === 'menu') {
-                $link->menu_path    = $menuPath !== '' ? $menuPath : ($link->menu_path ?: ('capacitaciones/' . $link->key));
+                $link->menu_path = $menuPath !== '' ? $menuPath : ($link->menu_path ?: ('capacitaciones/' . $link->key));
                 $link->external_url = null;
 
                 // no borramos file_path
@@ -151,8 +155,8 @@ private function footerLinksColumns(): array
                     }
 
                     $safeBase = Str::slug(pathinfo($f->getClientOriginalName(), PATHINFO_FILENAME));
-                    $ext      = strtolower($f->getClientOriginalExtension() ?: 'bin');
-                    $final    = $safeBase . '-' . time() . '.' . $ext;
+                    $ext = strtolower($f->getClientOriginalExtension() ?: 'bin');
+                    $final = $safeBase . '-' . time() . '.' . $ext;
 
                     $path = $f->storeAs('footer/capacitaciones', $final, 'public');
 
@@ -201,7 +205,7 @@ private function footerLinksColumns(): array
     public function upload(Request $request, FooterLink $footer_link)
     {
         $data = $request->validate([
-            'file'        => ['required', 'file', 'max:51200', 'mimes:pdf,mp4,webm,png,jpg,jpeg'],
+            'file' => ['required', 'file', 'max:51200', 'mimes:pdf,doc,docx,xls,xlsx,mp4,webm,ogg,png,jpg,jpeg,gif,webp,svg'],
             'redirect_to' => ['nullable', 'string', 'max:2048'],
         ]);
 
@@ -212,14 +216,14 @@ private function footerLinksColumns(): array
         }
 
         $safeBase = Str::slug(pathinfo($f->getClientOriginalName(), PATHINFO_FILENAME));
-        $ext      = strtolower($f->getClientOriginalExtension() ?: 'bin');
-        $final    = $safeBase . '-' . time() . '.' . $ext;
+        $ext = strtolower($f->getClientOriginalExtension() ?: 'bin');
+        $final = $safeBase . '-' . time() . '.' . $ext;
 
         $path = $f->storeAs('footer/capacitaciones', $final, 'public');
 
-        $footer_link->link_mode    = 'file';
+        $footer_link->link_mode = 'file';
         $footer_link->external_url = null;
-        $footer_link->file_path    = $path;
+        $footer_link->file_path = $path;
 
         $cols = $this->footerLinksColumns();
 

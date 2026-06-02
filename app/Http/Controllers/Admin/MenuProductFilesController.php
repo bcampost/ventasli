@@ -15,9 +15,12 @@ class MenuProductFilesController extends Controller
      */
     public function update(Request $request, MenuProduct $menu_product)
     {
+        $allowed = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+        $mimesRule = 'mimes:' . implode(',', $allowed);
+
         $request->validate([
-            'ficha_tecnica' => ['nullable', 'file', 'mimes:pdf', 'max:20480'], // 20MB
-            'instructivo'   => ['nullable', 'file', 'mimes:pdf', 'max:20480'], // 20MB
+            'ficha_tecnica' => ['nullable', 'file', $mimesRule, 'max:20480'], // 20MB
+            'instructivo'   => ['nullable', 'file', $mimesRule, 'max:20480'], // 20MB
             'redirect_to'   => ['nullable', 'string', 'max:2048'],
         ]);
 
@@ -35,16 +38,34 @@ class MenuProductFilesController extends Controller
 
         $slugBase = Str::slug($menu_product->title ?: ('producto-'.$menu_product->id));
 
+        $saveFile = function ($file, string $baseName) use ($dir, $allowed) {
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (!in_array($ext, $allowed, true)) {
+                $ext = 'pdf';
+            }
+            // Borra versiones previas con otra extensión.
+            foreach ($allowed as $oldExt) {
+                if ($oldExt === $ext) continue;
+                $oldPath = $dir . DIRECTORY_SEPARATOR . "{$baseName}.{$oldExt}";
+                if (is_file($oldPath)) @unlink($oldPath);
+            }
+            $filename = "{$baseName}.{$ext}";
+            $file->move($dir, $filename);
+            return "pdfs/products/{$filename}";
+        };
+
         if ($request->hasFile('ficha_tecnica')) {
-            $filename = "ficha-tecnica-{$slugBase}-{$menu_product->id}.pdf";
-            $request->file('ficha_tecnica')->move($dir, $filename);
-            $specs['files']['ficha_tecnica'] = "pdfs/products/{$filename}";
+            $specs['files']['ficha_tecnica'] = $saveFile(
+                $request->file('ficha_tecnica'),
+                "ficha-tecnica-{$slugBase}-{$menu_product->id}"
+            );
         }
 
         if ($request->hasFile('instructivo')) {
-            $filename = "instructivo-{$slugBase}-{$menu_product->id}.pdf";
-            $request->file('instructivo')->move($dir, $filename);
-            $specs['files']['instructivo'] = "pdfs/products/{$filename}";
+            $specs['files']['instructivo'] = $saveFile(
+                $request->file('instructivo'),
+                "instructivo-{$slugBase}-{$menu_product->id}"
+            );
         }
 
         $menu_product->specs = $specs;

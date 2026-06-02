@@ -13,29 +13,29 @@ class MenuNodeController extends Controller
      * GET /admin/menu
      */
 
-public function deletePdf(MenuNode $menu_node)
-{
-    $currentUrl = trim((string)($menu_node->url ?? ''));
+    public function deletePdf(MenuNode $menu_node)
+    {
+        $currentUrl = trim((string) ($menu_node->url ?? ''));
 
-    $isPdf = $currentUrl !== '' && (
-        Str::endsWith(Str::lower($currentUrl), '.pdf') ||
-        Str::contains(Str::lower($currentUrl), 'pdfs/')
-    );
+        $isPdf = $currentUrl !== '' && (
+            Str::endsWith(Str::lower($currentUrl), '.pdf') ||
+            Str::contains(Str::lower($currentUrl), 'pdfs/')
+        );
 
-    if ($isPdf) {
-        $absolute = public_path(ltrim($currentUrl, '/'));
+        if ($isPdf) {
+            $absolute = public_path(ltrim($currentUrl, '/'));
 
-        if (file_exists($absolute)) {
-            @unlink($absolute);
+            if (file_exists($absolute)) {
+                @unlink($absolute);
+            }
+
+            $menu_node->update([
+                'url' => null,
+            ]);
         }
 
-        $menu_node->update([
-            'url' => null,
-        ]);
+        return back()->with('status', "PDF eliminado de: {$menu_node->label}");
     }
-
-    return back()->with('status', "PDF eliminado de: {$menu_node->label}");
-}
 
     public function index()
     {
@@ -45,9 +45,11 @@ public function deletePdf(MenuNode $menu_node)
             })
             ->orderBy('sort')
             ->orderBy('label')
-            ->with(['children' => function ($q) {
-                $q->orderBy('sort')->orderBy('label');
-            }])
+            ->with([
+                'children' => function ($q) {
+                    $q->orderBy('sort')->orderBy('label');
+                }
+            ])
             ->get();
 
         return view('admin.menu.index', [
@@ -94,19 +96,20 @@ public function deletePdf(MenuNode $menu_node)
     public function store(Request $request)
     {
         $data = $request->validate([
-            'label'     => ['required', 'string', 'max:255'],
+            'label' => ['required', 'string', 'max:255'],
             'parent_id' => ['nullable'],
-            'url'       => ['nullable', 'string', 'max:2048'],
-            'sort'      => ['nullable', 'integer'],
+            'url' => ['nullable', 'string', 'max:2048'],
+            'sort' => ['nullable', 'integer'],
             'is_active' => ['nullable'],
             'redirect_to' => ['nullable', 'string', 'max:2048'],
         ]);
 
         $label = trim($data['label']);
-        $slug  = Str::slug($label, '-');
+        $slug = Str::slug($label, '-');
 
         $parentId = $data['parent_id'] ?? null;
-        if ($parentId === '' || $parentId === '0') $parentId = null;
+        if ($parentId === '' || $parentId === '0')
+            $parentId = null;
 
         // ✅ key requerido por tu DB
         $key = $slug;
@@ -118,13 +121,13 @@ public function deletePdf(MenuNode $menu_node)
         }
 
         MenuNode::create([
-            'label'     => $label,
-            'slug'      => $slug,
-            'key'       => $key,
+            'label' => $label,
+            'slug' => $slug,
+            'key' => $key,
             'parent_id' => $parentId,
-            'url'       => $data['url'] ?? null,
-            'sort'      => $data['sort'] ?? 0,
-            'is_active' => isset($data['is_active']) ? (bool)$data['is_active'] : true,
+            'url' => $data['url'] ?? null,
+            'sort' => $data['sort'] ?? 0,
+            'is_active' => isset($data['is_active']) ? (bool) $data['is_active'] : true,
         ]);
 
         $to = $data['redirect_to'] ?? null;
@@ -145,7 +148,7 @@ public function deletePdf(MenuNode $menu_node)
         ]);
 
         $label = trim($data['label']);
-        $slug  = Str::slug($label, '-');
+        $slug = Str::slug($label, '-');
 
         // evita duplicado por slug dentro del mismo padre
         $exists = MenuNode::query()
@@ -157,19 +160,19 @@ public function deletePdf(MenuNode $menu_node)
             return back()->with('status', "Ya existe una opción con nombre similar: {$label}");
         }
 
-        $key = rtrim((string)$menu_node->key, '/') . '/' . $slug;
+        $key = rtrim((string) $menu_node->key, '/') . '/' . $slug;
 
         $maxSort = (int) MenuNode::query()
             ->where('parent_id', $menu_node->id)
             ->max('sort');
 
         MenuNode::create([
-            'label'     => $label,
-            'slug'      => $slug,
-            'key'       => $key,
+            'label' => $label,
+            'slug' => $slug,
+            'key' => $key,
             'parent_id' => $menu_node->id,
-            'url'       => null,
-            'sort'      => $maxSort + 1,
+            'url' => null,
+            'sort' => $maxSort + 1,
             'is_active' => 1,
         ]);
 
@@ -180,29 +183,58 @@ public function deletePdf(MenuNode $menu_node)
      * ✅ POST /admin/menu/{menu_node}/upload
      * Sube PDF y lo asigna en url del nodo
      */
-public function uploadPdf(Request $request, MenuNode $menu_node)
-{
-    $request->validate([
-        'pdf' => ['required', 'file', 'mimes:pdf', 'max:20480'],
-    ]);
+    public function uploadPdf(Request $request, MenuNode $menu_node)
+    {
+        $allowed = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
-    $slug = $menu_node->slug ?: Str::slug($menu_node->label, '-');
-    $filename = "menu-{$slug}-{$menu_node->id}.pdf";
-    $relativePath = "pdfs/{$filename}";
-    $absolutePath = public_path($relativePath);
+        $request->validate([
+            'pdf' => [
+                'required',
+                'file',
+                'mimes:' . implode(',', $allowed),
+                'max:20480',
+            ],
+        ]);
 
-    if ($menu_node->url && file_exists(public_path(ltrim($menu_node->url, '/')))) {
-        @unlink(public_path(ltrim($menu_node->url, '/')));
+        $file = $request->file('pdf');
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, $allowed, true)) {
+            $ext = 'pdf';
+        }
+
+        $slug = $menu_node->slug ?: Str::slug($menu_node->label, '-');
+        $filename = "menu-{$slug}-{$menu_node->id}.{$ext}";
+        $relativePath = "pdfs/{$filename}";
+
+        // Borra cualquier archivo previo del nodo (con cualquier extensión).
+        if ($menu_node->url && file_exists(public_path(ltrim($menu_node->url, '/')))) {
+            @unlink(public_path(ltrim($menu_node->url, '/')));
+        }
+        foreach ($allowed as $oldExt) {
+            if ($oldExt === $ext)
+                continue;
+            $oldPath = public_path("pdfs/menu-{$slug}-{$menu_node->id}.{$oldExt}");
+            if (is_file($oldPath)) {
+                @unlink($oldPath);
+            }
+        }
+
+        $file->move(public_path('pdfs'), $filename);
+
+        $menu_node->update([
+            'url' => $relativePath,
+        ]);
+
+        $label = match ($ext) {
+            'pdf' => 'PDF',
+            'doc', 'docx' => 'Word',
+            'xls', 'xlsx' => 'Excel',
+            'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg' => 'Imagen',
+            default => 'Archivo',
+        };
+
+        return back()->with('status', "{$label} actualizado para: {$menu_node->label}");
     }
-
-    $request->file('pdf')->move(public_path('pdfs'), $filename);
-
-    $menu_node->update([
-        'url' => $relativePath,
-    ]);
-
-    return back()->with('status', "PDF actualizado para: {$menu_node->label}");
-}
 
     /**
      * PUT /admin/menu/{menu_node}
@@ -210,15 +242,15 @@ public function uploadPdf(Request $request, MenuNode $menu_node)
     public function update(Request $request, MenuNode $menu_node)
     {
         $data = $request->validate([
-            'label'     => ['required', 'string', 'max:255'],
-            'url'       => ['nullable', 'string', 'max:2048'],
-            'sort'      => ['nullable', 'integer'],
+            'label' => ['required', 'string', 'max:255'],
+            'url' => ['nullable', 'string', 'max:2048'],
+            'sort' => ['nullable', 'integer'],
             'is_active' => ['nullable'],
             'redirect_to' => ['nullable', 'string', 'max:2048'],
         ]);
 
         $label = trim($data['label']);
-        $slug  = Str::slug($label, '-');
+        $slug = Str::slug($label, '-');
 
         // Recalcula key
         $key = $slug;
@@ -230,11 +262,11 @@ public function uploadPdf(Request $request, MenuNode $menu_node)
         }
 
         $menu_node->label = $label;
-        $menu_node->slug  = $slug;
-        $menu_node->key   = $key;
-        $menu_node->url   = $data['url'] ?? null;
-        $menu_node->sort  = $data['sort'] ?? 0;
-        $menu_node->is_active = isset($data['is_active']) ? (bool)$data['is_active'] : false;
+        $menu_node->slug = $slug;
+        $menu_node->key = $key;
+        $menu_node->url = $data['url'] ?? null;
+        $menu_node->sort = $data['sort'] ?? 0;
+        $menu_node->is_active = isset($data['is_active']) ? (bool) $data['is_active'] : false;
 
         $menu_node->save();
 

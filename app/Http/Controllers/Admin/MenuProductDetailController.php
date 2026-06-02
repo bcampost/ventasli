@@ -105,9 +105,9 @@ class MenuProductDetailController extends Controller
             'remove_gallery' => ['nullable', 'array'],
             'remove_gallery.*' => ['nullable', 'string'],
 
-            // ✅ PDFs
-            'tech_pdf' => ['nullable', 'file', 'mimes:pdf', 'max:51200'],   // 50MB
-            'manual_pdf' => ['nullable', 'file', 'mimes:pdf', 'max:51200'],
+            // ✅ Archivos (PDF, Word, Excel, imágenes)
+            'tech_pdf' => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,gif,webp,svg', 'max:51200'],   // 50MB
+            'manual_pdf' => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,gif,webp,svg', 'max:51200'],
             'remove_tech_pdf' => ['nullable'],
             'remove_manual_pdf' => ['nullable'],
 
@@ -196,27 +196,37 @@ class MenuProductDetailController extends Controller
             $menu_product->manual_pdf_path = null;
         }
 
-        // subir ficha técnica
+        $allowedFileExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+
+        // subir ficha técnica (acepta PDF, Word, Excel o imagen)
         if ($request->hasFile('tech_pdf')) {
             if ($menu_product->tech_pdf_path) {
                 Storage::disk('public')->delete($menu_product->tech_pdf_path);
             }
 
             $file = $request->file('tech_pdf');
-            $name = 'ficha-tecnica-' . time() . '.pdf';
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (!in_array($ext, $allowedFileExts, true)) {
+                $ext = 'pdf';
+            }
+            $name = 'ficha-tecnica-' . time() . '.' . $ext;
             $path = $file->storeAs("product-pdfs/{$menu_product->id}", $name, 'public');
 
             $menu_product->tech_pdf_path = $path;
         }
 
-        // subir instructivo
+        // subir instructivo (acepta PDF, Word, Excel o imagen)
         if ($request->hasFile('manual_pdf')) {
             if ($menu_product->manual_pdf_path) {
                 Storage::disk('public')->delete($menu_product->manual_pdf_path);
             }
 
             $file = $request->file('manual_pdf');
-            $name = 'instructivo-' . time() . '.pdf';
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (!in_array($ext, $allowedFileExts, true)) {
+                $ext = 'pdf';
+            }
+            $name = 'instructivo-' . time() . '.' . $ext;
             $path = $file->storeAs("product-pdfs/{$menu_product->id}", $name, 'public');
 
             $menu_product->manual_pdf_path = $path;

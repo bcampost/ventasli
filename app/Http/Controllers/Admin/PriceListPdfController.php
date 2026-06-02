@@ -47,7 +47,6 @@ class PriceListPdfController extends Controller
         $label = trim($request->input('label'));
         $slug  = Str::slug($label);
 
-        // evitar duplicados por slug/key dentro de ese root
         $exists = MenuNode::query()
             ->where('parent_id', $root->id)
             ->where(function ($q) use ($slug) {
@@ -67,8 +66,8 @@ class PriceListPdfController extends Controller
         MenuNode::create([
             'label'     => $label,
             'slug'      => $slug,
-            'key'       => $slug,      // ✅ IMPORTANTÍSIMO para tu BD (NOT NULL)
-            'url'       => null,       // se llenará al subir PDF
+            'key'       => $slug,
+            'url'       => null,
             'parent_id' => $root->id,
             'is_active' => 1,
             'sort'      => $maxSort + 1,
@@ -77,25 +76,52 @@ class PriceListPdfController extends Controller
     }
 
     /**
-     * ✅ Subir / reemplazar PDF para un hijo
+     * ✅ Subir / reemplazar archivo (PDF, Word, Excel o imagen) para un hijo
      */
     public function upload(Request $request, MenuNode $menu_node)
     {
+        $allowed = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+
         $request->validate([
-            'pdf' => ['required', 'file', 'mimes:pdf', 'max:20480'], // 20MB
+            'pdf' => [
+                'required',
+                'file',
+                'mimes:' . implode(',', $allowed),
+                'max:20480', // 20 MB
+            ],
         ]);
 
+        $file = $request->file('pdf');
+        $ext  = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, $allowed, true)) {
+            $ext = 'pdf';
+        }
+
         $slug = $menu_node->slug ?: Str::slug($menu_node->label);
-        $filename = "lista-precios-{$slug}.pdf";
+        $filename = "lista-precios-{$slug}.{$ext}";
 
-        // guarda en public/pdfs
-        $request->file('pdf')->move(public_path('pdfs'), $filename);
+        foreach ($allowed as $oldExt) {
+            if ($oldExt === $ext) continue;
+            $oldPath = public_path("pdfs/lista-precios-{$slug}.{$oldExt}");
+            if (is_file($oldPath)) {
+                @unlink($oldPath);
+            }
+        }
 
-        // actualiza url del nodo: eso hace que MenuTree lo muestre en el menú
+        $file->move(public_path('pdfs'), $filename);
+
         $menu_node->update([
             'url' => "pdfs/{$filename}",
         ]);
 
-        return back()->with('status', "PDF actualizado para: {$menu_node->label}");
+        $label = match ($ext) {
+            'pdf' => 'PDF',
+            'doc', 'docx' => 'Word',
+            'xls', 'xlsx' => 'Excel',
+            'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg' => 'Imagen',
+            default => 'Archivo',
+        };
+
+        return back()->with('status', "{$label} actualizado para: {$menu_node->label}");
     }
 }

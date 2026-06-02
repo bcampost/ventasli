@@ -50,7 +50,22 @@
 
   $isPdfUrl = function (?string $url) {
     $u = trim((string) $url);
-    return $u !== '' && \Illuminate\Support\Str::endsWith(mb_strtolower($u), '.pdf');
+    if ($u === '')
+      return false;
+    $lower = mb_strtolower($u);
+    return \Illuminate\Support\Str::endsWith($lower, [
+      '.pdf',
+      '.doc',
+      '.docx',
+      '.xls',
+      '.xlsx',
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.gif',
+      '.webp',
+      '.svg',
+    ]);
   };
 @endphp
 

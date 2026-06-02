@@ -2,8 +2,9 @@
 
   @section('content')
   @php
-    $techUrl   = $product->tech_pdf_path   ? asset('storage/'.ltrim($product->tech_pdf_path,'/'))   : null;
-    $manualUrl = $product->manual_pdf_path ? asset('storage/'.ltrim($product->manual_pdf_path,'/')) : null;
+$techUrl   = $product->tech_pdf_path   ? asset('storage/'.ltrim($product->tech_pdf_path,'/'))   : null;
+$manualUrl = $product->manual_pdf_path ? asset('storage/'.ltrim($product->manual_pdf_path,'/')) : null;
+$videoUrl  = $product->video_path      ? asset('storage/'.ltrim($product->video_path,'/'))     : null;
 
     $gallerySafe = $detail->images_safe ?? [];
     $gallerySafe = is_array($gallerySafe) ? $gallerySafe : [];
@@ -1766,12 +1767,12 @@ onclick='openImageTagger(
 </div>
 
 
-          {{-- PDFs --}}
+          {{-- PDFs y Video --}}
           <div class="ep-card">
             <div class="ep-card-head">
               <h2 class="ep-card-title">Documentación del producto</h2>
               <div class="ep-card-sub">
-                Administra la ficha técnica y el instructivo. Aquí puedes reemplazar archivos, previsualizarlos o quitarlos del producto.
+                Administra la ficha técnica, el instructivo y el video. Aquí puedes reemplazar archivos, previsualizarlos o quitarlos del producto.
               </div>
             </div>
 
@@ -1803,8 +1804,10 @@ onclick='openImageTagger(
                     <label class="ep-label">Seleccionar nuevo archivo</label>
                     <input type="file"
                           name="tech_pdf"
-                          accept="application/pdf"
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.svg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/*"
                           class="ep-file">
+                        
+                        
                   </div>
 
                   <div class="ep-actions">
@@ -1846,7 +1849,7 @@ onclick='openImageTagger(
                     <label class="ep-label">Seleccionar nuevo archivo</label>
                     <input type="file"
                           name="manual_pdf"
-                          accept="application/pdf"
+                          accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.svg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/*"
                           class="ep-file">
                   </div>
 
@@ -1864,9 +1867,88 @@ onclick='openImageTagger(
                   </div>
                 </div>
 
+                {{-- Video --}}
+                <div class="ep-pdf-box">
+                  <div class="ep-pdf-top">
+                    <div>
+                      <div class="ep-pdf-name">Video del producto</div>
+                      <div class="ep-pdf-status">
+                        {{ $videoUrl ? 'Video disponible para consulta.' : 'No hay video cargado.' }}
+                      </div>
+                    </div>
+
+                    <div class="ep-actions">
+                      @if($videoUrl)
+                        <button type="button"
+                                class="ep-btn ep-btn-soft"
+                                onclick="window.openVideoPreviewAdmin(@js($videoUrl), 'Video del producto')">
+                          Ver preview
+                        </button>
+                      @endif
+                    </div>
+                  </div>
+
+                  <div class="ep-field">
+                    <label class="ep-label">Seleccionar nuevo archivo</label>
+                    <input type="file"
+                          name="video"
+                          accept="video/mp4,video/webm,video/quicktime"
+                          class="ep-file">
+                  </div>
+
+                  <div class="ep-actions">
+                    @if($videoUrl)
+                      <label class="ep-check">
+                        <input type="checkbox" name="remove_video" value="1">
+                        Quitar video actual
+                      </label>
+                    @endif
+                  </div>
+
+                  <div class="ep-help">
+                    Formatos: MP4, WebM, MOV. Máx 200 MB. Úsalo para sillería u otros productos.
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
+
+          {{-- Modal de preview de video (admin) --}}
+          <div id="adminVideoPreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;align-items:center;justify-content:center;padding:20px;">
+            <div style="background:#000;border-radius:16px;max-width:90vw;max-height:90vh;overflow:hidden;position:relative;width:880px;">
+              <button type="button" onclick="window.closeVideoPreviewAdmin()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.92);border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:700;z-index:10;">Cerrar ✕</button>
+              <video id="adminVideoPlayer" controls playsinline style="display:block;width:100%;max-height:78vh;background:#000;"></video>
+              <div style="padding:14px 18px;background:#111;display:flex;justify-content:space-between;align-items:center;color:#fff;gap:12px;flex-wrap:wrap;">
+                <span id="adminVideoTitle" style="font-weight:700;font-size:.95rem;"></span>
+                <a id="adminVideoDownload" href="#" download style="background:#2563eb;color:#fff;padding:9px 18px;border-radius:10px;text-decoration:none;font-weight:700;font-size:.88rem;">⬇ Descargar</a>
+              </div>
+            </div>
+          </div>
+          <script>
+            window.openVideoPreviewAdmin = function(url, title) {
+              const modal = document.getElementById('adminVideoPreviewModal');
+              const player = document.getElementById('adminVideoPlayer');
+              const titleEl = document.getElementById('adminVideoTitle');
+              const dl = document.getElementById('adminVideoDownload');
+              if (!modal || !player) return;
+              player.src = url;
+              if (titleEl) titleEl.textContent = title || 'Video';
+              if (dl) dl.href = url;
+              modal.style.display = 'flex';
+              document.body.style.overflow = 'hidden';
+            };
+            window.closeVideoPreviewAdmin = function() {
+              const modal = document.getElementById('adminVideoPreviewModal');
+              const player = document.getElementById('adminVideoPlayer');
+              if (player) { player.pause(); player.removeAttribute('src'); player.load(); }
+              if (modal) modal.style.display = 'none';
+              document.body.style.overflow = '';
+            };
+            document.addEventListener('keydown', function(e) {
+              if (e.key === 'Escape') window.closeVideoPreviewAdmin();
+            });
+          </script>
 
           {{-- Barra fija inferior --}}
           <div class="ep-sticky-bar">
@@ -2009,17 +2091,16 @@ onclick='openImageTagger(
                 return;
             }
 
-            dropzone.addEventListener('click', (e) => {
+              dropzone.addEventListener('click', (e) => {
 
-                const isFileInput = e.target === input;
-                const isBrowseBtn = e.target.closest('.ep-drop-browse');
+                  const isBrowseBtn = e.target.closest('.ep-drop-browse');
 
-                if(isFileInput || isBrowseBtn){
-                    return;
-                }
+                  if(isBrowseBtn){
+                      return;
+                  }
 
-                input.click();
-            });
+                  input.click();
+              });
 
             [
                 'dragenter',
@@ -2058,11 +2139,10 @@ onclick='openImageTagger(
                     return;
                 }
 
-                Array.from(files)
-                    .filter(file => file.type.startsWith('image/'))
-                    .forEach(file => {
-                        dt.items.add(file);
-                    });
+                const dt = new DataTransfer();
+                  Array.from(files).forEach(file => {
+                      dt.items.add(file);
+                  });
 
                   input.files = dt.files;
 
@@ -2295,10 +2375,10 @@ function deleteCurrentImage() {
 
         const card = item.closest('.ep-gallery-card');
 
-        if (card) {
-            card.style.opacity = '.35';
-            card.style.pointerEvents = 'none';        
-        }
+    if (card) {
+        card.style.opacity = '.35';
+        card.style.pointerEvents = 'none';
+    }
     }
 
     closeImageTagger();
