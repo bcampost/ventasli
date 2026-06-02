@@ -111,6 +111,11 @@ class MenuProductDetailController extends Controller
             'remove_tech_pdf' => ['nullable'],
             'remove_manual_pdf' => ['nullable'],
 
+            // ✅ Video / imagen para el botón "Video" del detalle público
+            'video_file' => ['nullable', 'file', 'mimes:mp4,webm,ogg,mov,jpg,jpeg,png,gif,webp', 'max:102400'], // 100MB
+            'remove_video' => ['nullable'],
+            'video_enabled' => ['nullable'],
+
             'acero_colors_json' => ['nullable', 'string'],
             'melamina_colors_json' => ['nullable', 'string'],
             'redirect_to' => ['nullable', 'string'],
@@ -205,7 +210,7 @@ class MenuProductDetailController extends Controller
             }
 
             $file = $request->file('tech_pdf');
-            $ext = strtolower($file->getClientOriginalExtension());
+            $ext  = strtolower($file->getClientOriginalExtension());
             if (!in_array($ext, $allowedFileExts, true)) {
                 $ext = 'pdf';
             }
@@ -222,7 +227,7 @@ class MenuProductDetailController extends Controller
             }
 
             $file = $request->file('manual_pdf');
-            $ext = strtolower($file->getClientOriginalExtension());
+            $ext  = strtolower($file->getClientOriginalExtension());
             if (!in_array($ext, $allowedFileExts, true)) {
                 $ext = 'pdf';
             }
@@ -231,6 +236,34 @@ class MenuProductDetailController extends Controller
 
             $menu_product->manual_pdf_path = $path;
         }
+
+        // =========================
+        // ✅ VIDEO (menu_products.video_path / video_enabled)
+        // =========================
+        $allowedVideoExts = ['mp4', 'webm', 'ogg', 'mov', 'jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+        if ($request->boolean('remove_video') && $menu_product->video_path) {
+            Storage::disk('public')->delete($menu_product->video_path);
+            $menu_product->video_path = null;
+        }
+
+        if ($request->hasFile('video_file')) {
+            if ($menu_product->video_path) {
+                Storage::disk('public')->delete($menu_product->video_path);
+            }
+
+            $file = $request->file('video_file');
+            $ext  = strtolower($file->getClientOriginalExtension());
+            if (!in_array($ext, $allowedVideoExts, true)) {
+                $ext = 'mp4';
+            }
+            $name = 'video-' . time() . '.' . $ext;
+            $path = $file->storeAs("product-videos/{$menu_product->id}", $name, 'public');
+
+            $menu_product->video_path = $path;
+        }
+
+        $menu_product->video_enabled = $request->boolean('video_enabled');
 
 
         $acero = json_decode((string) ($data['acero_colors_json'] ?? '[]'), true);

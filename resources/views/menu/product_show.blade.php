@@ -20,6 +20,9 @@
 
     $techUrl = $product->tech_pdf_path ? asset('storage/' . ltrim($product->tech_pdf_path, '/')) : null;
     $manualUrl = $product->manual_pdf_path ? asset('storage/' . ltrim($product->manual_pdf_path, '/')) : null;
+    $videoUrl = ($product->video_enabled && $product->video_path)
+      ? asset('storage/' . ltrim($product->video_path, '/'))
+      : null;
 
     $payload = [
       'id' => $product->id,
@@ -556,17 +559,19 @@
           </button>
         @endif
 
-        @if($instUrl)
-          <button
-            type="button"
-            class="btn btn-ghost"
-            onclick="window.openPdfPreview(@js($instUrl), 'Instructivo')"
-          >
-            📘 Instructivo
-          </button>
-        @endif
+            @if($instUrl)
+              <button type="button" class="btn btn-ghost" onclick="window.openPdfPreview(@js($instUrl), 'Instructivo')">
+                📘 Instructivo
+              </button>
+            @endif
 
-      </div>
+            @if($videoUrl)
+              <button type="button" class="btn btn-ghost" onclick="window.openPdfPreview(@js($videoUrl), 'Video')">
+                🎬 Video
+              </button>
+            @endif
+
+          </div>
 
     </div>
   </div>

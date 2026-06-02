@@ -232,8 +232,65 @@ $videoUrl  = $product->video_path      ? asset('storage/'.ltrim($product->video_
 
     .ep-pdf-grid{
       display:grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap:16px;
+    }
+
+    @media (max-width: 1180px){
+      .ep-pdf-grid{
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .ep-switch{
+      position:relative;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      cursor:pointer;
+      user-select:none;
+      font-size:.88rem;
+      color:#334155;
+      font-weight:600;
+    }
+
+    .ep-switch input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+      width:0;
+      height:0;
+    }
+
+    .ep-switch-track{
+      width:42px;
+      height:24px;
+      border-radius:999px;
+      background:#cbd5e1;
+      position:relative;
+      transition: background .18s ease;
+      flex-shrink:0;
+    }
+
+    .ep-switch-track::after{
+      content:'';
+      position:absolute;
+      top:3px;
+      left:3px;
+      width:18px;
+      height:18px;
+      border-radius:50%;
+      background:#fff;
+      box-shadow:0 1px 3px rgba(15,23,42,.25);
+      transition: transform .18s ease;
+    }
+
+    .ep-switch input:checked + .ep-switch-track{
+      background: var(--ep-primary);
+    }
+
+    .ep-switch input:checked + .ep-switch-track::after{
+      transform: translateX(18px);
     }
 
     .ep-pdf-box{
@@ -1868,20 +1925,25 @@ onclick='openImageTagger(
                 </div>
 
                 {{-- Video --}}
+                @php
+                  $videoPath = $product->video_path ?? null;
+                  $videoUrlAdmin = $videoPath ? asset('storage/' . ltrim($videoPath, '/')) : null;
+                  $videoEnabled = (bool) ($product->video_enabled ?? true);
+                @endphp
                 <div class="ep-pdf-box">
                   <div class="ep-pdf-top">
                     <div>
-                      <div class="ep-pdf-name">Video del producto</div>
+                      <div class="ep-pdf-name">Video (MP4 / WEBM / Imagen)</div>
                       <div class="ep-pdf-status">
-                        {{ $videoUrl ? 'Video disponible para consulta.' : 'No hay video cargado.' }}
+                        {{ $videoUrlAdmin ? 'Archivo disponible para consulta.' : 'No hay video cargado.' }}
                       </div>
                     </div>
 
                     <div class="ep-actions">
-                      @if($videoUrl)
+                      @if($videoUrlAdmin)
                         <button type="button"
                                 class="ep-btn ep-btn-soft"
-                                onclick="window.openVideoPreviewAdmin(@js($videoUrl), 'Video del producto')">
+                                onclick="window.openPdfPreview(@js($videoUrlAdmin), 'Video')">
                           Ver preview
                         </button>
                       @endif
@@ -1891,65 +1953,35 @@ onclick='openImageTagger(
                   <div class="ep-field">
                     <label class="ep-label">Seleccionar nuevo archivo</label>
                     <input type="file"
-                          name="video"
-                          accept="video/mp4,video/webm,video/quicktime"
+                          name="video_file"
+                          accept=".mp4,.webm,.ogg,.mov,.jpg,.jpeg,.png,.gif,.webp,video/*,image/*"
                           class="ep-file">
                   </div>
 
-                  <div class="ep-actions">
-                    @if($videoUrl)
+                  <div class="ep-actions" style="justify-content:space-between;">
+                    <label class="ep-switch" title="Habilitar / deshabilitar botón de Video en la página pública">
+                      <input type="hidden" name="video_enabled" value="0">
+                      <input type="checkbox" name="video_enabled" value="1" {{ $videoEnabled ? 'checked' : '' }}>
+                      <span class="ep-switch-track"></span>
+                      <span>Mostrar botón de Video</span>
+                    </label>
+
+                    @if($videoUrlAdmin)
                       <label class="ep-check">
                         <input type="checkbox" name="remove_video" value="1">
-                        Quitar video actual
+                        Quitar archivo actual
                       </label>
                     @endif
                   </div>
 
                   <div class="ep-help">
-                    Formatos: MP4, WebM, MOV. Máx 200 MB. Úsalo para sillería u otros productos.
+                    Si el switch está desactivado, el botón de Video no se mostrará en la página pública aunque exista un archivo cargado.
                   </div>
                 </div>
 
               </div>
             </div>
           </div>
-
-          {{-- Modal de preview de video (admin) --}}
-          <div id="adminVideoPreviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;align-items:center;justify-content:center;padding:20px;">
-            <div style="background:#000;border-radius:16px;max-width:90vw;max-height:90vh;overflow:hidden;position:relative;width:880px;">
-              <button type="button" onclick="window.closeVideoPreviewAdmin()" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.92);border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:700;z-index:10;">Cerrar ✕</button>
-              <video id="adminVideoPlayer" controls playsinline style="display:block;width:100%;max-height:78vh;background:#000;"></video>
-              <div style="padding:14px 18px;background:#111;display:flex;justify-content:space-between;align-items:center;color:#fff;gap:12px;flex-wrap:wrap;">
-                <span id="adminVideoTitle" style="font-weight:700;font-size:.95rem;"></span>
-                <a id="adminVideoDownload" href="#" download style="background:#2563eb;color:#fff;padding:9px 18px;border-radius:10px;text-decoration:none;font-weight:700;font-size:.88rem;">⬇ Descargar</a>
-              </div>
-            </div>
-          </div>
-          <script>
-            window.openVideoPreviewAdmin = function(url, title) {
-              const modal = document.getElementById('adminVideoPreviewModal');
-              const player = document.getElementById('adminVideoPlayer');
-              const titleEl = document.getElementById('adminVideoTitle');
-              const dl = document.getElementById('adminVideoDownload');
-              if (!modal || !player) return;
-              player.src = url;
-              if (titleEl) titleEl.textContent = title || 'Video';
-              if (dl) dl.href = url;
-              modal.style.display = 'flex';
-              document.body.style.overflow = 'hidden';
-            };
-            window.closeVideoPreviewAdmin = function() {
-              const modal = document.getElementById('adminVideoPreviewModal');
-              const player = document.getElementById('adminVideoPlayer');
-              if (player) { player.pause(); player.removeAttribute('src'); player.load(); }
-              if (modal) modal.style.display = 'none';
-              document.body.style.overflow = '';
-            };
-            document.addEventListener('keydown', function(e) {
-              if (e.key === 'Escape') window.closeVideoPreviewAdmin();
-            });
-          </script>
-
           {{-- Barra fija inferior --}}
           <div class="ep-sticky-bar">
             <div class="ep-sticky-inner">

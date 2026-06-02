@@ -29,9 +29,6 @@
       <div class="mv-tabs">
         <button class="mv-tab {{ $initialTab === 'renders' ? 'active' : '' }}" data-tab="renders">Renders</button>
         <button class="mv-tab {{ $initialTab === 'fotos' ? 'active' : '' }}" data-tab="fotos">Fotos</button>
-        <button class="mv-tab {{ $initialTab === 'videos' ? 'active' : '' }}" data-tab="videos">Videos</button>
-        <button class="mv-tab {{ $initialTab === 'proyectos' ? 'active' : '' }}" data-tab="proyectos">Historias de
-          éxito</button>
         <button class="mv-tab {{ $initialTab === 'redes' ? 'active' : '' }}" data-tab="redes">Redes Sociales</button>
       </div>
     </div>

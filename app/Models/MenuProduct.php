@@ -16,6 +16,8 @@ class MenuProduct extends Model
         'image_path',
         'tech_pdf_path',
         'manual_pdf_path',
+        'video_path',
+        'video_enabled',
         'ingenieria_code',
         // ✅ ahora puede ser:
         // 1) array de strings (legacy): ["path1","path2"]
@@ -28,6 +30,7 @@ class MenuProduct extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'video_enabled' => 'boolean',
         'gallery_images' => 'array',
         'specs' => 'array',
     ];
