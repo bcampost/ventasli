@@ -408,23 +408,15 @@
       background: #fff;
     }
 
+    /* === Cards unificados (estilo Material Visual) === */
     .pd-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
       gap: 22px;
-    }
-
-    @media(max-width: 980px) {
-      .pd-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      align-items: start;
     }
 
     @media(max-width: 640px) {
-      .pd-grid {
-        grid-template-columns: 1fr;
-      }
-
       .pd-hero-shell {
         width: calc(100% - 26px);
       }
@@ -434,7 +426,6 @@
       }
     }
 
-
     .pd-grid.pd-grid--wide-two {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 28px;
@@ -442,7 +433,7 @@
     }
 
     .pd-tile--wide {
-      border-radius: 20px;
+      border-radius: 22px;
       overflow: hidden;
     }
 
@@ -466,18 +457,26 @@
       right: 14px;
       top: 14px;
       z-index: 5;
-      border: 1px solid rgba(15, 23, 42, .12);
-      background: rgba(255, 255, 255, .94);
+      border: 1px solid rgba(255, 255, 255, .7);
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(12px);
       color: #0b1220;
       padding: 10px 14px;
-      border-radius: 999px;
-      font-weight: 300;
+      border-radius: 14px;
+      font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 12px 28px rgba(2, 6, 23, .12);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, .14);
+      opacity: 0;
+      transition: .22s ease;
+    }
+
+    .pd-tile--wide:hover .pd-zoom-btn {
+      opacity: 1;
     }
 
     .pd-zoom-btn:hover {
       background: #fff;
+      transform: scale(1.04);
     }
 
     @media(max-width: 980px) {
@@ -492,15 +491,23 @@
 
     .pd-tile {
       background: #fff;
-      border-radius: 14px;
-      border: 1px solid rgba(15, 23, 42, .10);
-      box-shadow: 0 12px 26px rgba(2, 6, 23, .06);
+      border-radius: 22px;
+      border: 1px solid #e7eaf0;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, .03);
       overflow: hidden;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .pd-tile:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 22px 44px rgba(15, 23, 42, .10);
+      border-color: #dbe3ee;
     }
 
     .pd-img {
-      aspect-ratio: 16/9;
+      aspect-ratio: 16/10;
       background: #f3f4f6;
+      overflow: hidden;
     }
 
     .pd-img img {
@@ -508,12 +515,20 @@
       height: 100%;
       object-fit: cover;
       display: block;
+      transition: transform .35s ease;
+    }
+
+    .pd-tile:hover .pd-img img {
+      transform: scale(1.03);
     }
 
     .pd-tt {
-      padding: 12px 4px 0;
+      padding: 16px;
+      font-size: 1rem;
       font-weight: 700;
-      opacity: .55;
+      color: #111827;
+      line-height: 1.35;
+      opacity: 1;
     }
 
     .pd-empty-products {

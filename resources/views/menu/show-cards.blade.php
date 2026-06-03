@@ -4,112 +4,89 @@
 <style>
   :root{
     --ink:#0b1220;
-    --line:rgba(15,23,42,.12);
-    --line2:rgba(15,23,42,.18);
-    --shadowL: 0 18px 50px rgba(15,23,42,.14);
-    --rXL: 26px;
+    --uc-border:#e7eaf0;
+    --uc-shadow: 0 2px 10px rgba(15,23,42,.03);
+    --uc-shadow-hover: 0 22px 44px rgba(15,23,42,.10);
   }
 
-  .wrap{ max-width: 1220px; margin:0 auto; padding: 26px 18px; }
+  .wrap{ max-width: 1450px; margin:0 auto; padding: 26px 18px; }
 
-  .head{ margin-bottom: 14px; }
+  .head{ margin-bottom: 18px; }
   .title{
     font-size: 1.65rem;
-    font-weight: 950;
+    font-weight: 800;
     letter-spacing: -.02em;
     color: var(--ink);
     line-height: 1.1;
   }
 
-  .grid{ margin-top: 16px; display:grid; gap: 14px; }
+  .grid{
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
+    gap: 22px;
+    align-items: start;
+  }
 
+  /* Card unificado (igual que Material Visual) */
   .card{
-    position:relative;
-    height: 150px;
-    border-radius: var(--rXL);
-    overflow:hidden;
-    border: 1px solid var(--line);
+    position: relative;
     background: #fff;
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    border: 1px solid var(--uc-border);
+    border-radius: 22px;
+    overflow: hidden;
+    box-shadow: var(--uc-shadow);
+    transition:
+      transform .18s ease,
+      box-shadow .18s ease,
+      border-color .18s ease;
   }
+
   .card:hover{
-    transform: translateY(-2px);
-    border-color: var(--line2);
-    box-shadow: var(--shadowL);
+    transform: translateY(-4px);
+    box-shadow: var(--uc-shadow-hover);
+    border-color: #dbe3ee;
   }
 
-  .media{ position:absolute; inset:0; background: rgba(15,23,42,.04); }
+  .media{
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: #f3f4f6;
+    overflow: hidden;
+  }
+
   .media img{
-    width:100%;
-    height:100%;
-    object-fit: cover; /* ✅ sin distorsión fuerte */
-    display:block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform .35s ease;
   }
 
-  .vlabel{
-    position:absolute;
-    left: 14px;
-    top: 12px;
-    bottom: 12px;
-    width: 44px;
-    border-radius: 18px;
-    background: rgba(255,255,255,.70);
-    border: 1px solid rgba(15,23,42,.10);
-    backdrop-filter: blur(8px);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding: 10px 0;
-    transition: opacity .18s ease, transform .18s ease;
-  }
-  .vlabel span{
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    font-weight: 950;
-    letter-spacing: .08em;
-    color: rgba(15,23,42,.90);
-    font-size: .82rem;
-    text-transform: uppercase;
-    max-height: 100%;
-    overflow:hidden;
-    white-space: nowrap;
+  .card:hover .media img{
+    transform: scale(1.03);
   }
 
-  .overlay{
-    position:absolute;
-    inset:0;
-    display:flex;
-    align-items:flex-end;
-    padding: 18px 18px 18px 76px;
-    background: linear-gradient(90deg,
-      rgba(2,6,23,.78) 0%,
-      rgba(2,6,23,.55) 45%,
-      rgba(2,6,23,.10) 100%
-    );
-    opacity: 0;
-    transform: translateX(-10px);
-    transition: opacity .20s ease, transform .20s ease;
-  }
-  .card:hover .overlay{ opacity: 1; transform: translateX(0); }
-  .card:hover .vlabel{ opacity: 0; transform: translateX(-6px); }
-
-  .hTitle{
-    font-size: 1.25rem;
-    font-weight: 950;
-    letter-spacing: -.01em;
-    color: #fff;
-    line-height: 1.1;
-  }
-  .hDesc{
-    margin-top: 8px;
-    color: rgba(255,255,255,.82);
-    font-size: .95rem;
+  .cTitle{
+    padding: 16px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
     line-height: 1.35;
-    max-width: 92ch;
-    display:-webkit-box;
-    -webkit-line-clamp: 3;
+  }
+
+  .cDesc{
+    padding: 0 16px 16px;
+    margin-top: -4px;
+    font-size: .82rem;
+    color: #64748b;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    overflow:hidden;
+    overflow: hidden;
   }
 
   a.cardLink{ display:block; position:absolute; inset:0; z-index: 5; }
@@ -141,16 +118,11 @@
             @endif
           </div>
 
-          <div class="vlabel"><span title="{{ $title }}">{{ $title }}</span></div>
+          <div class="cTitle">{{ $title }}</div>
 
-          <div class="overlay">
-            <div>
-              <div class="hTitle">{{ $title }}</div>
-              @if(trim((string)$desc) !== '')
-                <div class="hDesc">{{ $desc }}</div>
-              @endif
-            </div>
-          </div>
+          @if(trim((string)$desc) !== '')
+            <div class="cDesc">{{ $desc }}</div>
+          @endif
         </div>
       @endforeach
     </div>

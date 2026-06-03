@@ -12,6 +12,8 @@
     return implode('/', array_map(fn($p) => $slugify($p), $parts));
   };
 
+  $images = $images ?? [];
+
   $imgUrl = function(string $key) use ($images) {
     $row = $images[$key] ?? null;
     if (!$row || !$row->image_path) return null;
@@ -22,266 +24,320 @@
 @endphp
 
 @section('content')
-  {{-- Top header (simple pero con presencia) --}}
-  <div class="bg-white border rounded-2xl shadow-sm">
-    <div class="p-6 sm:p-8">
-      <div class="text-sm text-slate-500 mb-3">
-        <a class="hover:text-slate-900" href="{{ route('home') }}">Inicio</a>
-        <span class="mx-2">/</span>
-        <span class="text-slate-900 font-semibold">{{ $section['label'] }}</span>
+  <style>
+    .sec-wrap{ max-width:1450px; margin:0 auto; padding:22px 18px; }
+
+    .sec-header{
+      background:#fff;
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:24px;
+      padding:24px 28px;
+      box-shadow: 0 2px 10px rgba(15,23,42,.03);
+      margin-bottom:18px;
+    }
+    .sec-breadcrumb{
+      display:flex; align-items:center; gap:8px;
+      font-size:.88rem; color:#9aa4b2; margin-bottom:10px;
+    }
+    .sec-breadcrumb a{ color:#9aa4b2; text-decoration:none; }
+    .sec-breadcrumb a:hover{ color:#0f172a; }
+    .sec-breadcrumb b{ color:#0f172a; font-weight:700; }
+    .sec-title{ font-size:1.65rem; font-weight:800; letter-spacing:-.02em; color:#0b1220; line-height:1.1; }
+    .sec-subtitle{ margin-top:8px; color:#64748b; max-width:700px; line-height:1.5; font-size:.95rem; }
+    .sec-admin-btn{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 16px; border-radius:14px;
+      background:#111827; color:#fff; font-weight:700; text-decoration:none;
+      box-shadow:0 10px 18px rgba(0,0,0,.10);
+      transition:.15s ease;
+    }
+    .sec-admin-btn:hover{ transform:translateY(-1px); box-shadow:0 14px 24px rgba(0,0,0,.14); }
+
+    /* === Cards unificados (estilo Material Visual) === */
+    .sec-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
+      gap:22px;
+      align-items:start;
+    }
+
+    .sec-card{
+      position:relative;
+      display:block;
+      background:#fff;
+      border:1px solid #e7eaf0;
+      border-radius:22px;
+      overflow:hidden;
+      box-shadow: 0 2px 10px rgba(15,23,42,.03);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      text-decoration:none; color:inherit;
+    }
+    .sec-card:hover{
+      transform:translateY(-4px);
+      box-shadow:0 22px 44px rgba(15,23,42,.10);
+      border-color:#dbe3ee;
+    }
+
+    .sec-thumb{
+      position:relative;
+      aspect-ratio: 16/10;
+      background:#f3f4f6;
+      overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .sec-thumb img{
+      width:100%; height:100%; object-fit:cover; display:block;
+      transition: transform .35s ease;
+    }
+    .sec-card:hover .sec-thumb img{ transform: scale(1.03); }
+
+    .sec-thumb-empty{
+      width:100%; height:100%;
+      background: linear-gradient(135deg, #0b1220, #1e293b);
+      display:flex; align-items:center; justify-content:center;
+      color: rgba(255,255,255,.6);
+      font-size:.85rem; font-weight:700;
+    }
+
+    .sec-chip{
+      position:absolute; top:12px; left:12px;
+      display:inline-flex; align-items:center;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:11px; font-weight:700;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(8px);
+      color:#0f172a;
+      border:1px solid rgba(255,255,255,.7);
+      box-shadow: 0 4px 12px rgba(15,23,42,.08);
+    }
+
+    .sec-body{
+      padding:16px;
+    }
+    .sec-card-title{
+      font-size:1rem; font-weight:700; color:#111827; line-height:1.35;
+    }
+    .sec-card-sub{
+      margin-top:4px; font-size:.82rem; color:#64748b;
+    }
+    .sec-card-admin{
+      margin-top:10px;
+      font-size:.78rem; font-weight:700; color:#2563eb; text-decoration:none;
+    }
+    .sec-card-admin:hover{ text-decoration:underline; }
+
+    /* Sub-opciones --> mismo card style */
+    .sec-subpanel{
+      margin-top:24px;
+      background:#fff;
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:24px;
+      overflow:hidden;
+      box-shadow: 0 2px 10px rgba(15,23,42,.03);
+    }
+    .sec-subpanel-head{
+      padding:18px 22px;
+      border-bottom:1px solid rgba(15,23,42,.06);
+      background: rgba(248,250,252,.7);
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .sec-subpanel-title{ font-weight:800; color:#0b1220; }
+    .sec-subpanel-sub{ font-size:.85rem; color:#64748b; margin-top:2px; }
+    .sec-subpanel-close{
+      font-size:.85rem; font-weight:700; color:#64748b; text-decoration:none;
+    }
+    .sec-subpanel-close:hover{ color:#0b1220; }
+    .sec-subpanel-body{ padding:22px; }
+
+    /* Aside */
+    .sec-aside{
+      background:#fff;
+      border:1px solid rgba(15,23,42,.08);
+      border-radius:22px;
+      box-shadow: 0 2px 10px rgba(15,23,42,.03);
+      padding:18px;
+    }
+    .sec-aside h4{ font-size:.95rem; font-weight:800; color:#0b1220; margin-bottom:10px; }
+    .sec-aside-item{
+      display:flex; align-items:flex-start; gap:10px;
+      font-size:.86rem; color:#64748b;
+      margin-top:8px; line-height:1.45;
+    }
+    .sec-aside-dot{
+      width:7px; height:7px; border-radius:999px; flex-shrink:0; margin-top:7px;
+    }
+    .sec-back-btn{
+      display:block; margin-top:14px;
+      text-align:center; padding:12px 16px;
+      background:#fff; border:1px solid #e7eaf0; border-radius:16px;
+      color:#0b1220; font-weight:700; text-decoration:none;
+      transition:.15s ease;
+    }
+    .sec-back-btn:hover{ background:#f8fafc; }
+
+    /* Layout 2 columnas */
+    .sec-content{
+      display:grid;
+      grid-template-columns: 1fr 320px;
+      gap:22px;
+      align-items:start;
+    }
+    @media(max-width: 980px){
+      .sec-content{ grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="sec-wrap">
+
+    {{-- HEADER --}}
+    <div class="sec-header">
+      <div class="sec-breadcrumb">
+        <a href="{{ route('home') }}">Inicio</a>
+        <span>›</span>
+        <b>{{ $section['label'] }}</b>
       </div>
 
-      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+      <div style="display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:18px;">
         <div>
-          <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900">
-            {{ $section['label'] }}
-          </h1>
-          <p class="mt-2 text-slate-600 max-w-2xl">
+          <div class="sec-title">{{ $section['label'] }}</div>
+          <div class="sec-subtitle">
             Selecciona una categoría para abrir recursos o desplegar sub-opciones.
-          </p>
-
-          <div class="mt-4 flex flex-wrap gap-2">
-            <span class="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-50 border text-slate-700">
-              Click → Cards
-            </span>
-            <span class="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-50 border text-slate-700">
-              Hover intacto
-            </span>
-            <span class="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-50 border text-slate-700">
-              Sin JS pesado
-            </span>
           </div>
         </div>
 
         @role('admin')
-          <a
-            href="{{ route('admin.menu-cards.index') }}"
-            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white shadow-sm hover:bg-slate-800 active:scale-[0.99] transition"
-          >
-            Administrar imágenes
-            <svg class="w-4 h-4 opacity-90" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M4 4a2 2 0 012-2h5a1 1 0 010 2H6v12h8v-5a1 1 0 112 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
-              <path d="M12 3a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 11-2 0V5.414l-6.293 6.293a1 1 0 01-1.414-1.414L14.586 4H13a1 1 0 01-1-1z"/>
-            </svg>
+          <a class="sec-admin-btn" href="{{ route('admin.menu-cards.index') }}">
+            ⚙ Administrar imágenes
           </a>
         @endrole
       </div>
     </div>
-  </div>
 
-  {{-- Content --}}
-  <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-    {{-- Main cards --}}
-    <div class="lg:col-span-8">
-      {{-- Grid “pro” (no lista eterna) --}}
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        @foreach($children as $child)
-          @php
-            $childHasChildren = !empty($child['children']);
-            $childSlug = $slugify($child['label']);
-            $childKey = $keyOf([$section['label'], $child['label']]);
-            $src = $imgUrl($childKey);
-            $isOpen = ($open === $childSlug);
+    {{-- CONTENT --}}
+    <div class="sec-content">
 
-            $href = $childHasChildren
-              ? route('menu.section', $sectionSlug) . '?open=' . $childSlug
-              : ($child['url'] ?? '#');
-          @endphp
+      {{-- Main cards --}}
+      <div>
+        <div class="sec-grid">
+          @foreach($children as $child)
+            @php
+              $childHasChildren = !empty($child['children']);
+              $childSlug = $slugify($child['label']);
+              $childKey = $keyOf([$section['label'], $child['label']]);
+              $src = $imgUrl($childKey);
+              $isOpen = ($open === $childSlug);
 
-          <a
-            href="{{ $href }}"
-            class="group relative overflow-hidden rounded-2xl border bg-white
-                   shadow-sm hover:shadow-md hover:-translate-y-[1px] transition"
-          >
-            {{-- Media strip --}}
-            <div class="relative h-36 bg-slate-100">
-              @if($src)
-                <img src="{{ $src }}" alt="{{ $child['label'] }}" class="w-full h-full object-cover" />
-              @else
-                {{-- Placeholder elegante --}}
-                <div class="w-full h-full bg-gradient-to-br from-slate-900 to-slate-800"></div>
-                <div class="absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(255,255,255,.18)_1px,transparent_1px)] [background-size:18px_18px]"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <div class="flex items-center gap-3 px-4 py-3 rounded-2xl border border-white/15 bg-white/10 backdrop-blur">
-                    <div class="h-10 w-10 rounded-xl border border-white/15 bg-white/10 flex items-center justify-center">
-                      <svg class="w-5 h-5 text-white/85" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V7.828a2 2 0 00-.586-1.414l-2.828-2.828A2 2 0 0013.172 3H4z"/>
-                      </svg>
-                    </div>
-                    <div class="text-white/90">
-                      <div class="text-sm font-semibold">Sin imagen</div>
-                      <div class="text-xs text-white/70">Puedes cargar una</div>
-                    </div>
-                  </div>
-                </div>
-              @endif
+              $href = $childHasChildren
+                ? route('menu.section', $sectionSlug) . '?open=' . $childSlug
+                : ($child['url'] ?? '#');
+            @endphp
 
-              <div class="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent"></div>
-
-              {{-- Top chips --}}
-              <div class="absolute top-3 left-3 flex flex-wrap gap-2">
-                <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold
-                             border border-white/20 bg-white/15 backdrop-blur text-white">
-                  {{ $childHasChildren ? 'Categoría' : 'Recurso' }}
-                </span>
-
-                @if($isOpen)
-                  <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold
-                               border border-white/20 bg-white/15 backdrop-blur text-white">
-                    Abierto
-                  </span>
-                @endif
-              </div>
-            </div>
-
-            {{-- Body --}}
-            <div class="p-5">
-              <div class="flex items-start justify-between gap-4">
-                <div>
-                  <div class="text-lg font-semibold tracking-tight text-slate-900">
-                    {{ $child['label'] }}
-                  </div>
-                  <div class="mt-1 text-sm text-slate-600">
-                    {{ $childHasChildren ? 'Despliega sub-opciones sin salir.' : 'Acceso directo al contenido.' }}
-                  </div>
-                </div>
-
-                <div class="text-slate-300 group-hover:text-slate-800 transition mt-1">
-                  <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                  </svg>
-                </div>
-              </div>
-
-              <div class="mt-4 flex flex-wrap gap-2">
-                @if($childHasChildren)
-                  <span class="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700">
-                    {{ count($child['children'] ?? []) }} sub-opciones
-                  </span>
+            <a class="sec-card" href="{{ $href }}">
+              <div class="sec-thumb">
+                @if($src)
+                  <img src="{{ $src }}" alt="{{ $child['label'] }}">
                 @else
-                  <span class="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-50 border text-slate-700">
-                    Acceso directo
-                  </span>
+                  <div class="sec-thumb-empty">Sin imagen</div>
                 @endif
+
+                <span class="sec-chip">{{ $childHasChildren ? 'Categoría' : 'Recurso' }}</span>
+              </div>
+
+              <div class="sec-body">
+                <div class="sec-card-title">{{ $child['label'] }}</div>
+                <div class="sec-card-sub">
+                  {{ $childHasChildren
+                      ? count($child['children'] ?? []) . ' sub-opciones'
+                      : 'Acceso directo' }}
+                </div>
 
                 @role('admin')
-                  <span class="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-50 border border-amber-100 text-amber-800">
-                    Editable
-                  </span>
-                @endrole
-              </div>
-
-              @role('admin')
-                <div class="mt-4">
                   <a
-                    class="text-sm font-semibold text-indigo-700 hover:text-indigo-900 hover:underline"
+                    class="sec-card-admin"
                     href="{{ route('admin.menu-cards.index', ['focus' => $childKey]) }}"
                     onclick="event.stopPropagation();"
-                  >
-                    Editar imagen
-                  </a>
-                </div>
-              @endrole
-            </div>
-          </a>
-        @endforeach
-      </div>
+                  >Editar imagen</a>
+                @endrole
+              </div>
+            </a>
+          @endforeach
+        </div>
 
-      {{-- Subcards (cuadradas) --}}
-      @if($open && !empty($openedChild) && !empty($openedChild['children']))
-        <div class="mt-8 bg-white border rounded-2xl shadow-sm overflow-hidden">
-          <div class="p-5 sm:p-6 border-b bg-slate-50">
-            <div class="flex items-center justify-between gap-4">
+        {{-- Subcards --}}
+        @if($open && !empty($openedChild) && !empty($openedChild['children']))
+          <div class="sec-subpanel">
+            <div class="sec-subpanel-head">
               <div>
-                <div class="text-sm font-semibold text-slate-900">Sub-opciones</div>
-                <div class="text-sm text-slate-600">{{ $openedChild['label'] }}</div>
+                <div class="sec-subpanel-title">Sub-opciones</div>
+                <div class="sec-subpanel-sub">{{ $openedChild['label'] }}</div>
               </div>
 
-              <a
-                href="{{ route('menu.section', $sectionSlug) }}"
-                class="text-sm font-semibold text-slate-600 hover:text-slate-900"
-              >
-                Cerrar
-              </a>
+              <a class="sec-subpanel-close" href="{{ route('menu.section', $sectionSlug) }}">Cerrar ✕</a>
             </div>
-          </div>
 
-          <div class="p-5 sm:p-6">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              @foreach($openedChild['children'] as $leaf)
-                @php
-                  $leafKey = $keyOf([$section['label'], $openedChild['label'], $leaf['label']]);
-                  $leafSrc = $imgUrl($leafKey);
-                @endphp
+            <div class="sec-subpanel-body">
+              <div class="sec-grid">
+                @foreach($openedChild['children'] as $leaf)
+                  @php
+                    $leafKey = $keyOf([$section['label'], $openedChild['label'], $leaf['label']]);
+                    $leafSrc = $imgUrl($leafKey);
+                  @endphp
 
-                <a
-                  href="{{ $leaf['url'] ?? '#' }}"
-                  class="group overflow-hidden rounded-2xl border bg-white shadow-sm hover:shadow-md hover:-translate-y-[1px] transition"
-                >
-                  <div class="relative h-24 bg-slate-100">
-                    @if($leafSrc)
-                      <img src="{{ $leafSrc }}" alt="{{ $leaf['label'] }}" class="w-full h-full object-cover" />
-                    @else
-                      <div class="w-full h-full bg-gradient-to-br from-slate-900 to-slate-800"></div>
-                      <div class="absolute inset-0 opacity-35 [background-image:radial-gradient(rgba(255,255,255,.18)_1px,transparent_1px)] [background-size:18px_18px]"></div>
-                    @endif
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent"></div>
-                  </div>
-
-                  <div class="p-4">
-                    <div class="flex items-start justify-between gap-3">
-                      <div class="font-semibold text-slate-900 leading-tight">
-                        {{ $leaf['label'] }}
-                      </div>
-
-                      <div class="text-slate-300 group-hover:text-slate-800 transition mt-0.5">
-                        <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                        </svg>
-                      </div>
+                  <a class="sec-card" href="{{ $leaf['url'] ?? '#' }}">
+                    <div class="sec-thumb">
+                      @if($leafSrc)
+                        <img src="{{ $leafSrc }}" alt="{{ $leaf['label'] }}">
+                      @else
+                        <div class="sec-thumb-empty">Sin imagen</div>
+                      @endif
                     </div>
 
-                    <div class="text-sm text-slate-600 mt-1">Abrir</div>
+                    <div class="sec-body">
+                      <div class="sec-card-title">{{ $leaf['label'] }}</div>
+                      <div class="sec-card-sub">Abrir</div>
 
-                    @role('admin')
-                      <div class="mt-3">
+                      @role('admin')
                         <a
-                          class="text-sm font-semibold text-indigo-700 hover:text-indigo-900 hover:underline"
+                          class="sec-card-admin"
                           href="{{ route('admin.menu-cards.index', ['focus' => $leafKey]) }}"
                           onclick="event.stopPropagation();"
-                        >
-                          Editar imagen
-                        </a>
-                      </div>
-                    @endrole
-                  </div>
-                </a>
-              @endforeach
+                        >Editar imagen</a>
+                      @endrole
+                    </div>
+                  </a>
+                @endforeach
+              </div>
             </div>
           </div>
-        </div>
-      @endif
-    </div>
+        @endif
+      </div>
 
-    {{-- Aside (simple, útil, no estorba) --}}
-    <aside class="lg:col-span-4">
-      <div class="sticky top-24 space-y-4">
-        <div class="bg-white border rounded-2xl shadow-sm p-5">
-          <div class="text-sm font-semibold text-slate-900">Cómo usar</div>
-          <div class="mt-2 text-sm text-slate-600 space-y-2">
-            <div class="flex gap-2"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-600"></span> Click en una card para abrir o desplegar</div>
-            <div class="flex gap-2"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-sky-600"></span> Sub-opciones aparecen abajo</div>
+      {{-- Aside --}}
+      <aside>
+        <div style="position:sticky; top:24px; display:flex; flex-direction:column; gap:12px;">
+          <div class="sec-aside">
+            <h4>Cómo usar</h4>
+            <div class="sec-aside-item">
+              <span class="sec-aside-dot" style="background:#2563eb;"></span>
+              Click en una card para abrir o desplegar
+            </div>
+            <div class="sec-aside-item">
+              <span class="sec-aside-dot" style="background:#0ea5e9;"></span>
+              Sub-opciones aparecen abajo
+            </div>
             @role('admin')
-              <div class="flex gap-2"><span class="mt-1 h-1.5 w-1.5 rounded-full bg-amber-600"></span> Admin: puedes cargar imagen por card</div>
+              <div class="sec-aside-item">
+                <span class="sec-aside-dot" style="background:#f59e0b;"></span>
+                Admin: puedes cargar imagen por card
+              </div>
             @endrole
           </div>
-        </div>
 
-        <a href="{{ route('home') }}"
-           class="block text-center px-4 py-3 rounded-2xl border bg-white hover:bg-slate-50 transition shadow-sm">
-          Volver al Home
-        </a>
-      </div>
-    </aside>
+          <a class="sec-back-btn" href="{{ route('home') }}">Volver al Home</a>
+        </div>
+      </aside>
+
+    </div>
   </div>
 @endsection

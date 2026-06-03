@@ -31,7 +31,6 @@
       $fpTrim . '/',
       '/' . $fpTrim . '/',
 
-      // quitar "detalles-de-productos" si en BD no existe ese tramo
       str_replace('/detalles-de-productos/', '/', $fpTrim),
       str_replace('/detalles-de-productos/', '/', '/' . $fpTrim),
       str_replace('/detalles-de-productos/', '/', $fpTrim . '/'),
@@ -50,7 +49,6 @@
       $productsSafe = $products;
       $productsMode = 'controller';
     } else {
-      // 1) exact match por variantes
       $productsSafe = MenuProduct::query()
         ->where(function ($q) use ($variants) {
           foreach ($variants as $alt) {
@@ -64,7 +62,6 @@
 
       $productsMode = 'variants-exact';
 
-      // 2) si sigue vacío: fallback por hoja (último segmento)
       if ($productsSafe->count() === 0) {
         $leaf = trim((string) Str::afterLast($fpTrim, '/'));
         $productsSafe = MenuProduct::query()
@@ -79,7 +76,6 @@
         $productsMode = 'leaf-fallback';
       }
 
-      // 3) si aún está vacío: fallback SOLO ADMIN para ver registros
       if ($isAdmin && $productsSafe->count() === 0) {
         $productsSafe = MenuProduct::query()
           ->where('menu_key', 'like', 'productos/%')
@@ -103,53 +99,18 @@
       --primary2: #1d4ed8;
       --danger: #e11d48;
       --rXL: 24px;
-      --tileR: 16px;
+      --tileR: 22px;
 
-      /* ✅ “ventana” uniforme de imagen */
-      --tileMediaH: 170px;
-      /* ajusta a gusto (170–230) */
+      /* === Tokens unificados (Material Visual) === */
+      --uc-border: #e7eaf0;
+      --uc-shadow: 0 2px 10px rgba(0, 0, 0, .04);
+      --uc-shadow-hover: 0 22px 44px rgba(0, 0, 0, .10);
     }
 
-    /* 1) contenedor más ancho */
     .wrap {
-      max-width: 1360px;
-      /* antes 1120 */
+      max-width: 1450px;
       margin: 0 auto;
       padding: 22px 18px;
-    }
-
-    /* 1) contenedor más ancho */
-    .wrap {
-      max-width: 1360px;
-      /* antes 1120 */
-      margin: 0 auto;
-      padding: 22px 18px;
-    }
-
-    /* 2) grid con cards más grandes */
-    .tile-grid {
-      padding: 18px 16px 24px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      /* antes 220/4col */
-      gap: 26px;
-      /* más aire */
-    }
-
-    /* 3) opcional: un poquito más grande el título */
-    .tile-title {
-      margin-top: 12px;
-      font-size: 16px;
-      font-weight: 750;
-      opacity: .60;
-    }
-
-    /* 3) opcional: un poquito más grande el título */
-    .tile-title {
-      margin-top: 12px;
-      font-size: 16px;
-      font-weight: 750;
-      opacity: .60;
     }
 
     .btn {
@@ -167,16 +128,13 @@
       white-space: nowrap;
     }
 
-    .btn:active {
-      transform: translateY(1px);
-    }
+    .btn:active { transform: translateY(1px); }
 
     .btn-ghost {
       background: #fff;
       border-color: var(--line);
       color: var(--ink);
     }
-
     .btn-ghost:hover {
       background: rgba(248, 250, 252, .85);
       border-color: var(--line2);
@@ -188,15 +146,12 @@
       color: #fff;
       box-shadow: 0 14px 30px rgba(37, 99, 235, .22);
     }
-
-    .btn-primary:hover {
-      opacity: .96;
-    }
+    .btn-primary:hover { opacity: .96; }
 
     .panel {
       border: 1px solid var(--line);
       border-radius: var(--rXL);
-      background: radial-gradient(900px 260px at 15% 0%, rgba(37, 99, 235, .06), transparent 55%), #fff;
+      background: #fff;
       overflow: hidden;
       margin-top: 14px;
     }
@@ -223,246 +178,110 @@
       text-align: center;
     }
 
-    .hint {
-      font-size: .86rem;
-      color: rgba(15, 23, 42, .58);
-    }
-
-    .mono {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-
     /* =========================================================
-       ✅ TILES PRO (imagen completa SIN recorte + tooltip encima)
+       ✅ TILES (estilo unificado Material Visual)
        ========================================================= */
-    /* GRID como la foto 2 */
     .tile-grid {
       padding: 18px 16px 24px;
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
       gap: 22px;
+      align-items: start;
     }
 
-    @media(max-width: 1100px) {
-      .tile-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    @media(max-width: 820px) {
-      .tile-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media(max-width: 520px) {
-      .tile-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Card limpio */
     .tile {
       position: relative;
+      background: #fff;
+      border: 1px solid var(--uc-border);
+      border-radius: var(--tileR);
+      overflow: hidden;
       cursor: pointer;
+      box-shadow: var(--uc-shadow);
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .18s ease, box-shadow .18s ease;
     }
 
-    /* Caja de imagen estilo foto 2 */
+    .tile:hover,
+    .tile:focus,
+    .tile:focus-visible,
+    .tile:focus-within,
+    .tile:active {
+      transform: translateY(-4px);
+      box-shadow: var(--uc-shadow-hover);
+      outline: none;
+      border-color: var(--uc-border);
+    }
+
     .tile-img {
       position: relative;
       width: 100%;
-      aspect-ratio: 16 / 9;
-      border-radius: 14px;
+      aspect-ratio: 16 / 10;
+      background: #f3f4f6;
       overflow: hidden;
-      background: #e5e7eb;
-      /* fallback suave */
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    /* ✅ Esto hace que se vea como la foto 2 */
     .tile-img img {
       width: 100%;
       height: 100%;
       display: block;
       object-fit: cover;
-      /* <-- CLAVE */
       object-position: center;
+      transition: transform .35s ease;
     }
 
-    /* Título abajo */
+    .tile:hover .tile-img img { transform: scale(1.03); }
+
     .tile-title {
-      margin-top: 10px;
-      font-size: 15px;
+      padding: 16px;
+      font-size: 1rem;
       font-weight: 700;
-      opacity: .55;
-      line-height: 1.15;
-    }
-
-    /* ====== ICONOS overlay (respeta tu tema) ====== */
-    .tile-actions {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      gap: 8px;
-      z-index: 20;
-    }
-
-    .icon-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 999px;
-      border: 1px solid rgba(15, 23, 42, .14);
-      background: rgba(255, 255, 255, .92);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 12px 24px rgba(2, 6, 23, .10);
-      cursor: pointer;
-      transition: transform .15s ease, border-color .15s ease, background .15s ease;
-    }
-
-    .icon-btn:hover {
-      transform: translateY(-1px);
-      background: #fff;
-      border-color: rgba(15, 23, 42, .22);
-    }
-
-    .icon-btn.danger {
-      border-color: rgba(225, 29, 72, .28);
-      background: rgba(225, 29, 72, .08);
-    }
-
-    .icon-btn.danger:hover {
-      border-color: rgba(225, 29, 72, .38);
-      background: rgba(225, 29, 72, .12);
-    }
-
-
-    /* overlay sutil */
-    .tile::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(2, 6, 23, .00) 55%, rgba(2, 6, 23, .10) 100%);
-      opacity: 0;
-      transition: opacity .16s ease;
-      pointer-events: none;
-      z-index: 4;
-    }
-
-    .tile:hover::before {
+      color: #111827;
+      line-height: 1.35;
       opacity: 1;
     }
 
-    /* Tooltip encima (no empuja layout) */
-    .tile-tooltip {
+    /* Acciones admin (flotantes, fade-in en hover) */
+    .tile-actions {
       position: absolute;
-      left: 12px;
-      right: 12px;
-      bottom: 12px;
-      z-index: 10;
-
-      background: rgba(15, 23, 42, .92);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, .10);
-      border-radius: 12px;
-      padding: 10px 10px;
-
-      box-shadow: 0 22px 60px rgba(2, 6, 23, .30);
-      backdrop-filter: blur(10px);
-
+      top: 14px;
+      right: 14px;
+      display: flex;
+      gap: 10px;
+      z-index: 20;
       opacity: 0;
-      transform: translateY(10px);
-      pointer-events: none;
-      transition: opacity .16s ease, transform .16s ease;
+      transform: translateY(-8px);
+      transition: .22s ease;
     }
 
-    .tile:hover .tile-tooltip,
-    .tile:focus-within .tile-tooltip {
+    .tile:hover .tile-actions {
       opacity: 1;
       transform: translateY(0);
     }
 
-    .tile-tooltip .tt-title {
-      font-weight: 950;
-      font-size: 13px;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .tile-tooltip .tt-body {
-      font-size: 12.5px;
-      line-height: 1.25;
-      color: rgba(255, 255, 255, .86);
-      white-space: pre-line;
-      display: -webkit-box;
-      -webkit-line-clamp: 7;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .tile-tooltip .tt-meta {
-      margin-top: 8px;
-      font-size: 11.5px;
-      color: rgba(255, 255, 255, .70);
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, .14);
-      background: rgba(255, 255, 255, .08);
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    /* Acciones admin encima */
-    .tile-actions {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      gap: 8px;
-      z-index: 50;
-    }
-
     .icon-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 999px;
-      border: 1px solid rgba(15, 23, 42, .14);
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, .7);
       background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(12px);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 12px 24px rgba(2, 6, 23, .10);
+      font-size: 16px;
       cursor: pointer;
-      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
+      transition: .18s ease;
+      padding: 0;
+      text-decoration: none;
+      color: #0f172a;
     }
-
-    .icon-btn:hover {
-      transform: translateY(-1px);
-      background: #fff;
-      border-color: rgba(15, 23, 42, .22);
-    }
-
-    .icon-btn.danger {
-      border-color: rgba(225, 29, 72, .28);
-      background: rgba(225, 29, 72, .08);
-    }
-
-    .icon-btn.danger:hover {
-      border-color: rgba(225, 29, 72, .38);
-      background: rgba(225, 29, 72, .12);
-    }
+    .icon-btn:hover { transform: scale(1.06); background: #fff; }
+    .icon-btn.danger:hover { background: #fee2e2; }
 
     /* =========================================================
        ✅ MODALES
@@ -485,7 +304,6 @@
       opacity: 0;
       transition: transform .22s ease, opacity .22s ease;
     }
-
     .modal-open .modal-enter {
       transform: translateY(0) scale(1);
       opacity: 1;
@@ -526,9 +344,7 @@
       color: rgba(15, 23, 42, .78);
     }
 
-    .input,
-    .textarea,
-    .select {
+    .input, .textarea, .select {
       width: 100%;
       border-radius: 16px;
       border: 1px solid rgba(15, 23, 42, .14);
@@ -540,25 +356,13 @@
       transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
     }
 
-    .textarea {
-      padding: 1rem;
-    }
-
-    .select {
-      padding: .90rem 1rem;
-    }
-
-    .input:focus,
-    .textarea:focus,
-    .select:focus {
+    .input:focus, .textarea:focus, .select:focus {
       border-color: rgba(37, 99, 235, .55);
       box-shadow: 0 0 0 6px rgba(37, 99, 235, .14);
       background: #fff;
     }
 
-    .no-scroll {
-      overflow: hidden !important;
-    }
+    .no-scroll { overflow: hidden !important; }
 
     body.modal-open .hide-when-modal {
       opacity: 0 !important;
@@ -566,99 +370,8 @@
       pointer-events: none !important;
     }
 
-    #editCardBackdrop,
-    #createModalBackdrop,
-    #createProductBackdrop {
-      z-index: 9998 !important;
-    }
-
-    #editCardModal,
-    #createModal,
-    #createProductModal {
-      z-index: 9999 !important;
-    }
-
-    /* Debug admin */
-    .dbg {
-      padding: 12px 16px;
-      font-size: 12px;
-      color: rgba(15, 23, 42, .80);
-      background: rgba(248, 250, 252, .85);
-      border-top: 1px dashed rgba(15, 23, 42, .18);
-    }
-
-    .dbg b {
-      font-weight: 300;
-    }
-
-    /* 1) EVITA que el grid estire las cards */
-    .tile-grid {
-      align-items: start !important;
-      /* clave */
-    }
-
-    /* 2) QUE LA TILE NO TENGA “CAJA” (sin fondo/borde/sombra) */
-    .tile {
-      background: transparent !important;
-      border: 0 !important;
-      box-shadow: none !important;
-      padding: 0 !important;
-      overflow: visible !important;
-      /* para que no “corte” nada */
-      align-self: start !important;
-      /* no se estira */
-    }
-
-    /* 3) QUITA OVERLAYS QUE PUEDAN “pintar” abajo */
-    .tile::before {
-      display: none !important;
-    }
-
-    /* 4) QUE SOLO SEA IMAGEN: el contenedor NO pinta fondo */
-    .tile-img {
-      background: transparent !important;
-      height: auto !important;
-      min-height: 0 !important;
-      overflow: hidden !important;
-      /* solo por bordes redondeados si quieres */
-    }
-
-    /* 5) IMAGEN MANDA: sin recorte, sin zoom, sin gap */
-    .tile-img img {
-      display: block !important;
-      width: 100% !important;
-      height: auto !important;
-      max-width: 100% !important;
-      object-fit: unset !important;
-    }
-
-    /* ✅ imagen completa (NUNCA recorta) */
-    .tile-img {
-      height: auto !important;
-      min-height: 0 !important;
-      background: transparent !important;
-      overflow: visible !important;
-      /* no cortes nada */
-    }
-
-    /* fuerza a que cualquier cover quede anulado */
-    .tile-img img {
-      width: 100% !important;
-      height: auto !important;
-      max-width: 100% !important;
-      max-height: none !important;
-      object-fit: contain !important;
-      /* ✅ clave */
-      object-position: center center !important;
-      display: block !important;
-    }
-
-    /* rompe recortes de padres */
-    .tile,
-    .tile-img {
-      overflow: visible !important;
-      height: auto !important;
-    }
+    #editCardBackdrop, #createModalBackdrop, #createProductBackdrop { z-index: 9998 !important; }
+    #editCardModal, #createModal, #createProductModal { z-index: 9999 !important; }
   </style>
 
   <div class="wrap">
@@ -680,30 +393,40 @@
       @if(!empty($cards) && count($cards))
         <div class="tile-grid">
           @foreach($cards as $card)
-              @php
-                $key = $card['key'] ?? '';
-                $href = $card['href'] ?? '#';
-                $nodeId = $card['id'] ?? null;
+            @php
+              $key = $card['key'] ?? '';
+              $href = $card['href'] ?? '#';
+              $nodeId = $card['id'] ?? null;
 
-                $imgRow = isset($images) ? ($images->get($key) ?? null) : null;
+              $imgRow = isset($images) ? ($images->get($key) ?? null) : null;
 
-                $customTitle = $imgRow->title ?? ($card['customTitle'] ?? null);
-                $desc = $imgRow->description ?? ($card['description'] ?? '');
-                $imgPath = $imgRow->path ?? null;
+              $customTitle = $imgRow->title ?? ($card['customTitle'] ?? null);
+              $desc = $imgRow->description ?? ($card['description'] ?? '');
+              $imgPath = $imgRow->path ?? null;
 
-                $imgUrl = $imgPath ? asset('storage/' . ltrim($imgPath, '/')) : null;
-                $title = $customTitle ?: ($card['title'] ?? '—');
-              @endphp
+              $imgUrl = $imgPath ? asset('storage/' . ltrim($imgPath, '/')) : null;
+              $title = $customTitle ?: ($card['title'] ?? '—');
+            @endphp
 
-              <div class="tile" onclick="
-               if(@js($card['is_pdf'] ?? false)){
-                 event.preventDefault();
-                 event.stopPropagation();
-                 window.openPdfPreview(@js($href), @js($title));
-               }else if(@js($href)!=='#'){
-                 window.location.href=@js($href);
-               }
-             ">
+            <div class="tile" onclick="
+              if(@js($card['is_pdf'] ?? false)){
+                event.preventDefault();
+                event.stopPropagation();
+                window.openPdfPreview(@js($href), @js($title));
+              }else if(@js($href)!=='#'){
+                window.location.href=@js($href);
+              }
+            ">
+
+              {{-- imagen --}}
+              <div class="tile-img">
+                @if($imgUrl)
+                  <img src="{{ $imgUrl }}" alt="{{ $title }}">
+                @else
+                  <img
+                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='700'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='34' font-family='Arial'%3ESin%20imagen%3C/text%3E%3C/svg%3E"
+                    alt="Sin imagen">
+                @endif
 
                 @if($isAdmin)
                   <div class="tile-actions hide-when-modal">
@@ -725,31 +448,12 @@
                     @endif
                   </div>
                 @endif
-
-
-                {{-- tooltip (SOLO hover): solo Título + Descripción --}}
-                <div class="tile-tooltip" aria-hidden="true">
-                  <div class="tt-title">
-                    <span>{{ $title }}</span>
-                  </div>
-                  <div class="tt-body">{{ trim((string) $desc) !== '' ? $desc : 'Sin descripción.' }}</div>
-                </div>
-
-                {{-- imagen (full-bleed) --}}
-                <div class="tile-img">
-                  @if($imgUrl)
-                    <img src="{{ $imgUrl }}" alt="{{ $title }}">
-                  @else
-                    <img
-                      src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='700'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='34' font-family='Arial'%3ESin%20imagen%3C/text%3E%3C/svg%3E"
-                      alt="Sin imagen">
-                  @endif
-                </div>
-
-                {{-- título abajo como la foto 2 --}}
-                <div class="tile-title">{{ $title }}</div>
-
               </div>
+
+              {{-- título debajo --}}
+              <div class="tile-title">{{ $title }}</div>
+
+            </div>
           @endforeach
         </div>
       @else
@@ -757,16 +461,10 @@
       @endif
     </div>
 
-
-
   </div>
 
   @if($isAdmin)
-
-
-    {{-- =========================
-    ✅ MODAL: CREAR SUBMENÚ
-    ========================= --}}
+    {{-- MODAL: CREAR SUBMENÚ --}}
     <div id="createModalBackdrop" class="modal-backdrop fixed inset-0 hidden z-[80]" onclick="closeCreateNode()"></div>
     <div id="createModal" class="fixed inset-0 hidden z-[90]">
       <div class="min-h-full flex items-center justify-center p-4">
@@ -816,11 +514,9 @@
               </div>
             </div>
           </form>
-
         </div>
       </div>
     </div>
-
 
     <script>
       function lockBodyScroll(lock) {
@@ -829,7 +525,6 @@
         else { b.classList.remove('no-scroll'); b.classList.remove('modal-open'); }
       }
 
-      // CREATE SUBMENU
       function openCreateNode(parentId) {
         const input = document.getElementById('create_parent_id');
         if (input) input.value = parentId || 0;
@@ -849,12 +544,8 @@
       }
 
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          closeCreateNode();
-        }
+        if (e.key === 'Escape') closeCreateNode();
       });
-
-      // exponer por si lo llamas desde otros lados
 
       window.openCreateNode = openCreateNode;
       window.closeCreateNode = closeCreateNode;
@@ -863,7 +554,6 @@
 
   @role('admin')
   @php
-    // ✅ usa el nodo si viene; si no, usa currentNodeId
     $manageId = $node->id ?? ($currentNodeId ?? null);
   @endphp
 
