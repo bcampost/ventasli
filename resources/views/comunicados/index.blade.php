@@ -11,10 +11,21 @@
     </div>
   </div>
 
+  @php
+    $statusLabels = [
+      'nuevo'         => 'Nuevo',
+      'vigente'       => 'Vigente',
+      'expira_pronto' => 'Expira pronto',
+      'vencido'       => 'Vencido',
+    ];
+  @endphp
+
   <div class="cm-grid">
     @forelse($comunicados as $item)
       @php
         $img = $item->image_path ? asset('storage/'.ltrim($item->image_path, '/')) : null;
+        $status = method_exists($item, 'status') ? $item->status() : null;
+        $statusLabel = $status ? ($statusLabels[$status] ?? null) : null;
       @endphp
 
       <button type="button"
@@ -30,10 +41,18 @@
         </div>
 
         <div class="cm-body">
-          <div class="cm-title">{{ $item->title ?: 'Comunicado' }}</div>
+          <div class="cm-title-row">
+            <div class="cm-title">{{ $item->title ?: 'Comunicado' }}</div>
+            @if($statusLabel)
+              <span class="cm-status cm-status--{{ $status }}">{{ $statusLabel }}</span>
+            @endif
+          </div>
 
           <div class="cm-meta">
             {{ optional($item->created_at)->format('d/m/Y') }}
+            @if($item->expires_at)
+              · Vence {{ \Illuminate\Support\Carbon::parse($item->expires_at)->format('d/m/Y') }}
+            @endif
           </div>
         </div>
       </button>
@@ -153,17 +172,74 @@
   padding:15px 16px 16px;
 }
 
+.cm-title-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+
 .cm-title{
   color:#111827;
   font-size:1rem;
   font-weight:800;
   line-height:1.25;
+  flex:1;
+  min-width:0;
 }
 
 .cm-meta{
   margin-top:7px;
   color:#64748b;
   font-size:.82rem;
+}
+
+/* Badges de estado */
+.cm-status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:.72rem;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  white-space:nowrap;
+  border:1px solid transparent;
+  flex-shrink:0;
+}
+
+.cm-status::before{
+  content:'';
+  width:6px;
+  height:6px;
+  border-radius:999px;
+  background:currentColor;
+}
+
+.cm-status--nuevo{
+  background:#dbeafe;
+  color:#1d4ed8;
+  border-color:rgba(29,78,216,.18);
+}
+
+.cm-status--vigente{
+  background:#dcfce7;
+  color:#15803d;
+  border-color:rgba(21,128,61,.18);
+}
+
+.cm-status--expira_pronto{
+  background:#fef3c7;
+  color:#a16207;
+  border-color:rgba(161,98,7,.20);
+}
+
+.cm-status--vencido{
+  background:#fee2e2;
+  color:#b91c1c;
+  border-color:rgba(185,28,28,.20);
 }
 
 .cm-empty{

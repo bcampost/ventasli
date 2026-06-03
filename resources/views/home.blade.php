@@ -78,6 +78,10 @@
               <div class="swiper-slide hero3d-slide">
                 <div class="hero3d-card">
 
+                  @if(method_exists($slide, 'isNew') && $slide->isNew())
+                    <span class="hero-slide-badge hero-slide-badge--new" aria-label="Nuevo">Nuevo</span>
+                  @endif
+
                   <a href="{{ $imgUrl ?: '#' }}" data-preview="media" data-src="{{ $imgUrl ?: '' }}"
                     data-title="{{ $title }}" class="hero-slide-preview swiper-no-swiping" title="Ver más grande">
                     @include('partials.slide-image-hero', ['slide' => $slide])
@@ -393,6 +397,40 @@
       box-shadow: 0 10px 18px rgba(0, 0, 0, .10);
       opacity: .35;
       pointer-events: none;
+    }
+
+    /* Badge "Nuevo" arriba del slider */
+    .hero-slide-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 10;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, .12);
+      pointer-events: none;
+    }
+
+    .hero-slide-badge--new {
+      background: #dbeafe;
+      color: #1d4ed8;
+      border: 1px solid rgba(29, 78, 216, .22);
+    }
+
+    .hero-slide-badge--new::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .18);
     }
 
     .swiper-slide-active .hero-slide-linkout {
