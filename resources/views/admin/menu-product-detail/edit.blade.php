@@ -2,9 +2,8 @@
 
   @section('content')
   @php
-$techUrl   = $product->tech_pdf_path   ? asset('storage/'.ltrim($product->tech_pdf_path,'/'))   : null;
-$manualUrl = $product->manual_pdf_path ? asset('storage/'.ltrim($product->manual_pdf_path,'/')) : null;
-$videoUrl  = $product->video_path      ? asset('storage/'.ltrim($product->video_path,'/'))     : null;
+    $techUrl   = $product->tech_pdf_path   ? asset('storage/'.ltrim($product->tech_pdf_path,'/'))   : null;
+    $manualUrl = $product->manual_pdf_path ? asset('storage/'.ltrim($product->manual_pdf_path,'/')) : null;
 
     $gallerySafe = $detail->images_safe ?? [];
     $gallerySafe = is_array($gallerySafe) ? $gallerySafe : [];
@@ -1390,6 +1389,18 @@ $videoUrl  = $product->video_path      ? asset('storage/'.ltrim($product->video_
                         <div class="ep-cover-empty">▧</div>
                     @endif
                 </div>
+
+                <button
+                    type="button"
+                    class="ep-cover-upload-btn"
+                    onclick="document.getElementById('directCoverInput').click()"
+                    style="margin-top:10px;width:100%;height:36px;border-radius:8px;border:1px solid rgba(15,23,42,.14);background:#fff;font-weight:700;cursor:pointer;font-size:.86rem;display:flex;align-items:center;justify-content:center;gap:6px;"
+                >
+                    📷 Cargar portada
+                </button>
+                <div style="margin-top:6px;font-size:.74rem;color:#64748b;line-height:1.35;">
+                    Se subirá a la galería y quedará como portada.
+                </div>
             </div>
 
             <div class="ep-field">
@@ -1824,12 +1835,12 @@ onclick='openImageTagger(
 </div>
 
 
-          {{-- PDFs y Video --}}
+          {{-- PDFs --}}
           <div class="ep-card">
             <div class="ep-card-head">
               <h2 class="ep-card-title">Documentación del producto</h2>
               <div class="ep-card-sub">
-                Administra la ficha técnica, el instructivo y el video. Aquí puedes reemplazar archivos, previsualizarlos o quitarlos del producto.
+                Administra la ficha técnica y el instructivo. Aquí puedes reemplazar archivos, previsualizarlos o quitarlos del producto.
               </div>
             </div>
 
@@ -1863,8 +1874,6 @@ onclick='openImageTagger(
                           name="tech_pdf"
                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.svg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,image/*"
                           class="ep-file">
-                        
-                        
                   </div>
 
                   <div class="ep-actions">
@@ -1982,6 +1991,7 @@ onclick='openImageTagger(
               </div>
             </div>
           </div>
+
           {{-- Barra fija inferior --}}
           <div class="ep-sticky-bar">
             <div class="ep-sticky-inner">
@@ -2022,6 +2032,24 @@ onclick='openImageTagger(
   @csrf
   @method('DELETE')
   <input type="hidden" name="redirect_to" value="{{ $redirectTo }}">
+</form>
+
+<form
+  id="directCoverForm"
+  method="POST"
+  action="{{ route('admin.product-details.set-cover', $product) }}"
+  enctype="multipart/form-data"
+  style="display:none;"
+>
+  @csrf
+  <input type="hidden" name="redirect_to" value="{{ url()->full() }}">
+  <input
+    type="file"
+    name="cover_image"
+    id="directCoverInput"
+    accept="image/*"
+    onchange="if(this.files.length){ document.getElementById('directCoverForm').submit(); }"
+  >
 </form>
     </div>
   </div>
@@ -2407,10 +2435,10 @@ function deleteCurrentImage() {
 
         const card = item.closest('.ep-gallery-card');
 
-    if (card) {
-        card.style.opacity = '.35';
-        card.style.pointerEvents = 'none';
-    }
+        if (card) {
+            card.style.opacity = '.35';
+            card.style.pointerEvents = 'none';        
+        }
     }
 
     closeImageTagger();

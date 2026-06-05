@@ -31,6 +31,7 @@
       $fpTrim . '/',
       '/' . $fpTrim . '/',
 
+      // quitar "detalles-de-productos" si en BD no existe ese tramo
       str_replace('/detalles-de-productos/', '/', $fpTrim),
       str_replace('/detalles-de-productos/', '/', '/' . $fpTrim),
       str_replace('/detalles-de-productos/', '/', $fpTrim . '/'),
@@ -49,6 +50,7 @@
       $productsSafe = $products;
       $productsMode = 'controller';
     } else {
+      // 1) exact match por variantes
       $productsSafe = MenuProduct::query()
         ->where(function ($q) use ($variants) {
           foreach ($variants as $alt) {
@@ -62,6 +64,7 @@
 
       $productsMode = 'variants-exact';
 
+      // 2) si sigue vacío: fallback por hoja (último segmento)
       if ($productsSafe->count() === 0) {
         $leaf = trim((string) Str::afterLast($fpTrim, '/'));
         $productsSafe = MenuProduct::query()
@@ -76,6 +79,7 @@
         $productsMode = 'leaf-fallback';
       }
 
+      // 3) si aún está vacío: fallback SOLO ADMIN para ver registros
       if ($isAdmin && $productsSafe->count() === 0) {
         $productsSafe = MenuProduct::query()
           ->where('menu_key', 'like', 'productos/%')
@@ -128,13 +132,16 @@
       white-space: nowrap;
     }
 
-    .btn:active { transform: translateY(1px); }
+    .btn:active {
+      transform: translateY(1px);
+    }
 
     .btn-ghost {
       background: #fff;
       border-color: var(--line);
       color: var(--ink);
     }
+
     .btn-ghost:hover {
       background: rgba(248, 250, 252, .85);
       border-color: var(--line2);
@@ -146,7 +153,10 @@
       color: #fff;
       box-shadow: 0 14px 30px rgba(37, 99, 235, .22);
     }
-    .btn-primary:hover { opacity: .96; }
+
+    .btn-primary:hover {
+      opacity: .96;
+    }
 
     .panel {
       border: 1px solid var(--line);
@@ -178,17 +188,26 @@
       text-align: center;
     }
 
+    .hint {
+      font-size: .86rem;
+      color: rgba(15, 23, 42, .58);
+    }
+
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
     /* =========================================================
-       ✅ TILES (estilo unificado Material Visual)
+       ✅ TILES (estilo unificado tipo Material Visual)
        ========================================================= */
     .tile-grid {
       padding: 18px 16px 24px;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(285px, 1fr));
       gap: 22px;
-      align-items: start;
     }
 
+    /* Card (mismo aspecto que .mv-card) */
     .tile {
       position: relative;
       background: #fff;
@@ -199,7 +218,9 @@
       box-shadow: var(--uc-shadow);
       outline: none;
       -webkit-tap-highlight-color: transparent;
-      transition: transform .18s ease, box-shadow .18s ease;
+      transition:
+        transform .18s ease,
+        box-shadow .18s ease;
     }
 
     .tile:hover,
@@ -213,6 +234,7 @@
       border-color: var(--uc-border);
     }
 
+    /* Caja de imagen */
     .tile-img {
       position: relative;
       width: 100%;
@@ -233,8 +255,11 @@
       transition: transform .35s ease;
     }
 
-    .tile:hover .tile-img img { transform: scale(1.03); }
+    .tile:hover .tile-img img {
+      transform: scale(1.03);
+    }
 
+    /* Título debajo (consistente con .mv-title) */
     .tile-title {
       padding: 16px;
       font-size: 1rem;
@@ -244,7 +269,7 @@
       opacity: 1;
     }
 
-    /* Acciones admin (flotantes, fade-in en hover) */
+    /* ====== Acciones admin (flotantes, fade-in en hover) ====== */
     .tile-actions {
       position: absolute;
       top: 14px;
@@ -274,14 +299,22 @@
       justify-content: center;
       font-size: 16px;
       cursor: pointer;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, .14);
       transition: .18s ease;
       padding: 0;
       text-decoration: none;
       color: #0f172a;
     }
-    .icon-btn:hover { transform: scale(1.06); background: #fff; }
-    .icon-btn.danger:hover { background: #fee2e2; }
+
+    .icon-btn:hover {
+      transform: scale(1.06);
+      background: #fff;
+    }
+
+    .icon-btn.danger:hover {
+      background: #fee2e2;
+    }
+
 
     /* =========================================================
        ✅ MODALES
@@ -304,6 +337,7 @@
       opacity: 0;
       transition: transform .22s ease, opacity .22s ease;
     }
+
     .modal-open .modal-enter {
       transform: translateY(0) scale(1);
       opacity: 1;
@@ -344,7 +378,9 @@
       color: rgba(15, 23, 42, .78);
     }
 
-    .input, .textarea, .select {
+    .input,
+    .textarea,
+    .select {
       width: 100%;
       border-radius: 16px;
       border: 1px solid rgba(15, 23, 42, .14);
@@ -356,13 +392,25 @@
       transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
     }
 
-    .input:focus, .textarea:focus, .select:focus {
+    .textarea {
+      padding: 1rem;
+    }
+
+    .select {
+      padding: .90rem 1rem;
+    }
+
+    .input:focus,
+    .textarea:focus,
+    .select:focus {
       border-color: rgba(37, 99, 235, .55);
       box-shadow: 0 0 0 6px rgba(37, 99, 235, .14);
       background: #fff;
     }
 
-    .no-scroll { overflow: hidden !important; }
+    .no-scroll {
+      overflow: hidden !important;
+    }
 
     body.modal-open .hide-when-modal {
       opacity: 0 !important;
@@ -370,8 +418,35 @@
       pointer-events: none !important;
     }
 
-    #editCardBackdrop, #createModalBackdrop, #createProductBackdrop { z-index: 9998 !important; }
-    #editCardModal, #createModal, #createProductModal { z-index: 9999 !important; }
+    #editCardBackdrop,
+    #createModalBackdrop,
+    #createProductBackdrop {
+      z-index: 9998 !important;
+    }
+
+    #editCardModal,
+    #createModal,
+    #createProductModal {
+      z-index: 9999 !important;
+    }
+
+    /* Debug admin */
+    .dbg {
+      padding: 12px 16px;
+      font-size: 12px;
+      color: rgba(15, 23, 42, .80);
+      background: rgba(248, 250, 252, .85);
+      border-top: 1px dashed rgba(15, 23, 42, .18);
+    }
+
+    .dbg b {
+      font-weight: 300;
+    }
+
+    /* Mantiene la card alineada al inicio para que filas con cards de altura distinta no se estiren */
+    .tile-grid {
+      align-items: start;
+    }
   </style>
 
   <div class="wrap">
@@ -393,67 +468,94 @@
       @if(!empty($cards) && count($cards))
         <div class="tile-grid">
           @foreach($cards as $card)
-            @php
-              $key = $card['key'] ?? '';
-              $href = $card['href'] ?? '#';
-              $nodeId = $card['id'] ?? null;
+              @php
+                $key = $card['key'] ?? '';
+                $href = $card['href'] ?? '#';
+                $nodeId = $card['id'] ?? null;
 
-              $imgRow = isset($images) ? ($images->get($key) ?? null) : null;
+                $imgRow = isset($images) ? ($images->get($key) ?? null) : null;
 
-              $customTitle = $imgRow->title ?? ($card['customTitle'] ?? null);
-              $desc = $imgRow->description ?? ($card['description'] ?? '');
-              $imgPath = $imgRow->path ?? null;
+                $customTitle = $imgRow->title ?? ($card['customTitle'] ?? null);
+                $desc = $imgRow->description ?? ($card['description'] ?? '');
+                $imgPath = $imgRow->path ?? null;
 
-              $imgUrl = $imgPath ? asset('storage/' . ltrim($imgPath, '/')) : null;
-              $title = $customTitle ?: ($card['title'] ?? '—');
-            @endphp
+                $imgUrl = $imgPath ? asset('storage/' . ltrim($imgPath, '/')) : null;
+                $title = $customTitle ?: ($card['title'] ?? '—');
+              @endphp
 
-            <div class="tile" onclick="
-              if(@js($card['is_pdf'] ?? false)){
-                event.preventDefault();
-                event.stopPropagation();
-                window.openPdfPreview(@js($href), @js($title));
-              }else if(@js($href)!=='#'){
-                window.location.href=@js($href);
-              }
-            ">
+              <div class="tile" onclick="
+               if(@js($card['is_pdf'] ?? false)){
+                 event.preventDefault();
+                 event.stopPropagation();
+                 window.openPdfPreview(@js($href), @js($title));
+               }else if(@js($href)!=='#'){
+                 window.location.href=@js($href);
+               }
+             ">
 
-              {{-- imagen --}}
-              <div class="tile-img">
-                @if($imgUrl)
-                  <img src="{{ $imgUrl }}" alt="{{ $title }}">
-                @else
-                  <img
-                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='700'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='34' font-family='Arial'%3ESin%20imagen%3C/text%3E%3C/svg%3E"
-                    alt="Sin imagen">
-                @endif
+                {{-- imagen --}}
+                <div class="tile-img">
+                  @if($imgUrl)
+                    <img src="{{ $imgUrl }}" alt="{{ $title }}">
+                  @else
+                    <img
+                      src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='700'%3E%3Crect width='100%25' height='100%25' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-size='34' font-family='Arial'%3ESin%20imagen%3C/text%3E%3C/svg%3E"
+                      alt="Sin imagen">
+                  @endif
 
-                @if($isAdmin)
-                  <div class="tile-actions hide-when-modal">
-                    @if($nodeId)
-                      <a href="{{ route('admin.menu.manage', $nodeId) }}" class="icon-btn" title="Administrar opción"
-                        onclick="event.stopPropagation();">
-                        ⚙️
-                      </a>
+                  @if($isAdmin)
+                    <div class="tile-actions hide-when-modal">
+                      @if($nodeId)
+                        <a href="{{ route('admin.menu.manage', $nodeId) }}" class="icon-btn" title="Administrar opción"
+                          onclick="event.stopPropagation();">
+                          ⚙️
+                        </a>
 
-                      <form method="POST" action="{{ route('admin.menu.destroy', ['menu_node' => $nodeId]) }}"
-                        onsubmit="event.stopPropagation(); return confirm('¿Eliminar esta opción del menú?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="icon-btn danger" title="Eliminar"
-                          onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); this.closest('form').submit();">
-                          🗑
-                        </button>
-                      </form>
-                    @endif
-                  </div>
-                @endif
+                        @if(!empty($key))
+                          @php $cardToken = $tokenOf($key); @endphp
+                          <form method="POST"
+                                action="{{ route('admin.menu-cards.update', $cardToken) }}"
+                                enctype="multipart/form-data"
+                                id="cardCoverForm_{{ $cardToken }}"
+                                onclick="event.stopPropagation();"
+                                style="display:inline-block;margin:0;">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
+                            <input type="hidden" name="title" value="{{ $customTitle ?? '' }}">
+                            <input type="hidden" name="description" value="{{ $desc ?? '' }}">
+                            <input type="file"
+                                   name="image"
+                                   id="cardCoverInput_{{ $cardToken }}"
+                                   accept="image/*"
+                                   style="display:none;"
+                                   onchange="if(this.files.length){ document.getElementById('cardCoverForm_{{ $cardToken }}').submit(); }">
+                            <button type="button" class="icon-btn" title="Cambiar portada"
+                              onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); document.getElementById('cardCoverInput_{{ $cardToken }}').click();">
+                              📷
+                            </button>
+                          </form>
+                        @endif
+
+                        <form method="POST" action="{{ route('admin.menu.destroy', ['menu_node' => $nodeId]) }}"
+                          onsubmit="event.stopPropagation(); return confirm('¿Eliminar esta opción del menú?');">
+                          @csrf
+                          @method('DELETE')
+                          <button type="submit" class="icon-btn danger" title="Eliminar"
+                            onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); this.closest('form').submit();">
+                            🗑
+                          </button>
+                        </form>
+                      @endif
+                    </div>
+                  @endif
+
+                </div>
+
+                {{-- título debajo (estilo Material Visual) --}}
+                <div class="tile-title">{{ $title }}</div>
+
               </div>
-
-              {{-- título debajo --}}
-              <div class="tile-title">{{ $title }}</div>
-
-            </div>
           @endforeach
         </div>
       @else
@@ -461,10 +563,16 @@
       @endif
     </div>
 
+
+
   </div>
 
   @if($isAdmin)
-    {{-- MODAL: CREAR SUBMENÚ --}}
+
+
+    {{-- =========================
+    ✅ MODAL: CREAR SUBMENÚ
+    ========================= --}}
     <div id="createModalBackdrop" class="modal-backdrop fixed inset-0 hidden z-[80]" onclick="closeCreateNode()"></div>
     <div id="createModal" class="fixed inset-0 hidden z-[90]">
       <div class="min-h-full flex items-center justify-center p-4">
@@ -514,9 +622,11 @@
               </div>
             </div>
           </form>
+
         </div>
       </div>
     </div>
+
 
     <script>
       function lockBodyScroll(lock) {
@@ -525,6 +635,7 @@
         else { b.classList.remove('no-scroll'); b.classList.remove('modal-open'); }
       }
 
+      // CREATE SUBMENU
       function openCreateNode(parentId) {
         const input = document.getElementById('create_parent_id');
         if (input) input.value = parentId || 0;
@@ -544,8 +655,12 @@
       }
 
       document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeCreateNode();
+        if (e.key === 'Escape') {
+          closeCreateNode();
+        }
       });
+
+      // exponer por si lo llamas desde otros lados
 
       window.openCreateNode = openCreateNode;
       window.closeCreateNode = closeCreateNode;
@@ -554,6 +669,7 @@
 
   @role('admin')
   @php
+    // ✅ usa el nodo si viene; si no, usa currentNodeId
     $manageId = $node->id ?? ($currentNodeId ?? null);
   @endphp
 

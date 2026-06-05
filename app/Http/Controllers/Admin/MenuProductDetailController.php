@@ -312,4 +312,47 @@ class MenuProductDetailController extends Controller
         return redirect($data['redirect_to'] ?? url()->previous())
             ->with('success', 'Detalle actualizado.');
     }
+
+    public function setCover(MenuProduct $menu_product, Request $request)
+    {
+        $data = $request->validate([
+            'cover_image' => ['required', 'image', 'max:5120'],
+            'redirect_to' => ['nullable', 'string'],
+        ]);
+
+        $path = $request->file('cover_image')->store('products', 'public');
+
+        $detail = $menu_product->detail()->firstOrCreate([]);
+        $imgs = $detail->images_safe;
+        $imgs = is_array($imgs) ? $imgs : [];
+
+        $imgs[] = [
+            'path' => $path,
+            'acero' => '',
+            'melamina' => '',
+        ];
+
+        $detail->images = $imgs;
+        $detail->save();
+
+        $menu_product->image_path = $path;
+        $menu_product->save();
+
+        $to = $data['redirect_to'] ?? null;
+        $msg = 'Portada actualizada.';
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'ok' => true,
+                'image_path' => $path,
+                'image_url' => asset('storage/' . ltrim($path, '/')),
+            ]);
+        }
+
+        if ($to) {
+            return redirect($to)->with('success', $msg);
+        }
+
+        return redirect()->back()->with('success', $msg);
+    }
 }

@@ -139,12 +139,36 @@
                       🔍 Zoom
                     </button>
                   @endif
+
+                  @role('admin')
+                    <button type="button" class="pd-cover-btn"
+                      title="Cambiar portada"
+                      onclick="event.preventDefault(); event.stopPropagation(); document.getElementById('pdCoverInput_{{ $prod->id }}').click();">
+                      📷 Portada
+                    </button>
+                  @endrole
                 </div>
 
                 <div class="pd-tt {{ $useWideHerramientasLayout ? 'pd-tt--wide' : '' }}">
                   {{ $prod->title }}
                 </div>
               </a>
+
+              @role('admin')
+                <form method="POST"
+                      action="{{ route('admin.product-details.set-cover', $prod) }}"
+                      enctype="multipart/form-data"
+                      id="pdCoverForm_{{ $prod->id }}"
+                      style="display:none;">
+                  @csrf
+                  <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
+                  <input type="file"
+                         name="cover_image"
+                         id="pdCoverInput_{{ $prod->id }}"
+                         accept="image/*"
+                         onchange="if(this.files.length){ document.getElementById('pdCoverForm_{{ $prod->id }}').submit(); }">
+                </form>
+              @endrole
             @endforeach
           </div>
         @else
@@ -475,6 +499,34 @@
     }
 
     .pd-zoom-btn:hover {
+      background: #fff;
+      transform: scale(1.04);
+    }
+
+    .pd-cover-btn {
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      z-index: 5;
+      border: 1px solid rgba(37, 99, 235, .35);
+      background: rgba(255, 255, 255, .92);
+      backdrop-filter: blur(12px);
+      color: #1d4ed8;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .14);
+      opacity: 0;
+      transition: .22s ease;
+    }
+
+    .pd-tile:hover .pd-cover-btn {
+      opacity: 1;
+    }
+
+    .pd-cover-btn:hover {
       background: #fff;
       transform: scale(1.04);
     }

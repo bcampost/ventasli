@@ -186,6 +186,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/product-details/{menu_product}', [MenuProductDetailController::class, 'update'])
             ->name('product-details.update');
 
+        Route::post('/product-details/{menu_product}/cover', [MenuProductDetailController::class, 'setCover'])
+            ->name('product-details.set-cover');
+
         /*
         |--------------------------------------------------------------------------
         | ✅ Editor SOLO de colores (Estructura/Melamina)

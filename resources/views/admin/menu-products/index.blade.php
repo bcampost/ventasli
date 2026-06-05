@@ -196,6 +196,27 @@
                   ✎ Editar
                 </button>
 
+                <form method="POST"
+                      action="{{ route('admin.product-details.set-cover', $p) }}"
+                      enctype="multipart/form-data"
+                      id="coverForm_{{ $p->id }}"
+                      style="display:inline-block;margin-left:8px;">
+                  @csrf
+                  <input type="hidden" name="redirect_to" value="{{ url()->full() }}">
+                  <input type="file"
+                         name="cover_image"
+                         accept="image/*"
+                         id="coverInput_{{ $p->id }}"
+                         style="display:none;"
+                         onchange="if(this.files.length){ document.getElementById('coverForm_{{ $p->id }}').submit(); }">
+                  <button type="button"
+                          onclick="document.getElementById('coverInput_{{ $p->id }}').click()"
+                          title="Cargar nueva portada"
+                          style="height:36px;padding:0 12px;border-radius:12px;border:1px solid rgba(37,99,235,.25);background:rgba(37,99,235,.08);font-weight:950;cursor:pointer;color:#1d4ed8;">
+                    📷 Portada
+                  </button>
+                </form>
+
                 <form method="POST" action="{{ route('admin.menu-products.destroy', $p) }}" style="display:inline-block;margin-left:8px;"
                       onsubmit="return confirm('¿Eliminar este producto?');">
                   @csrf
