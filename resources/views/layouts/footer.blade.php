@@ -112,11 +112,11 @@
     gap: 70px;
     max-width: 1000px;
     margin: 0 auto;
-    padding: 36px 18px 18px;
+    padding: 20px 18px 10px;
   }
 
   .li-foot-top{
-    flex: 0 0 270px;
+    flex: 0 0 400px;
   }
 
   .li-foot-grid{
@@ -124,17 +124,14 @@
     min-width: 0;
   }
 
-  @media(max-width: 1350px){
-    .li-footer-inner{
-      max-width: 1000px;
-    }
-  }
+  
 
   .li-foot-top{
     display:flex;
     flex-direction: column;
     align-items:flex-start;
     justify-content:space-evenly;
+    margin: 0 auto;
     gap: 18px;
     margin-bottom: 18px;
   }
@@ -167,6 +164,17 @@
     justify-content:flex-end;
   }
 
+  .li-social-media{
+    display: flex;
+    flex-direction: column;
+
+    gap: 1em;
+  }
+
+  .li-social-media p{
+    color: white;
+  }
+
 
 
 
@@ -195,17 +203,72 @@
   }
 
   .li-foot-grid{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 44px;
-    align-items:start;
-    padding-top: 10px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-items: stretch;
+    padding-top: 4px;
+    padding-bottom: 12px;
+  }
+  
+  .li-access-list{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .li-access-item{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .li-access-item span{
+    color: white;
+  }
+
+  .li-access-item small{
+    opacity: .65;
+    font-size: 13px;
   }
 
   @media (max-width: 980px){
-    .li-foot-top{ flex-direction: column; align-items:flex-start; }
-    .li-top-actions{ justify-content:flex-start; }
-    .li-foot-grid{ grid-template-columns: 1fr; gap: 26px; }
+    .li-footer-inner{
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 28px;
+    }
+
+    .li-foot-top{
+      flex: initial;
+      width: 100%;
+      align-items: flex-start;
+    }
+
+    .li-top-actions{
+      justify-content: flex-start;
+    }
+
+    .li-foot-grid{
+      width: 100%;
+      gap: 26px;
+    }
+
+    .li-foot-section{
+      grid-template-columns: 1fr;
+      row-gap: 8px;
+    }
+
+    .li-section-toggle{
+      width: 100%;
+    }
   }
 
   .li-col-title{
@@ -364,8 +427,8 @@
   .li-edit-on .li-pencil{ display:flex; }
 
   .li-foot-bottom{
-    margin-top: 28px;
-    padding-top: 14px;
+    margin-top: 8px;
+    padding: 10px 18px;
     border-top: 1px solid var(--f-line);
     display:flex;
     align-items:center;
@@ -523,6 +586,319 @@
     display:block;
   }
   .li-prev img{ object-fit: contain; background:#0b1220; }
+
+  .li-foot-section{
+    width: 100%;
+    position: relative;
+
+    display: grid;
+    grid-template-columns: 230px 1fr;
+    column-gap: 28px;
+    align-items: start;
+  }
+
+  /* Título grande clickeable */
+  .li-section-toggle{
+    width: 230px;
+    border: 0;
+    background: transparent;
+    color: white;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    font-size: 25px;
+    font-weight: 900;
+    letter-spacing: .2px;
+
+    padding: 0;
+    text-align: left;
+  }
+
+    /* Icono + / x */
+  .li-toggle-icon{
+    width: 28px;
+    height: 28px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+
+    transition: transform .25s ease;
+  }
+
+  .li-foot-section.open .li-toggle-icon{
+    transform: rotate(45deg);
+  }
+
+  /* Panel de opciones */
+  .li-section-content{
+    display: none;
+    grid-column: 2;
+    align-self: start;
+    width: 100%;
+    max-width: 320px;
+    z-index: 20;
+  }
+
+  .li-foot-section.open .li-section-content{
+    display: block;
+  }
+
+  /* Oculta la línea */
+  .li-foot-section .li-col-rule{
+    display: none;
+  }
+
+  /* Lápiz arriba a la derecha del panel */
+  .li-foot-section .li-section-content .li-col-title{
+    justify-content: flex-end;
+    margin-bottom: 6px;
+  }
+
+  /* Opciones en columna */
+  .li-foot-section #liCapsList,
+  .li-foot-section .li-loc-list{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+  }
+
+  /* Cada opción */
+  .li-foot-section .li-cap-item,
+  .li-foot-section .li-loc{
+    width: 100%;
+  }
+  @media(max-width: 1500px){
+    .li-loc-tip{
+      max-width:400px;
+    }
+  }
+  @media(max-width: 1350px){
+    .li-footer-inner{
+      max-width: 1000px;
+    }
+    .li-loc-tip{
+      max-width:350px;
+    }
+  }
+  @media(max-width: 1300px){
+    .li-footer-inner{
+      max-width: 900px;
+    }
+    .li-section-content{
+      max-width: 230px;
+    }
+    .li-foot-section{
+      column-gap: 14px;
+    }
+    .li-loc-tip{
+      max-width:300px;
+    }
+  }
+  @media(max-width: 1250px){
+    .li-cap-item small{
+      display: none;
+    }
+    .li-loc-tip{
+      max-width:200px;
+    }
+  }
+  @media(max-width: 1150px){
+    .li-cap-item small{
+      display: none;
+    }
+    .li-loc-tip{
+      max-width:190px;
+    }
+  }
+
+  @media(max-width: 1100px){
+    .li-full-name{
+      display: none;
+    }
+    .li-loc-tip{
+      max-width:150px;
+    }
+  }
+
+  @media (max-width: 982px){
+    .li-full-name{
+      display: block;
+    }
+    .li-brand{
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 1em;
+    }
+
+    .li-brand-head{
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .li-brand-head img{
+      display: block;
+      margin: 0 auto;
+    }
+
+    .li-brand-sub{
+      text-align: center;
+    }
+
+    .li-footer-inner{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      width: 100%;
+    }
+
+    .li-foot-top{
+      width: 100%;
+      align-items: center;
+      text-align: center;
+    }
+
+    .li-brand-area{
+      justify-content: center;
+      text-align: center;
+    }
+
+    .li-top-actions{
+      justify-content: center;
+    }
+
+    .li-foot-grid{
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      min-height: auto;
+      padding-bottom: 24px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .li-foot-section{
+      width: 100%;
+      min-height: auto;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .li-section-toggle{
+      width: auto;
+      max-width: none;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+
+      padding: 8px 0 12px;
+      text-align: center;
+      margin: 0 auto;
+    }
+
+    .li-section-content,
+    .li-foot-section:nth-child(1) .li-section-content,
+    .li-foot-section:nth-child(2) .li-section-content{
+      position: static !important;
+      left: auto !important;
+      top: auto !important;
+      transform: none !important;
+
+      width: 100%;
+      max-width: 340px;
+      padding-top: 8px;
+      z-index: auto;
+      margin: 0 auto;
+    }
+
+    .li-foot-section.open .li-section-content{
+      display: block;
+    }
+
+    .li-foot-section #liCapsList,
+    .li-foot-section .li-loc-list{
+      width: 100%;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .li-foot-section .li-cap-item,
+    .li-foot-section .li-loc{
+      width: 100%;
+      max-width: 340px;
+    }
+
+    .li-foot-section .li-loc-name{
+      justify-content: center;
+      text-align: center;
+    }
+
+    .li-foot-section .li-section-content .li-col-title{
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+    .li-cap-item small{
+      display: block;
+    }
+    /*accesos rapidos*/
+    .li-access-list{
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .li-access-item{
+      width: 100%;
+      max-width: 340px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .li-access-item span{
+      color: white;
+      text-align: center;
+    }
+
+    .li-access-item small{
+      opacity: .65;
+      font-size: 13px;
+      text-align: center;
+    }
+  }
 </style>
 
 <footer class="li-footer" id="liFooter">
@@ -530,7 +906,7 @@
 
     {{-- TOP: Logo + redes + engrane --}}
     <div class="li-foot-top">
-      <div>
+      <div class="li-brand">
         <div class="li-brand-head">
           <img src="{{ $liLogo }}" alt="Línea Italia">
         </div>
@@ -538,134 +914,153 @@
           Ubicaciones, capacitaciones y accesos rápidos.
         </div>
       </div>
+      <div class="li-social-media">
+        <p>Redes Sociales</p>
+        <div class="li-top-actions">
+          {{-- Redes --}}
+          @foreach($socials as $s)
+            <a class="li-icon" href="{{ $s['href'] }}" target="_blank" rel="noopener" title="{{ $s['label'] }}">
+              @if($s['id']==='fb')
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v3H7v3h3v4h3v-4h3l1-3h-4v-3c0-.6.4-1 1-1z" fill="currentColor"/></svg>
+              @elseif($s['id']==='ig')
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5z" stroke="currentColor" stroke-width="1.7"/><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" stroke="currentColor" stroke-width="1.7"/><path d="M17.5 6.6h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+              @elseif($s['id']==='x')
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 19L19 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 5h5l5 14h-5L7 5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+              @else
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M10 15l5.2-3L10 9v6z" fill="currentColor"/><path d="M21 7a3 3 0 0 0-2-2c-1.7-.5-7-.5-7-.5s-5.3 0-7 .5a3 3 0 0 0-2 2A31 31 0 0 0 3 12a31 31 0 0 0 .5 5 3 3 0 0 0 2 2c1.7.5 7 .5 7 .5s5.3 0 7-.5a3 3 0 0 0 2-2A31 31 0 0 0 21 12a31 31 0 0 0-.5-5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              @endif
+            </a>
+          @endforeach
 
-      <div class="li-top-actions">
-        {{-- Redes --}}
-        @foreach($socials as $s)
-          <a class="li-icon" href="{{ $s['href'] }}" target="_blank" rel="noopener" title="{{ $s['label'] }}">
-            @if($s['id']==='fb')
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M14 9h3V6h-3c-2.2 0-4 1.8-4 4v3H7v3h3v4h3v-4h3l1-3h-4v-3c0-.6.4-1 1-1z" fill="currentColor"/></svg>
-            @elseif($s['id']==='ig')
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5z" stroke="currentColor" stroke-width="1.7"/><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" stroke="currentColor" stroke-width="1.7"/><path d="M17.5 6.6h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-            @elseif($s['id']==='x')
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 19L19 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 5h5l5 14h-5L7 5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-            @else
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M10 15l5.2-3L10 9v6z" fill="currentColor"/><path d="M21 7a3 3 0 0 0-2-2c-1.7-.5-7-.5-7-.5s-5.3 0-7 .5a3 3 0 0 0-2 2A31 31 0 0 0 3 12a31 31 0 0 0 .5 5 3 3 0 0 0 2 2c1.7.5 7 .5 7 .5s5.3 0 7-.5a3 3 0 0 0 2-2A31 31 0 0 0 21 12a31 31 0 0 0-.5-5z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-            @endif
-          </a>
-        @endforeach
-
-        {{-- Engrane admin (toggle modo edición) --}}
-        @if($isAdmin)
-          <button type="button" class="li-icon" id="liFooterGear" title="Modo edición">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="currentColor" stroke-width="1.7"/>
-              <path d="M19.4 15a8 8 0 0 0 .1-1l2-1.2-2-3.6-2.3.8a7 7 0 0 0-1.7-1l-.4-2.4H9l-.4 2.4a7 7 0 0 0-1.7 1l-2.3-.8-2 3.6 2 1.2a8 8 0 0 0 .1 1 8 8 0 0 0-.1 1l-2 1.2 2 3.6 2.3-.8a7 7 0 0 0 1.7 1l.4 2.4h6.1l.4-2.4a7 7 0 0 0 1.7-1l2.3.8 2-3.6-2-1.2a8 8 0 0 0-.1-1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        @endif
+          {{-- Engrane admin (toggle modo edición) --}}
+          @if($isAdmin)
+            <button type="button" class="li-icon" id="liFooterGear" title="Modo edición">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" stroke="currentColor" stroke-width="1.7"/>
+                <path d="M19.4 15a8 8 0 0 0 .1-1l2-1.2-2-3.6-2.3.8a7 7 0 0 0-1.7-1l-.4-2.4H9l-.4 2.4a7 7 0 0 0-1.7 1l-2.3-.8-2 3.6 2 1.2a8 8 0 0 0 .1 1 8 8 0 0 0-.1 1l-2 1.2 2 3.6 2.3-.8a7 7 0 0 0 1.7 1l.4 2.4h6.1l.4-2.4a7 7 0 0 0 1.7-1l2.3.8 2-3.6-2-1.2a8 8 0 0 0-.1-1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          @endif
+        </div>
       </div>
+      
     </div>
 
     <div class="li-foot-grid">
 
-      {{-- Capacitaciones (izquierda) --}}
-      <section>
-        <div class="li-col-title">
+      {{-- Capacitaciones --}}
+      <section class="li-foot-section">
+        <button type="button" class="li-section-toggle">
           <span>Capacitaciones</span>
-          <button type="button" class="li-pencil" id="liEditCapsBtn" title="Editar capacitaciones">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 20h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
-        <div class="li-col-rule"></div>
+          <span class="li-toggle-icon">+</span>
+        </button>
 
-        <div id="liCapsList">
-          @foreach($capacitaciones as $c)
-            @php
-              if (!($c['is_active'] ?? true)) continue;
+        <div class="li-section-content">
+          <div class="li-col-title">
+            <span></span>
+            <button type="button" class="li-pencil" id="liEditCapsBtn" title="Editar capacitaciones">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M12 20h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
 
-              $mode = $c['link_mode'] ?? 'menu';
+          <div class="li-col-rule"></div>
 
-              $fallback = $capsFallbackBase . '/' . ($c['key'] ?? '');
-              $finalHref = $fallback;
-              $hint = 'Menú';
-              $previewable = false;
+          <div id="liCapsList">
+            @foreach($capacitaciones as $c)
+              @php
+                if (!($c['is_active'] ?? true)) continue;
 
-              if ($mode === 'external' && trim($c['external_url'] ?? '') !== '') {
-                $finalHref = $c['external_url'];
-                $hint = 'Vista previa';
-                $previewable = true;
-              } elseif ($mode === 'file' && trim($c['file_url'] ?? '') !== '') {
-                $finalHref = $c['file_url'];
-                $hint = 'Vista previa';
-                $previewable = true;
-              } elseif ($mode === 'menu') {
-                $mp = trim((string)($c['menu_path'] ?? ''), '/');
-                $finalHref = $mp !== '' ? url('/'.$mp) : $fallback;
-                $hint = 'Menú';
-                $previewable = false;
-              } else {
-                // fallback final si falta dato del modo
+                $mode = $c['link_mode'] ?? 'menu';
+
+                $fallback = $capsFallbackBase . '/' . ($c['key'] ?? '');
                 $finalHref = $fallback;
                 $hint = 'Menú';
                 $previewable = false;
-              }
-            @endphp
 
-            <a
-              class="li-cap-item"
-              href="{{ $finalHref }}"
-              @if($previewable) data-preview="media" data-title="{{ $c['label'] }}" @endif
-              title="{{ $hint }}"
-            >
-              <span>{{ $c['label'] }}</span>
-              <small>{{ $hint }}</small>
-            </a>
-          @endforeach
+                if ($mode === 'external' && trim($c['external_url'] ?? '') !== '') {
+                  $finalHref = $c['external_url'];
+                  $hint = 'Vista previa';
+                  $previewable = true;
+                } elseif ($mode === 'file' && trim($c['file_url'] ?? '') !== '') {
+                  $finalHref = $c['file_url'];
+                  $hint = 'Vista previa';
+                  $previewable = true;
+                } elseif ($mode === 'menu') {
+                  $mp = trim((string)($c['menu_path'] ?? ''), '/');
+                  $finalHref = $mp !== '' ? url('/'.$mp) : $fallback;
+                  $hint = 'Menú';
+                  $previewable = false;
+                } else {
+                  $finalHref = $fallback;
+                  $hint = 'Menú';
+                  $previewable = false;
+                }
+              @endphp
+
+              <a
+                class="li-cap-item"
+                href="{{ $finalHref }}"
+                @if($previewable) data-preview="media" data-title="{{ $c['label'] }}" @endif
+                title="{{ $hint }}"
+              >
+                <span>{{ $c['label'] }}</span>
+                <small>{{ $hint }}</small>
+              </a>
+            @endforeach
+          </div>
         </div>
       </section>
 
-      {{-- Showrooms minimal (centro) --}}
-      <section>
-        <div class="li-col-title">
+
+      {{-- Showrooms --}}
+      <section class="li-foot-section">
+        <button type="button" class="li-section-toggle">
           <span>Showrooms</span>
-          <button type="button" class="li-pencil" id="liEditLocationsBtn" title="Editar showrooms">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 20h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-            </svg>
-          </button>
-        </div>
-        <div class="li-col-rule"></div>
+          <span class="li-toggle-icon">+</span>
+        </button>
 
-        <div class="li-loc-list" id="liLocationsList">
-          @foreach($locations as $loc)
-            <div
-              class="li-loc"
-              role="button"
-              tabindex="0"
-              data-loc="{{ $loc['id'] }}"
-              data-copy="{{ $loc['address'] }}"
-              title="Click para copiar dirección"
-            >
-              <div class="li-loc-name">
-                <span>{{ $loc['name'] }}</span>
-                <span class="li-loc-pill">{{ strtoupper($loc['id']) }}</span>
-              </div>
+        <div class="li-section-content">
+          <div class="li-col-title">
+            <span></span>
+            <button type="button" class="li-pencil" id="liEditLocationsBtn" title="Editar showrooms">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M12 20h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
 
-              <div class="li-loc-tip">
-                {{ $loc['address'] }}
-                <span class="small">Click para copiar</span>
+          <div class="li-col-rule"></div>
+
+          <div class="li-loc-list" id="liLocationsList">
+            @foreach($locations as $loc)
+              <div
+                class="li-loc"
+                role="button"
+                tabindex="0"
+                data-loc="{{ $loc['id'] }}"
+                data-copy="{{ $loc['address'] }}"
+                title="Click para copiar dirección"
+              >
+                <div class="li-loc-name">
+                  <span class="li-full-name">{{ $loc['name'] }}</span>
+                  <span class="li-loc-pill">{{ strtoupper($loc['id']) }}</span>
+                </div>
+
+                <div class="li-loc-tip">
+                  {{ $loc['address'] }}
+                  <span class="small">Click para copiar</span>
+                </div>
               </div>
-            </div>
-          @endforeach
+            @endforeach
+          </div>
         </div>
       </section>
-    </div>
 
+    </div>
     
   </div>
 
@@ -1233,4 +1628,18 @@
       }
     });
   })();
+
+  document.querySelectorAll('.li-section-toggle').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const currentSection = btn.closest('.li-foot-section');
+
+      document.querySelectorAll('.li-foot-section').forEach((section) => {
+        if (section !== currentSection) {
+          section.classList.remove('open');
+        }
+      });
+
+      currentSection.classList.toggle('open');
+    });
+  });
 </script>
