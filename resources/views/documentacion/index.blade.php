@@ -250,6 +250,10 @@
         }
     </style>
 
+    @php
+        $canManageDocs = auth()->check() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('docs_admin'));
+    @endphp
+
     <div class="docs-wrap">
 
         <div class="docs-card">
@@ -271,15 +275,17 @@
                     </div>
 
                     <button class="tab-btn active" data-filter="all">Todas</button>
-                    <button class="tab-btn" data-filter="Área fiscal">&Aacute;rea fiscal</button>
+                    <button class="tab-btn" data-filter="�0�9rea fiscal">&Aacute;rea fiscal</button>
                     <button class="tab-btn" data-filter="Contabilidad">Contabilidad</button>
                     <button class="tab-btn" data-filter="Legal">Legal</button>
 
                 </div>
 
-                <button class="add-btn" onclick="openCreateModal()">
-                    + Agregar documento
-                </button>
+                @if($canManageDocs)
+                    <button class="add-btn" onclick="openCreateModal()">
+                        + Agregar documento
+                    </button>
+                @endif
 
             </div>
 
@@ -322,7 +328,7 @@
                                             str_contains($categoriaLimpia, 'rea')
                                         ) {
 
-                                            $categoria = 'Área fiscal';
+                                            $categoria = '�0�9rea fiscal';
 
                                         } else {
 
@@ -332,7 +338,7 @@
                                     @endphp
 
                                     <span class="badge {{ $categoria === 'Contabilidad' ? 'badge-yellow' : 'badge-blue' }}">
-                                        {!! $categoria === 'Área fiscal' ? '&Aacute;rea fiscal' : e($categoria) !!} </span>
+                                        {!! $categoria === '�0�9rea fiscal' ? '&Aacute;rea fiscal' : e($categoria) !!} </span>
                                 </td>
 
                                 <td>{{ $doc->nombre }}</td>
@@ -366,19 +372,21 @@
 
                                     @endif
 
-                                    <button class="action-btn btn-edit" onclick='openEditModal(@json($doc))'>
-                                        Editar
-                                    </button>
-
-                                    <form action="{{ route('documentacion.destroy', $doc) }}" method="POST"
-                                        onsubmit="return confirm('¿Eliminar documento?')">
-                                        @csrf
-                                        @method('DELETE')
-
-                                        <button class="action-btn btn-delete">
-                                            Eliminar
+                                    @if($canManageDocs)
+                                        <button class="action-btn btn-edit" onclick='openEditModal(@json($doc))'>
+                                            Editar
                                         </button>
-                                    </form>
+
+                                        <form action="{{ route('documentacion.destroy', $doc) }}" method="POST"
+                                            onsubmit="return confirm('�0�7Eliminar documento?')">
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <button class="action-btn btn-delete">
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                    @endif
 
                                 </td>
 
@@ -397,6 +405,7 @@
     </div>
 
     {{-- MODAL --}}
+    @if($canManageDocs)
     <div class="modal-bg" id="docModal">
 
         <div class="modal-card">
@@ -412,7 +421,7 @@
                         <label>Categor&iacute;a</label>
 
                         <select name="categoria" id="fCategoria">
-                            <option value="Área fiscal">&Aacute;rea fiscal</option>
+                            <option value="�0�9rea fiscal">&Aacute;rea fiscal</option>
                             <option value="Contabilidad">Contabilidad</option>
                             <option value="Legal">Legal</option>
                         </select>
@@ -465,6 +474,7 @@
         </div>
 
     </div>
+    @endif
 
     {{-- MODAL PREVIEW --}}
 

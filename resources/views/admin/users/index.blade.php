@@ -47,7 +47,14 @@
 
             <td style="padding:10px;border-bottom:1px solid #f1f1f1;">
               @if($local)
-                <strong>{{ $role === 'admin' ? 'admin' : 'user' }}</strong>
+                @php
+                  $roleLabel = match($role) {
+                    'admin' => 'Admin',
+                    'docs_admin' => 'Admin Documentación',
+                    default => 'Normal',
+                  };
+                @endphp
+                <strong>{{ $roleLabel }}</strong>
               @else
                 <span style="opacity:.7;">No existe en local</span>
               @endif
@@ -61,6 +68,7 @@
 
                   <select name="role" style="border:1px solid #ddd;border-radius:10px;padding:8px 10px;">
                     <option value="user"  @selected($role==='user')>Normal</option>
+                    <option value="docs_admin" @selected($role==='docs_admin')>Admin Documentación</option>
                     <option value="admin" @selected($role==='admin')>Admin</option>
                   </select>
 

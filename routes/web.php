@@ -61,14 +61,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/documentacion', [DocumentacionController::class, 'index'])
         ->name('documentacion.index');
 
-    Route::post('/documentacion', [DocumentacionController::class, 'store'])
-        ->name('documentacion.store');
+    Route::middleware(['role:admin|docs_admin'])->group(function () {
+        Route::post('/documentacion', [DocumentacionController::class, 'store'])
+            ->name('documentacion.store');
 
-    Route::put('/documentacion/{documento}', [DocumentacionController::class, 'update'])
-        ->name('documentacion.update');
+        Route::put('/documentacion/{documento}', [DocumentacionController::class, 'update'])
+            ->name('documentacion.update');
 
-    Route::delete('/documentacion/{documento}', [DocumentacionController::class, 'destroy'])
-        ->name('documentacion.destroy');
+        Route::delete('/documentacion/{documento}', [DocumentacionController::class, 'destroy'])
+            ->name('documentacion.destroy');
+    });
 
 
     Route::get('/material-visual', [MaterialVisualController::class, 'index'])

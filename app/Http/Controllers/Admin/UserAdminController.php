@@ -26,13 +26,18 @@ class UserAdminController extends Controller
 
         $remoteConn = $this->remoteConnectionName();
 
-        // Ajusta campos si tu tabla remota usa otros nombres
+        // Solo empleados que pueden iniciar sesión: con email y activos
         $remoteUsersQuery = DB::connection($remoteConn)
             ->table('users')
             ->select(['id', 'name', 'email'])
+            ->whereNotNull('email')
+            ->where('email', '!=', '')
+            ->where('status', 1)
             ->when($q !== '', function ($query) use ($q) {
-                $query->where('email', 'like', "%{$q}%")
+                $query->where(function ($w) use ($q) {
+                    $w->where('email', 'like', "%{$q}%")
                       ->orWhere('name', 'like', "%{$q}%");
+                });
             })
             ->orderBy('email', 'asc');
 
@@ -40,6 +45,7 @@ class UserAdminController extends Controller
 
         // Asegura roles base en local
         Role::findOrCreate('admin');
+        Role::findOrCreate('docs_admin');
         Role::findOrCreate('user');
 
         // “Sincroniza” a local por email (sin tocar passwords)
@@ -69,10 +75,19 @@ class UserAdminController extends Controller
                 }
             }
 
+            $role = 'user';
+            if ($local) {
+                if ($local->hasRole('admin')) {
+                    $role = 'admin';
+                } elseif ($local->hasRole('docs_admin')) {
+                    $role = 'docs_admin';
+                }
+            }
+
             return [
                 'remote' => $ru,
                 'local' => $local,
-                'role' => $local?->hasRole('admin') ? 'admin' : 'user',
+                'role' => $role,
             ];
         });
 
@@ -86,18 +101,15 @@ class UserAdminController extends Controller
     public function updateRole(Request $request, User $user)
     {
         $data = $request->validate([
-            'role' => ['required', 'in:admin,user'],
+            'role' => ['required', 'in:admin,docs_admin,user'],
         ]);
 
         // Asegura roles base
         Role::findOrCreate('admin');
+        Role::findOrCreate('docs_admin');
         Role::findOrCreate('user');
 
-        if ($data['role'] === 'admin') {
-            $user->syncRoles(['admin']); // si quieres que admin también tenga user: ['admin','user']
-        } else {
-            $user->syncRoles(['user']);
-        }
+        $user->syncRoles([$data['role']]);
 
         return back()->with('status', "Rol actualizado: {$user->email} → {$data['role']}");
     }
