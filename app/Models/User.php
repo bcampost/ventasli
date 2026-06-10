@@ -11,6 +11,10 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles;
 
+    protected $connection = 'li_users'; // Especifica la conexión personalizada
+    protected $table = 'users'; // Especifica la tabla personalizada
+
+
     protected $fillable = [
         'name',
         'email',

@@ -1,15 +1,16 @@
 @php
   use App\Models\QuickLink;
 
-  $quickLinks = QuickLink::where('is_active', true)
-    ->orderBy('sort_order')
-    ->orderBy('id')
-    ->get();
+$isAdmin = auth()->check() && auth()->user()->hasRole('admin');
 
-  // Rol admin en minúsculas
-  $isAdmin = auth()->check() && auth()->user()->hasRole('admin');
+$quickLinks = QuickLink::where('is_active', true)
+  ->when(!$isAdmin, function ($q) {
+    $q->whereRaw('TRIM(LOWER(name)) != ?', ['permisos']);
+  })
+  ->orderBy('sort_order')
+  ->orderBy('id')
+  ->get();
 
-  // Fallback SVGs (por si aún usas el campo icon)
   $icon = function(string $name) {
     return match($name) {
       'home' => '<svg viewBox="0 0 24 24" fill="none"><path d="M4 10.5 12 4l8 6.5V20a1.5 1.5 0 0 1-1.5 1.5H15v-6h-6v6H5.5A1.5 1.5 0 0 1 4 20v-9.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
@@ -38,165 +39,245 @@
 @endphp
 
 <style>
-  /* evita scroll horizontal por transforms */
   html, body { overflow-x: hidden; }
 
-  .rq-wrap{
-    position: fixed;
-    right: 22px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 9999;
-    pointer-events: none;
-  }
+.rq-wrap{
+  position: fixed;
+  right: 20px;
+  top: 110px;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
 
-  /* SOLO ICONOS: lista sin cápsula */
+.rq{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 74px;
+  padding: 14px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 18px 40px rgba(15,23,42,.12);
+  transition: width .25s ease, padding .25s ease;
+}
+
+/* Botón que abre/cierra */
+.rq-toggle{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 58px;
+  height: 58px;
+  padding: 0 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px rgba(15,23,42,.10);
+  color: #111827;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all .22s ease;
+}
+
+.rq-toggle:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(15,23,42,.14);
+}
+
+.rq-toggle-icon{
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  display: inline-grid;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.rq-toggle-text{
+  display: none;
+}
+
+
+/* Items */
+.rq-item{
+  width: 54px;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-left: 0.7em;
+  margin: 0 auto;
+  text-decoration: none;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid transparent;
+  color: #111827;
+  overflow: hidden;
+  transition: all .22s ease;
+}
+
+.rq-item:hover{
+  background: #f9fafb;
+  border-color: #e5e7eb;
+}
+
+.rq-icon{
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 0;
+  overflow: hidden;
+}
+
+.rq-img{
+  width: 20px;
+  height: 20px;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  margin: 0 auto;
+}
+
+.rq-icon svg{
+  width: 20px;
+  height: 20px;
+  color: #374151;
+  display: block;
+  margin: 0 auto;
+}
+
+
+.rq-label{
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  transition: max-width .22s ease, opacity .18s ease;
+}
+
+/* Separador */
+.rq-sep{
+  width: 36px;
+  height: 1px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  margin: 2px 0;
+  transition: width .22s ease;
+}
+
+/* Estado abierto */
+.rq-wrap.is-open .rq-toggle{
+  min-width: 170px;
+  justify-content: flex-start;
+}
+
+.rq-wrap.is-open .rq-toggle-text{
+  display: inline;
+}
+
+.rq-wrap.is-open .rq{
+  width: 240px;
+  align-items: stretch;
+  padding: 14px;
+}
+
+.rq-wrap.is-open .rq-item{
+  width: 100%;
+  min-height: 54px;
+  justify-content: flex-start;
+  padding: 6px 12px;
+  border-color: #f3f4f6;
+}
+
+.rq-wrap.is-open .rq-label{
+  max-width: 140px;
+  opacity: 1;
+}
+
+.rq-wrap.is-open .rq-sep{
+  width: 100%;
+}
+
+
+@media (max-width: 1300px){
+  .rq-wrap{
+    right: 12px;
+    bottom: 30px;
+    top: auto;
+    align-items: center;
+  }
+}
+
+/* Tablet */
+@media (max-width: 992px){
+
   .rq{
-    pointer-events: auto;
-    display:flex;
-    flex-direction:column;
-    gap: 14px;
-    align-items:center;
+    width: 68px;
+    padding: 12px 8px;
   }
 
   .rq-item{
-    position: relative;
-    width: 58px;
-    height: 58px;
-    display:grid;
-    place-items:center;
-    text-decoration:none;
-    outline:none;
-    border-radius: 999px;
-    background: transparent;
-    border: none;
-    transition: transform .18s ease, filter .18s ease;
-    transform-style: preserve-3d;
+    width: 50px;
+    min-height: 50px;
   }
 
-  .rq-item:hover{
-    transform: translateX(-2px) translateZ(18px) scale(1.06);
-    filter: drop-shadow(0 18px 30px rgba(0,0,0,.12));
-  }
-
-  /* "Liquid glass" SOLO en el icono (contenedor) */
   .rq-icon{
-    width: 44px;
-    height: 44px;
-    border-radius: 999px;
-    display:grid;
-    place-items:center;
-
-    background: rgba(255,255,255,.22);
-    border: 1px solid rgba(255,255,255,.38);
-    box-shadow:
-      0 10px 26px rgba(0,0,0,.12),
-      inset 0 1px 0 rgba(255,255,255,.55),
-      inset 0 -10px 24px rgba(255,255,255,.10);
-
-    backdrop-filter: blur(10px) saturate(140%);
-    -webkit-backdrop-filter: blur(10px) saturate(140%);
-
-    transform: translateZ(0);
-    position: relative;
-    overflow: hidden;
-
-    transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    width:36px;
+    height: 36px;
+    min-width: 36px;
   }
 
-  /* brillo especular */
-  .rq-icon::before{
-    content:"";
-    position:absolute;
-    inset: -20% -40%;
-    background: radial-gradient(circle at 30% 25%,
-      rgba(255,255,255,.85) 0%,
-      rgba(255,255,255,.25) 35%,
-      rgba(255,255,255,0) 62%);
-    transform: rotate(12deg);
-    pointer-events:none;
-    opacity: .55;
+  .rq-wrap.is-open .rq{
+    width: 210px;
   }
 
-  /* sheen al hover */
-  .rq-icon::after{
-    content:"";
-    position:absolute;
-    inset:0;
-    background: linear-gradient(115deg,
-      rgba(255,255,255,0) 0%,
-      rgba(255,255,255,.35) 45%,
-      rgba(255,255,255,0) 70%);
-    transform: translateX(-120%);
-    opacity: .0;
-    pointer-events:none;
-    transition: transform .35s ease, opacity .35s ease;
+  .rq-wrap.is-open .rq-toggle{
+    min-width: 150px;
+  }
+}
+
+/* Móvil */
+@media (max-width: 768px){
+  .rq-wrap{
+    display: none;
   }
 
-  .rq-item:hover .rq-icon{
-    background: rgba(255,255,255,.28);
-    border-color: rgba(255,255,255,.55);
-    transform: translateZ(10px);
-  }
-  .rq-item:hover .rq-icon::after{
-    transform: translateX(120%);
-    opacity: .35;
-  }
-
-  /* SVG fallback */
-  .rq-icon svg{
-    width: 22px;
-    height: 22px;
-    color: rgba(15,23,42,.92);
-    filter: drop-shadow(0 1px 0 rgba(255,255,255,.55));
-  }
-
-  /* ICONO SUBIDO (imagen) */
-  .rq-img{
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-    display:block;
-    filter: drop-shadow(0 1px 0 rgba(255,255,255,.45));
-  }
-
-  /* tooltip a la izquierda (nombre) */
-  .rq-label{
-    position:absolute;
-    right: 68px;
-    top: 50%;
-    transform: translateY(-50%) translateX(10px);
-    opacity: 0;
-    pointer-events: none;
-    white-space: nowrap;
-    font-size: 13px;
-    font-weight: 900;
-    letter-spacing: .2px;
-    color: #0f172a;
-    background: rgba(255,255,255,.92);
-    border: 1px solid rgba(2,6,23,.08);
-    border-radius: 14px;
-    padding: 9px 12px;
-    box-shadow: 0 18px 45px rgba(0,0,0,.14);
-    transition: opacity .18s ease, transform .18s ease;
-  }
-  .rq-item:hover .rq-label{
-    opacity: 1;
-    transform: translateY(-50%) translateX(0);
-  }
-
-  /* separador discreto para admin */
-  .rq-sep{
-    width: 34px;
-    height: 1px;
-    background: rgba(2,6,23,.12);
-    border-radius: 999px;
-    margin: 2px 0;
-  }
+}
 </style>
 
-<div class="rq-wrap">
-  <nav class="rq" aria-label="Accesos rápidos">
+<div class="rq-wrap" id="rqWrap">
+  <button
+    type="button"
+    class="rq-toggle"
+    id="rqToggle"
+    aria-label="Expandir accesos rápidos"
+    aria-expanded="false"
+    onclick="toggleQuickLinksPanel()"
+  >
+    <span class="rq-toggle-icon">☰</span>
+    <span class="rq-toggle-text">Aplicativos</span>
+  </button>
+
+  <nav class="rq" id="rqPanel" aria-label="Accesos rápidos">
     @foreach($quickLinks as $l)
       @php
         $href = $hrefFor($l->url);
@@ -204,9 +285,9 @@
       @endphp
 
       <a class="rq-item"
-         href="{{ $href }}"
-         title="{{ $l->name }}"
-         @if($ext) target="_blank" rel="noopener" @endif
+        href="{{ $href }}"
+        title="{{ $l->name }}"
+        @if($ext) target="_blank" rel="noopener" @endif
       >
         <span class="rq-icon">
           @if(!empty($l->icon_path))
@@ -222,12 +303,28 @@
 
     @if($isAdmin)
       <div class="rq-sep"></div>
+
       <a class="rq-item" href="{{ route('admin.quick-links.index') }}" title="Editar panel">
         <span class="rq-icon">
           {!! $icon('settings') !!}
         </span>
+
         <span class="rq-label">Editar panel</span>
       </a>
     @endif
   </nav>
 </div>
+
+<script>
+  function toggleQuickLinksPanel() {
+    const wrap = document.getElementById('rqWrap');
+    const btn = document.getElementById('rqToggle');
+
+    if (!wrap || !btn) return;
+
+    wrap.classList.toggle('is-open');
+
+    const isOpen = wrap.classList.contains('is-open');
+    btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  }
+</script>

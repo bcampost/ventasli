@@ -1,90 +1,64 @@
 <?php
+// app/Http/Controllers/Admin/MenuCardImageController.php
 
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\MenuCardImage;
+use App\Support\ImageStandardizer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class MenuCardImageController extends Controller
 {
-    private function slugify(string $text): string
+    public function update(Request $request, string $token)
     {
-        $text = mb_strtolower(trim($text));
-        $text = preg_replace('/[^\p{L}\p{N}]+/u', '-', $text);
-        $text = trim($text, '-');
-        return $text ?: 'menu';
-    }
-
-    private function keyOf(array $parts): string
-    {
-        return implode('/', array_map(fn($p) => $this->slugify($p), $parts));
-    }
-
-    public function index(Request $request)
-    {
-        $menu = config('menu', []);
-        $focus = (string) $request->query('focus', '');
-
-        // Generamos el catálogo de keys que existen en el menú
-        $keys = [];
-        foreach ($menu as $section) {
-            $keys[] = $this->keyOf([$section['label']]);
-
-            foreach (($section['children'] ?? []) as $child) {
-                $keys[] = $this->keyOf([$section['label'], $child['label']]);
-
-                foreach (($child['children'] ?? []) as $leaf) {
-                    $keys[] = $this->keyOf([$section['label'], $child['label'], $leaf['label']]);
-                }
-            }
+        // ✅ token -> key (base64url)
+        $key = $this->decodeToken($token);
+        if (!$key) {
+            return back()->with('error', 'Token inválido.');
         }
 
-        $keys = array_values(array_unique($keys));
-
-        $images = MenuCardImage::whereIn('key', $keys)->get()->keyBy('key');
-
-        return view('admin.menu-cards.index', [
-            'keys' => $keys,
-            'images' => $images,
-            'focus' => $focus,
-        ]);
-    }
-
-    public function update(Request $request, string $key)
-    {
-        $request->validate([
-            'image' => ['nullable', 'image', 'max:2048'], // 2MB
+        $data = $request->validate([
+            'title'       => ['nullable','string','max:255'],
+            'description' => ['nullable','string'],
+            'image'       => ['nullable','image','max:5120'], // 5MB
+            'redirect_to' => ['nullable','string'],
         ]);
 
-        $row = MenuCardImage::firstOrCreate(['key' => $key]);
+        $row = MenuCardImage::query()->firstOrNew(['key' => $key]);
 
+        $row->title = $data['title'] ?? null;
+        $row->description = $data['description'] ?? null;
+
+        // ✅ si sube imagen: recorta a estándar y guarda
         if ($request->hasFile('image')) {
-            // borrar anterior si existe
-            if ($row->image_path && Storage::disk('public')->exists($row->image_path)) {
-                Storage::disk('public')->delete($row->image_path);
-            }
+            // borrar anterior
+            ImageStandardizer::deleteIfExists($row->path);
 
-            $path = $request->file('image')->store('menu-cards', 'public');
-            $row->image_path = $path;
-            $row->save();
+            $path = ImageStandardizer::storeCover(
+                $request->file('image'),
+                'menu/cards',
+                1600,
+                900
+            );
+
+            $row->path = $path;
         }
 
-        return back()->with('status', 'Imagen actualizada.');
+        $row->save();
+
+        $to = $data['redirect_to'] ?? url()->previous();
+        return redirect($to)->with('success', 'Card actualizado.');
     }
 
-    public function destroy(string $key)
+    private function decodeToken(string $token): ?string
     {
-        $row = MenuCardImage::where('key', $key)->first();
-        if ($row) {
-            if ($row->image_path && Storage::disk('public')->exists($row->image_path)) {
-                Storage::disk('public')->delete($row->image_path);
-            }
-            $row->image_path = null;
-            $row->save();
-        }
+        // base64url -> base64
+        $b64 = strtr($token, '-_', '+/');
+        $pad = strlen($b64) % 4;
+        if ($pad) $b64 .= str_repeat('=', 4 - $pad);
 
-        return back()->with('status', 'Imagen eliminada.');
+        $decoded = base64_decode($b64, true);
+        return $decoded !== false ? $decoded : null;
     }
 }

@@ -1,74 +1,249 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
+
+use App\Models\MenuNode;
+use App\Models\MenuProduct;
 use App\Models\MenuCardImage;
+use App\Models\MenuProductHero;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class MenuController extends Controller
 {
-    private function slugify(string $text): string
+    public function product(MenuProduct $menu_product)
     {
-        $text = mb_strtolower(trim($text));
-        $text = preg_replace('/[^\p{L}\p{N}]+/u', '-', $text);
-        $text = trim($text, '-');
-        return $text ?: 'menu';
+        // ✅ defaults seguros
+        $gallery = is_array($menu_product->gallery_images) ? $menu_product->gallery_images : (json_decode((string)$menu_product->gallery_images, true) ?: []);
+        $specs   = is_array($menu_product->specs) ? $menu_product->specs : (json_decode((string)$menu_product->specs, true) ?: []);
+
+        // Si no hay galería, usa image_path como primera imagen (si existe)
+        if (empty($gallery) && !empty($menu_product->image_path)) {
+            $gallery = [$menu_product->image_path];
+        }
+
+        // Defaults del “boceto”
+        $specs = array_merge([
+            'measures' => [
+                'largo' => '',
+                'ancho' => '',
+                'alto'  => '',
+            ],
+            'colors_acero'    => [],
+            'colors_melamina' => [],
+            'notes'           => '',
+            'files'           => [
+                'ficha_tecnica' => null,
+                'instructivo'   => null,
+            ],
+        ], $specs);
+
+        // Asegura estructura files
+        if (!is_array($specs['files'] ?? null)) {
+            $specs['files'] = ['ficha_tecnica' => null, 'instructivo' => null];
+        }
+        $specs['files']['ficha_tecnica'] = $specs['files']['ficha_tecnica'] ?? null;
+        $specs['files']['instructivo']   = $specs['files']['instructivo'] ?? null;
+
+        return view('menu.product', [
+            'p'       => $menu_product,
+            'gallery' => $gallery,
+            'specs'   => $specs,
+            'backTo'  => url()->previous(),
+        ]);
     }
 
-    private function buildKey(array $parts): string
+    public function show(Request $request, string $sectionSlug, ?string $path = null)
     {
-        $parts = array_map(fn ($p) => $this->slugify($p), $parts);
-        return implode('/', $parts);
+        $section = $this->resolveSectionRoot($sectionSlug);
+
+        // ✅ Ruta completa tipo: "productos/detalles-de-productos/escritorios"
+        $fullPath = $this->buildMenuKey($sectionSlug, $path);
+
+        // Resolver el nodo actual por el path (ususing children por label)
+        [$currentNode, $currentChain] = $this->resolveCurrentNode($section, $path);
+
+        $currentNodeId = $currentNode?->id; // para “Agregar submenú”
+
+        // Hijos del nodo actual (subopciones)
+        $children = collect();
+        if ($currentNodeId) {
+            $children = MenuNode::query()
+                ->when(method_exists(MenuNode::class, 'scopeActive'), fn($q) => $q->active(), fn($q) => $q->where('is_active', 1))
+                ->where('parent_id', $currentNodeId)
+                ->orderBy('sort')
+                ->orderBy('label')
+                ->get();
+        }
+
+$cards = $children->map(function ($n) use ($sectionSlug, $path) {
+    $nodeSlug = Str::slug($n->label, '-');
+    $newPath  = trim(($path ? trim($path, '/') . '/' : '') . $nodeSlug, '/');
+
+    $defaultHref = route('menu.section', [
+        'sectionSlug' => $sectionSlug,
+        'path'        => $newPath
+    ]);
+
+    $nodeUrl = trim((string)($n->url ?? ''));
+    $nodeUrlLower = Str::lower($nodeUrl);
+
+    $isPdf = $nodeUrl !== '' && (
+        Str::endsWith($nodeUrlLower, '.pdf') ||
+        Str::contains($nodeUrlLower, 'pdfs/')
+    );
+
+    if ($isPdf) {
+        $href = asset(ltrim($nodeUrl, '/'));
+    } elseif ($nodeUrl !== '' && Str::startsWith($nodeUrl, ['http://', 'https://'])) {
+        $href = $nodeUrl;
+    } else {
+        $href = $defaultHref;
     }
 
-    public function section(Request $request, string $sectionSlug)
-    {
-        // Si aún no quieres usar config/menu.php, aquí puedes seguir usando el array en el blade.
-        // Pero para que el controller funcione, necesitamos el menú aquí:
-        $menu = config('menu', []);
+    return [
+        'id'          => $n->id,
+        'title'       => $n->label,
+        'key'         => $this->buildMenuKey($sectionSlug, $newPath),
+        'href'        => $href,
+        'is_pdf'      => $isPdf,
+        'hasChildren' => MenuNode::query()
+            ->when(method_exists(MenuNode::class, 'scopeActive'), fn($q) => $q->active(), fn($q) => $q->where('is_active', 1))
+            ->where('parent_id', $n->id)
+            ->exists(),
+        'description' => '',
+        'customTitle' => null,
+    ];
+})->values();
 
-        // Si config('menu') no existe todavía, caería en [] y daría 404.
-        // Si prefieres, luego lo cambiamos a un helper o a DB.
-        $section = collect($menu)->first(function ($item) use ($sectionSlug) {
-            return $this->slugify($item['label']) === $sectionSlug;
+        // Productos del nivel actual (MATCH EXACTO del fullPath)
+        $products = MenuProduct::query()
+            ->where('menu_key', $fullPath)
+            ->orderBy('sort')
+            ->orderByDesc('id')
+            ->get();
+
+        // Targets para modal "Agregar producto"
+        $productTargets = [];
+
+        if ($children->count()) {
+            $basePath = trim((string)$path, '/');
+
+            $productTargets = $children->map(function ($n) use ($sectionSlug, $basePath) {
+                $nodeSlug  = Str::slug($n->label, '-');
+                $childPath = trim($basePath . '/' . $nodeSlug, '/');
+
+                return [
+                    'label'    => $n->label,
+                    'menu_key' => trim($sectionSlug . '/' . $childPath, '/'),
+                ];
+            })->values()->all();
+        } else {
+            $productTargets = [[
+                'label'    => ($currentNode?->label ?? $section['label'] ?? 'Nivel actual'),
+                'menu_key' => $fullPath,
+            ]];
+        }
+
+        // ✅ IMÁGENES (menu_card_images) para cards
+        $cardKeys = $cards->pluck('key')->filter()->values();
+
+        $images = MenuCardImage::query()
+            ->whereIn('key', $cardKeys)
+            ->get()
+            ->keyBy('key');
+
+        $trimPath = trim((string)$path, '/');
+        $depth = $trimPath === '' ? 0 : (substr_count($trimPath, '/') + 1);
+
+        $isDetailLevel =
+            $children->isEmpty()
+            && $depth >= 3
+            && Str::contains($fullPath, 'detalles-de-productos/');
+
+        if ($isDetailLevel) {
+            $hero = MenuProductHero::query()->firstOrCreate(
+                ['key' => $fullPath],
+                ['title' => null, 'description' => null, 'images' => []]
+            );
+
+            return view('menu.detail', [
+                'section'        => $section,
+                'current'        => ['label' => $currentNode?->label],
+                'cards'          => $cards,
+                'images'         => $images,
+                'currentNodeId'  => $currentNodeId,
+                'fullPath'       => $fullPath,
+                'products'       => $products,
+                'productTargets' => $productTargets,
+                'redirectTo'     => url()->current(),
+                'hero'           => $hero,
+            ]);
+        }
+
+        return view('menu.show', [
+            'section'        => $section,
+            'current'        => ['label' => $currentNode?->label],
+            'cards'          => $cards,
+            'images'         => $images,
+            'currentNodeId'  => $currentNodeId,
+            'fullPath'       => $fullPath,
+            'products'       => $products,
+            'productTargets' => $productTargets,
+            'redirectTo'     => url()->current(),
+        ]);
+    }
+
+    private function resolveSectionRoot(string $sectionSlug): array
+    {
+        $roots = MenuNode::query()
+            ->when(method_exists(MenuNode::class, 'scopeActive'), fn($q) => $q->active(), fn($q) => $q->where('is_active', 1))
+            ->where(function ($q) {
+                $q->whereNull('parent_id')->orWhere('parent_id', 0);
+            })
+            ->get();
+
+        $found = $roots->first(function ($n) use ($sectionSlug) {
+            return Str::slug($n->label, '-') === $sectionSlug;
         });
 
-        abort_if(!$section, 404);
+        return [
+            'id'    => $found?->id,
+            'label' => $found?->label ?? Str::headline(str_replace('-', ' ', $sectionSlug)),
+        ];
+    }
 
-        $open = (string) $request->query('open', '');
-        $open = $open ? $this->slugify($open) : '';
+    private function resolveCurrentNode(array $section, ?string $path): array
+    {
+        $rootId = $section['id'] ?? null;
+        if (!$rootId) return [null, []];
 
-        // Imágenes (si ya implementaste MenuCardImage). Si aún no, igual funciona aunque esté vacío
-        $keys = [];
-        $keys[] = $this->buildKey([$section['label']]);
+        $current = MenuNode::find($rootId);
+        if (!$current) return [null, []];
 
-        foreach (($section['children'] ?? []) as $child) {
-            $keys[] = $this->buildKey([$section['label'], $child['label']]);
+        $chain = [$current];
 
-            foreach (($child['children'] ?? []) as $leaf) {
-                $keys[] = $this->buildKey([$section['label'], $child['label'], $leaf['label']]);
-            }
+        $parts = array_values(array_filter(explode('/', trim((string)$path, '/'))));
+        foreach ($parts as $slug) {
+            $next = MenuNode::query()
+                ->when(method_exists(MenuNode::class, 'scopeActive'), fn($q) => $q->active(), fn($q) => $q->where('is_active', 1))
+                ->where('parent_id', $current->id)
+                ->get()
+                ->first(function ($n) use ($slug) {
+                    return Str::slug($n->label, '-') === $slug;
+                });
+
+            if (!$next) break;
+
+            $current = $next;
+            $chain[] = $current;
         }
 
-        $images = class_exists(MenuCardImage::class)
-            ? MenuCardImage::whereIn('key', $keys)->get()->keyBy('key')
-            : collect();
+        return [$current, $chain];
+    }
 
-        $openedChild = null;
-        if ($open) {
-            foreach (($section['children'] ?? []) as $child) {
-                if ($this->slugify($child['label']) === $open) {
-                    $openedChild = $child;
-                    break;
-                }
-            }
-        }
-
-        return view('menu.section', [
-            'section' => $section,
-            'sectionSlug' => $sectionSlug,
-            'open' => $open,
-            'openedChild' => $openedChild,
-            'images' => $images,
-        ]);
+    private function buildMenuKey(string $sectionSlug, ?string $path): string
+    {
+        return trim($sectionSlug . '/' . trim((string)$path, '/'), '/');
     }
 }

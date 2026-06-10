@@ -11,8 +11,10 @@ class RolesAndAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        // Rol admin (minúsculas)
+        // Roles base
         Role::firstOrCreate(['name' => 'admin']);
+        Role::firstOrCreate(['name' => 'docs_admin']);
+        Role::firstOrCreate(['name' => 'user']);
 
         // Usuario admin
         $user = User::firstOrCreate(

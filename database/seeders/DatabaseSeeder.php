@@ -8,9 +8,11 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Otros seeders que ya tengas pueden ir aquí:
+        // $this->call(UsersSeeder::class);
+
         $this->call([
-            RolesAndAdminSeeder::class,
-            // QuickLinksSeeder::class, // si lo usas, lo puedes dejar
+            PriceListMenuSeeder::class,
         ]);
     }
 }
