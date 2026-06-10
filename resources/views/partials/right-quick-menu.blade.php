@@ -274,7 +274,7 @@ $quickLinks = QuickLink::where('is_active', true)
     onclick="toggleQuickLinksPanel()"
   >
     <span class="rq-toggle-icon">☰</span>
-    <span class="rq-toggle-text">Accesos</span>
+    <span class="rq-toggle-text">Aplicativos</span>
   </button>
 
   <nav class="rq" id="rqPanel" aria-label="Accesos rápidos">

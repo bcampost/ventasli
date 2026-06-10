@@ -50,22 +50,9 @@
 
   $isPdfUrl = function (?string $url) {
     $u = trim((string) $url);
-    if ($u === '')
-      return false;
+    if ($u === '') return false;
     $lower = mb_strtolower($u);
-    return \Illuminate\Support\Str::endsWith($lower, [
-      '.pdf',
-      '.doc',
-      '.docx',
-      '.xls',
-      '.xlsx',
-      '.jpg',
-      '.jpeg',
-      '.png',
-      '.gif',
-      '.webp',
-      '.svg',
-    ]);
+    return \Illuminate\Support\Str::endsWith($lower, ['.pdf', '.doc', '.docx']);
   };
 @endphp
 
@@ -110,7 +97,7 @@
   /* 🔽 hace el navbar más compacto */
   .v-nav.scrolled .v-nav-wrap {
     min-height: 58px;
-    padding: 6px 22px;
+    padding: 6px 18px;
   }
 
   /* 🔽 logo más chico */
@@ -124,9 +111,9 @@
   }
 
   .v-nav-wrap {
-    max-width: 1580px;
+    max-width: 1450px;
     margin: 0 auto;
-    padding: 10px 22px;
+    padding: 10px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -268,11 +255,21 @@
     gap: 10px;
     padding: 11px 12px;
     border-radius: 12px;
-    font-weight: 400;
+    font-family: inherit;
+    font-weight: 500;
     font-size: 14px;
+    line-height: 1.4;
+    letter-spacing: normal;
     text-decoration: none;
     color: var(--nav-ink);
     white-space: nowrap;
+  }
+
+  .v-dd a > span,
+  .v-dd-toggle > span {
+    font-weight: inherit;
+    font-size: inherit;
+    line-height: inherit;
   }
 
   .v-dd a:hover {
@@ -328,11 +325,16 @@
     color: var(--nav-ink);
     background: transparent;
     border: 0;
-    font: inherit;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: normal;
     text-align: left;
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
+    white-space: nowrap;
   }
 
   .v-dd-toggle:hover {

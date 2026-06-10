@@ -86,6 +86,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/comunicados', [ComunicadoController::class, 'index'])
         ->name('comunicados.index');
 
+    /*
+    |--------------------------------------------------------------------------
+    | INVENTARIOS (iframe externo embebido)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/inventario', function () {
+        return view('inventario.frame');
+    })->name('inventario.frame');
+
 
     /*
     |--------------------------------------------------------------------------
